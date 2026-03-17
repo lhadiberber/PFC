@@ -1,0 +1,332 @@
+/* Base Styles */
+
+/* Design Tokens */
+
+:root {
+  --color-white: #fff;
+  --color-page-bg: #f4f4f4;
+  --color-primary: #007bff;
+  --color-primary-dark: #0056b3;
+  --color-primary-soft: #e7f3ff;
+  --color-primary-ring: #007bff26;
+  --color-success: #28a745;
+  --color-success-dark: #218838;
+  --color-danger: #dc3545;
+  --color-danger-dark: #c82333;
+  --color-neutral-700: #6c757d;
+  --color-neutral-800: #545b62;
+  --color-text-strong: #333;
+  --color-text-body: #444;
+  --color-text-muted: #666;
+  --color-text-subtle: #555;
+  --color-border-soft: #e5e7eb;
+  --color-brand-navy: #1a365d;
+  --color-brand-navy-light: #2d5a87;
+  --color-brand-green: #10b981;
+  --color-auth-primary: #667eea;
+  --color-auth-secondary: #764ba2;
+  --color-auth-ring: #667eea26;
+}
+
+/* Page Layout */
+
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: var(--color-page-bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center
+}
+
+.page h1 {
+  color: #1a1a1a;
+  font-size: 2em;
+  margin-bottom: 10px;
+  text-align: center
+}
+
+.page p {
+  color: var(--color-text-body);
+  font-size: 1.1em;
+  margin-bottom: 20px;
+  text-align: center
+}
+
+/* Form Elements */
+
+.form {
+  width: 100%;
+  max-width: 700px;
+  padding: 25px;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  background-color: var(--color-white);
+  box-shadow: 0 2px 4px #0000001a
+}
+
+.formRow {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  flex-wrap: wrap
+}
+
+.form-group {
+  margin-bottom: 15px;
+  flex: 1;
+  min-width: 200px
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #8a959e;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color .3s ease, box-shadow .3s ease;
+  background-color: var(--color-white);
+  color: #222
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-ring)
+}
+
+.form-input::placeholder {
+  color: #6b7280
+}
+
+.form-input select {
+  appearance: none;
+  background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0mlld0JiOCIgdveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xIDFMNiA2TDExIDEiIHN0cm9rZT0iIzMzMzMzMyIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+);
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  padding-right: 40px
+}
+
+/* Form Feedback */
+
+.error-message {
+  color: var(--color-danger);
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
+  font-weight: 500
+}
+
+.form-required-note,
+.form-help-text {
+  color: var(--color-text-subtle);
+  font-size: 13px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-style: italic
+}
+
+.input-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  margin-top: 4px
+}
+
+.documents-progress {
+  text-align: center;
+  padding: 12px 20px;
+  background-color: var(--color-primary-soft);
+  border: 2px solid var(--color-primary);
+  border-radius: 8px;
+  margin-bottom: 25px;
+  font-weight: 600;
+  color: var(--color-primary);
+  font-size: 15px
+}
+
+.recap-verification-text {
+  color: var(--color-neutral-700);
+  font-size: 14px;
+  margin-bottom: 25px;
+  text-align: center;
+  font-style: italic
+}
+
+.recap-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 20px
+}
+
+.recap-grid p {
+  margin: 0;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center
+}
+
+.recap-grid p strong {
+  color: #495057;
+  min-width: 140px;
+  flex-shrink: 0
+}
+
+.recap-grid p span:last-child {
+  color: #212529;
+  font-weight: 500;
+  text-align: right
+}
+
+.recap-grid p:has(.doc-ok),
+.recap-part:contains("Documents") .recap-grid p {
+  font-weight: 400
+}
+
+.doc-ok {
+  color: var(--color-success)
+}
+
+.doc-missing {
+  color: var(--color-danger)
+}
+
+/* Actions */
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 20px
+}
+
+.actions button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color .3s ease
+}
+
+.actions button[type=submit] {
+  background-color: var(--color-primary);
+  color: var(--color-white)
+}
+
+.actions button[type=submit]:hover {
+  background-color: var(--color-primary-dark)
+}
+
+.actions button[type=button] {
+  background-color: var(--color-neutral-700);
+  color: var(--color-white)
+}
+
+.actions button[type=button]:hover {
+  background-color: var(--color-neutral-800)
+}
+
+.recapitulatif-btn {
+  background-color: var(--color-success) !important;
+  color: var(--color-white) !important
+}
+
+.recapitulatif-btn:hover {
+  background-color: var(--color-success-dark) !important
+}
+
+.retour-btn {
+  background-color: var(--color-danger) !important;
+  color: var(--color-white) !important
+}
+
+.retour-btn:hover {
+  background-color: var(--color-danger-dark) !important
+}
+
+.valider-btn {
+  background-color: var(--color-success) !important;
+  color: var(--color-white) !important;
+  padding: 12px 30px !important;
+  font-size: 16px !important;
+  border-radius: 6px !important
+}
+
+.valider-btn:hover {
+  background-color: var(--color-success-dark) !important
+}
+
+/* Responsive */
+
+@media (max-width: 600px) {
+  .page {
+    padding: 10px
+  }
+  .form {
+    padding: 15px
+  }
+  .formRow {
+    flex-direction: column;
+    gap: 10px
+  }
+  .form-group {
+    min-width: unset
+  }
+  .actions {
+    flex-direction: column;
+    align-items: center
+  }
+  .actions button {
+    width: 100%;
+    max-width: 200px
+  }
+}
+
+.pfc-movable {
+  position: absolute;
+  top: 80px;
+  left: 600px
+}
+
+.platform-movable {
+  position: absolute;
+  top: 140px;
+  left: 420px
+}
+
+.login-button {
+  position: absolute;
+  top: 330px;
+  left: 580px
+}
+
+.register-button {
+  position: absolute;
+  top: 360px;
+  left: 580px
+}
+
+.email-field {
+  position: absolute;
+  top: 200px;
+  left: 500px;
+  width: 250px;
+  height: 40px
+}
+
+.password-field {
+  position: absolute;
+  top: 240px;
+  left: 500px;
+  width: 250px;
+  height: 40px
+}

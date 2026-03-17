@@ -1,0 +1,79 @@
+.ui-button {
+  font: inherit;
+}
+
+.ui-card {
+  background: var(--color-white);
+  border-radius: 14px;
+}
+
+.ui-page-header {
+  margin-bottom: 24px;
+}
+
+.ui-page-header h1 {
+  margin: 0 0 8px;
+}
+
+.ui-page-header p {
+  margin: 0;
+}
+
+.ui-empty-state {
+  text-align: center;
+  padding: 24px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 16px;
+}
+
+.ui-empty-state h3 {
+  margin: 0 0 8px;
+  color: var(--admin-gray-800, #1f2937);
+}
+
+.ui-empty-state p {
+  margin: 0 0 16px;
+  color: var(--color-neutral-700);
+}
+
+.ui-empty-link {
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--color-brand-navy);
+  color: var(--color-white);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.ui-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ui-progress.compact {
+  gap: 10px;
+}
+
+.ui-progress-track {
+  flex: 1;
+  height: 10px;
+  background: var(--color-border-soft);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.ui-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.ui-progress-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-neutral-700);
+  min-width: 40px;
+  text-align: right;
+}

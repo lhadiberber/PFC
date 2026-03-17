@@ -1,0 +1,7 @@
+@import "./styles/base.css";
+@import "./styles/ui.css";
+@import "./styles/navigation.css";
+@import "./styles/student.css";
+@import "./styles/home.css";
+@import "./styles/auth.css";
+@import "./styles/admin.css";
