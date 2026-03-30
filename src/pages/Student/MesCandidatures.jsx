@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
@@ -100,18 +101,6 @@ function getCompletionColor(percentage) {
   }
 
   return "#dc2626";
-}
-
-function getStatusTone(status) {
-  if (status === "Acceptee") {
-    return "acceptee";
-  }
-
-  if (status === "Rejetee") {
-    return "refusee";
-  }
-
-  return "attente";
 }
 
 function getCompletionLabel(percentage) {
@@ -227,6 +216,10 @@ function StudentApplicationsIcon({ name }) {
       );
   }
 }
+
+StudentApplicationsIcon.propTypes = {
+  name: PropTypes.string.isRequired,
+};
 
 export default function MesCandidatures() {
   const { applications } = useAdmissions();

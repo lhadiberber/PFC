@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import PropTypes from "prop-types";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
@@ -88,6 +89,10 @@ function StudentStatIcon({ name }) {
       );
   }
 }
+
+StudentStatIcon.propTypes = {
+  name: PropTypes.string.isRequired,
+};
 
 export default function EtudiantsAdmin() {
   const navigate = useNavigate();

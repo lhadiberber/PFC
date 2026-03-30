@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import PropTypes from "prop-types";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
@@ -176,6 +177,14 @@ function ActivityFeedIcon({ name }) {
       );
   }
 }
+
+DashboardStatIcon.propTypes = {
+  name: PropTypes.string.isRequired,
+};
+
+ActivityFeedIcon.propTypes = {
+  name: PropTypes.string.isRequired,
+};
 
 function matchesWorkQueueFilter(application, filter) {
   switch (filter) {

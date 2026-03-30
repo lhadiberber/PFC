@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAdmissions } from "../../context/AdmissionsContext";
 import { registerStudentAccount } from "../../utils/studentAccount";
 import "../../index.css";
 
@@ -16,6 +17,7 @@ export default function Register() {
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
   const [agreeLegal, setAgreeLegal] = useState(false);
+  const { saveProfile } = useAdmissions();
   const navigate = useNavigate();
 
   const validate = () => {
@@ -102,7 +104,7 @@ export default function Register() {
         role: "student",
       })
     );
-    localStorage.setItem("studentProfile", JSON.stringify(nextStudentProfile));
+    saveProfile(nextStudentProfile);
     registerStudentAccount({
       email: formData.email.trim(),
       password: formData.password,

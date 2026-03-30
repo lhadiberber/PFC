@@ -26,17 +26,25 @@ import MesCandidatures from "./pages/Student/MesCandidatures";
 import Profil from "./pages/Student/Profil";
 import Navbar from "./components/Navbar";
 import ToastContainer from "./components/Toast";
+import { useAdmissions } from "./context/AdmissionsContext";
 import { setToastFn, setLoadingFn, clearToastFn, clearLoadingFn } from "./utils/toast";
 
 // Protected Route component
 function ProtectedRoute({ children, allowedRoles }) {
+  const location = useLocation();
+  const { hasSavedProfile } = useAdmissions();
   const userRole = localStorage.getItem("userRole");
+
   if (!userRole) {
     return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(userRole)) {
     return <Navigate to={userRole === "admin" ? "/admin" : "/dashboard"} replace />;
+  }
+
+  if (userRole === "student" && location.pathname !== "/profil" && !hasSavedProfile) {
+    return <Navigate to="/profil" replace />;
   }
 
   return children;

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../index.css";
 
@@ -92,6 +93,10 @@ function StudentNavIcon({ name }) {
       );
   }
 }
+
+StudentNavIcon.propTypes = {
+  name: PropTypes.string.isRequired,
+};
 
 export default function Navbar() {
   const location = useLocation();

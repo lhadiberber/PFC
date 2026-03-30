@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import PropTypes from "prop-types";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
@@ -82,6 +83,10 @@ function DocumentStatIcon({ name }) {
       );
   }
 }
+
+DocumentStatIcon.propTypes = {
+  name: PropTypes.string.isRequired,
+};
 
 function getVisiblePageNumbers(currentPage, totalPages) {
   const maxVisible = 5;

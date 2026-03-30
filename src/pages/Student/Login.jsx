@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { isStudentProfileComplete } from "../../context/AdmissionsContext";
 import { isValidAdminCredentials, registerAdminLogin } from "../../utils/adminAccount";
 import { isValidStudentCredentials, registerStudentLogin } from "../../utils/studentAccount";
 import "../../index.css";
@@ -69,10 +70,17 @@ export default function Login() {
       return;
     }
 
+    let parsedProfile = {};
+    try {
+      parsedProfile = savedProfile ? JSON.parse(savedProfile) : {};
+    } catch (error) {
+      parsedProfile = {};
+    }
+
     localStorage.setItem("userRole", "student");
     localStorage.setItem("userEmail", formData.email.trim());
     registerStudentLogin(formData.email.trim());
-    navigate(savedProfile ? "/dashboard" : "/profil");
+    navigate(isStudentProfileComplete(parsedProfile) ? "/dashboard" : "/profil");
   };
 
   return (

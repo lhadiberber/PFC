@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
@@ -388,6 +389,10 @@ function StudentDashboardIcon({ name }) {
       );
   }
 }
+
+StudentDashboardIcon.propTypes = {
+  name: PropTypes.string.isRequired,
+};
 
 export default function StudentDashboard() {
   const { applicationDraft, applications, profile, activityLog } = useAdmissions();

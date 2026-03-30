@@ -25,6 +25,19 @@ const defaultProfile = {
   adresse: "",
 };
 
+const REQUIRED_PROFILE_FIELDS = [
+  "nom",
+  "prenom",
+  "dateNaiss",
+  "lieuNaiss",
+  "sexe",
+  "nationalite",
+  "email",
+  "telephone",
+  "pays",
+  "adresse",
+];
+
 const defaultPersonalInfo = {
   nom: "",
   prenom: "",
@@ -107,6 +120,16 @@ function normalizeProfile(profile = {}) {
     pays: normalizeText(profile.pays),
     adresse: normalizeText(profile.adresse),
   };
+}
+
+function hasProfileValue(value) {
+  return typeof value === "string" ? value.trim() !== "" : Boolean(value);
+}
+
+export function isStudentProfileComplete(profile = {}) {
+  const normalizedProfile = normalizeProfile(profile);
+
+  return REQUIRED_PROFILE_FIELDS.every((field) => hasProfileValue(normalizedProfile[field]));
 }
 
 function normalizePersonalInfo(personalInfo = {}) {
@@ -595,7 +618,9 @@ export function AdmissionsProvider({ children }) {
   const hasStoredActivityLog = Array.isArray(storedActivityLog) && storedActivityLog.length > 0;
 
   const [profile, setProfile] = useState(() => normalizeProfile(storedProfile || {}));
-  const [hasSavedProfile, setHasSavedProfile] = useState(() => Boolean(storedProfile));
+  const [hasSavedProfile, setHasSavedProfile] = useState(() =>
+    isStudentProfileComplete(storedProfile || {})
+  );
   const [applicationDraft, setApplicationDraft] = useState(() => {
     if (storedDraft) {
       return normalizeDraft(storedDraft);
@@ -666,7 +691,7 @@ export function AdmissionsProvider({ children }) {
     const normalizedProfile = normalizeProfile(nextProfile);
 
     setProfile(normalizedProfile);
-    setHasSavedProfile(true);
+    setHasSavedProfile(isStudentProfileComplete(normalizedProfile));
     localStorage.setItem(STORAGE_KEYS.profile, JSON.stringify(normalizedProfile));
 
     setApplicationDraft((currentDraft) => ({
