@@ -1,8 +1,21 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { createUser, findUserByEmail, findUserById } from "../models/user.model.js";
+import {
+  createUser,
+  findUserByEmail,
+  findUserById,
+  normalizeEmail,
+} from "../models/user.model.js";
 
 const SALT_ROUNDS = 10;
+
+function getJwtSecret() {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET n'est pas configure.");
+  }
+
+  return process.env.JWT_SECRET;
+}
 
 function signAuthToken(user) {
   return jwt.sign(
@@ -11,24 +24,59 @@ function signAuthToken(user) {
       email: user.email,
       role: user.role,
     },
-    process.env.JWT_SECRET || "dev_secret_change_me",
+    getJwtSecret(),
     { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
   );
 }
 
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function buildPublicUser(user) {
+  return {
+    id: user.id,
+    nom: user.nom,
+    prenom: user.prenom,
+    email: user.email,
+    role: user.role,
+    created_at: user.created_at,
+  };
+}
+
 export async function register(request, response, next) {
   try {
-    const { email, password, role = "student" } = request.body;
+    const { nom, prenom, email, password } = request.body;
+    const nomValue = String(nom || "").trim();
+    const prenomValue = String(prenom || "").trim();
+    const passwordValue = String(password || "");
+    const normalizedEmail = normalizeEmail(email);
 
-    if (!email || !password) {
+    if (!nomValue || !prenomValue || !normalizedEmail || !passwordValue) {
       response.status(400).json({
         success: false,
-        message: "Email et mot de passe sont obligatoires.",
+        message: "Nom, prenom, email et mot de passe sont obligatoires.",
       });
       return;
     }
 
-    const existingUser = await findUserByEmail(email);
+    if (!isValidEmail(normalizedEmail)) {
+      response.status(400).json({
+        success: false,
+        message: "Format d'email invalide.",
+      });
+      return;
+    }
+
+    if (passwordValue.length < 8) {
+      response.status(400).json({
+        success: false,
+        message: "Le mot de passe doit contenir au moins 8 caracteres.",
+      });
+      return;
+    }
+
+    const existingUser = await findUserByEmail(normalizedEmail);
     if (existingUser) {
       response.status(409).json({
         success: false,
@@ -37,12 +85,31 @@ export async function register(request, response, next) {
       return;
     }
 
-    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const user = await createUser({ email, passwordHash, role });
+    const passwordHash = await bcrypt.hash(passwordValue, SALT_ROUNDS);
+    const user = await createUser({
+      nom: nomValue,
+      prenom: prenomValue,
+      email: normalizedEmail,
+      passwordHash,
+      role: "student",
+    });
     const token = signAuthToken(user);
 
-    response.status(201).json({ success: true, user, token });
+    response.status(201).json({
+      success: true,
+      message: "Compte etudiant cree avec succes.",
+      token,
+      user: buildPublicUser(user),
+    });
   } catch (error) {
+    if (error.code === "ER_DUP_ENTRY") {
+      response.status(409).json({
+        success: false,
+        message: "Un compte existe deja avec cet email.",
+      });
+      return;
+    }
+
     next(error);
   }
 }
@@ -50,8 +117,10 @@ export async function register(request, response, next) {
 export async function login(request, response, next) {
   try {
     const { email, password } = request.body;
+    const passwordValue = String(password || "");
+    const normalizedEmail = normalizeEmail(email);
 
-    if (!email || !password) {
+    if (!normalizedEmail || !passwordValue) {
       response.status(400).json({
         success: false,
         message: "Email et mot de passe sont obligatoires.",
@@ -59,9 +128,9 @@ export async function login(request, response, next) {
       return;
     }
 
-    const user = await findUserByEmail(email);
+    const user = await findUserByEmail(normalizedEmail);
     const isPasswordValid = user
-      ? await bcrypt.compare(password, user.password_hash)
+      ? await bcrypt.compare(passwordValue, user.password_hash)
       : false;
 
     if (!user || !isPasswordValid) {
@@ -76,12 +145,9 @@ export async function login(request, response, next) {
 
     response.json({
       success: true,
+      message: "Connexion reussie.",
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
+      user: buildPublicUser(user),
     });
   } catch (error) {
     next(error);
@@ -100,7 +166,10 @@ export async function me(request, response, next) {
       return;
     }
 
-    response.json({ success: true, user });
+    response.json({
+      success: true,
+      user: buildPublicUser(user),
+    });
   } catch (error) {
     next(error);
   }

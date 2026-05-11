@@ -1,8 +1,17 @@
 import jwt from "jsonwebtoken";
 
+function getTokenFromHeader(authHeader = "") {
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    return null;
+  }
+
+  return token;
+}
+
 export function authMiddleware(request, _response, next) {
-  const authHeader = request.headers.authorization || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  const token = getTokenFromHeader(request.headers.authorization);
 
   if (!token) {
     const error = new Error("Token d'authentification manquant.");
@@ -11,12 +20,20 @@ export function authMiddleware(request, _response, next) {
     return;
   }
 
+  if (!process.env.JWT_SECRET) {
+    const error = new Error("JWT_SECRET n'est pas configure.");
+    error.statusCode = 500;
+    next(error);
+    return;
+  }
+
   try {
-    request.user = jwt.verify(token, process.env.JWT_SECRET || "dev_secret_change_me");
+    request.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
-  } catch (_error) {
+  } catch (jwtError) {
     const error = new Error("Token invalide ou expire.");
     error.statusCode = 401;
+    error.cause = jwtError;
     next(error);
   }
 }

@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import { testDatabaseConnection } from "./config/db.js";
 import { errorMiddleware, notFoundMiddleware } from "./middlewares/error.middleware.js";
+import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.get("/", (_request, response) => {
     success: true,
     message: "Bienvenue sur l'API PFC Admissions.",
     health: "/api/health",
+    auth: "/api/auth",
   });
 });
 
@@ -49,6 +51,8 @@ app.get("/api/health/db", async (_request, response, next) => {
     next(error);
   }
 });
+
+app.use("/api/auth", authRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
