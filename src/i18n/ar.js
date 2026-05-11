@@ -258,7 +258,7 @@ const ar = {
         prenom: "اسمك",
         email: "example@email.com",
         telephone: "+213 555 123 456",
-        password: "6 أحرف على الأقل",
+        password: "8 أحرف على الأقل",
         confirmPassword: "أكد كلمة المرور",
       },
       legal: {
@@ -276,7 +276,7 @@ const ar = {
         prenomRequired: "الاسم إجباري.",
         invalidEmail: "يرجى إدخال بريد إلكتروني صالح.",
         invalidPhone: "يرجى إدخال رقم هاتف صالح.",
-        shortPassword: "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.",
+        shortPassword: "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.",
         passwordMismatch: "تأكيد كلمة المرور غير مطابق.",
         legalRequired: "يجب الموافقة على شروط الاستخدام.",
       },

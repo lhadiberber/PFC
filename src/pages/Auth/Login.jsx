@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import LanguageSelector from "../../components/LanguageSelector";
 import { useLanguage } from "../../context/LanguageContext";
 import { isStudentProfileComplete } from "../../context/AdmissionsContext";
-import { isValidAdminCredentials, registerAdminLogin } from "../../utils/adminAccount";
-import { isValidStudentCredentials, registerStudentLogin } from "../../utils/studentAccount";
+import { loginUser, saveAuthSession } from "../../services/authService";
 import "../../index.css";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { messages } = useLanguage();
   const copy = messages.auth.login;
   const [formData, setFormData] = useState({
@@ -16,6 +16,9 @@ export default function Login() {
     password: "",
   });
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState("");
+  const [statusMessage, setStatusMessage] = useState(location.state?.message || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -31,6 +34,8 @@ export default function Login() {
         [name]: "",
       }));
     }
+
+    if (formError) setFormError("");
   };
 
   const validate = () => {
@@ -49,7 +54,7 @@ export default function Login() {
     return nextErrors;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const validationErrors = validate();
 
@@ -58,33 +63,45 @@ export default function Login() {
       return;
     }
 
-    if (isValidAdminCredentials(formData.email, formData.password)) {
-      localStorage.setItem("userRole", "admin");
-      localStorage.setItem("userEmail", formData.email.trim());
-      registerAdminLogin(formData.email.trim());
-      navigate("/admin");
-      return;
-    }
+    setIsSubmitting(true);
+    setFormError("");
+    setStatusMessage("");
 
-    const savedProfile = localStorage.getItem("studentProfile");
-    if (savedProfile && !isValidStudentCredentials(formData.email, formData.password)) {
-      setErrors({
-        password: copy.errors.invalidStudentCredentials,
-      });
-      return;
-    }
-
-    let parsedProfile = {};
     try {
-      parsedProfile = savedProfile ? JSON.parse(savedProfile) : {};
-    } catch (_error) {
-      parsedProfile = {};
-    }
+      const session = await loginUser({
+        email: formData.email.trim(),
+        password: formData.password,
+      });
 
-    localStorage.setItem("userRole", "student");
-    localStorage.setItem("userEmail", formData.email.trim());
-    registerStudentLogin(formData.email.trim());
-    navigate(isStudentProfileComplete(parsedProfile) ? "/dashboard" : "/profil");
+      saveAuthSession(session);
+
+      if (session.user.role === "admin") {
+        navigate("/admin");
+        return;
+      }
+
+      const savedProfile = localStorage.getItem("studentProfile");
+      let parsedProfile = {};
+
+      try {
+        parsedProfile = savedProfile ? JSON.parse(savedProfile) : {};
+      } catch (_error) {
+        parsedProfile = {};
+      }
+
+      const savedProfileEmail = String(parsedProfile.email || "").trim().toLowerCase();
+      const sessionEmail = String(session.user.email || "").trim().toLowerCase();
+      const canUseSavedProfile =
+        savedProfileEmail && sessionEmail && savedProfileEmail === sessionEmail;
+
+      navigate(
+        canUseSavedProfile && isStudentProfileComplete(parsedProfile) ? "/dashboard" : "/profil"
+      );
+    } catch (error) {
+      setFormError(error.message || copy.errors.invalidStudentCredentials);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -122,6 +139,17 @@ export default function Login() {
             </div>
 
             <form onSubmit={handleSubmit} className="auth-register-form">
+              {statusMessage ? (
+                <div className="auth-feedback auth-feedback-success" role="status">
+                  {statusMessage}
+                </div>
+              ) : null}
+              {formError ? (
+                <div className="auth-feedback auth-feedback-error" role="alert">
+                  {formError}
+                </div>
+              ) : null}
+
               <div className="auth-register-grid">
                 <label className="auth-register-field auth-register-field-full">
                   <span>{messages.common.email}</span>
@@ -131,6 +159,7 @@ export default function Login() {
                     placeholder={copy.emailPlaceholder}
                     value={formData.email}
                     onChange={handleChange}
+                    disabled={isSubmitting}
                   />
                   {errors.email ? <small className="error-message">{errors.email}</small> : null}
                 </label>
@@ -143,6 +172,7 @@ export default function Login() {
                     placeholder={copy.passwordPlaceholder}
                     value={formData.password}
                     onChange={handleChange}
+                    disabled={isSubmitting}
                   />
                   {errors.password ? (
                     <small className="error-message">{errors.password}</small>
@@ -150,8 +180,8 @@ export default function Login() {
                 </label>
               </div>
 
-              <button type="submit" className="auth-register-submit">
-                {copy.submit}
+              <button type="submit" className="auth-register-submit" disabled={isSubmitting}>
+                {isSubmitting ? "Connexion..." : copy.submit}
               </button>
             </form>
 

@@ -264,7 +264,7 @@ const en = {
         prenom: "Your first name",
         email: "your.email@example.com",
         telephone: "+213 555 123 456",
-        password: "Minimum 6 characters",
+        password: "Minimum 8 characters",
         confirmPassword: "Confirm your password",
       },
       legal: {
@@ -282,7 +282,7 @@ const en = {
         prenomRequired: "First name is required.",
         invalidEmail: "Please enter a valid email address.",
         invalidPhone: "Please enter a valid phone number.",
-        shortPassword: "Password must contain at least 6 characters.",
+        shortPassword: "Password must contain at least 8 characters.",
         passwordMismatch: "Password confirmation does not match.",
         legalRequired: "You must accept the terms of use.",
       },

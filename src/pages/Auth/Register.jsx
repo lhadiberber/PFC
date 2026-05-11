@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import LanguageSelector from "../../components/LanguageSelector";
-import { useAdmissions } from "../../context/AdmissionsContext";
 import { useLanguage } from "../../context/LanguageContext";
-import { registerStudentAccount } from "../../utils/studentAccount";
+import { registerStudent } from "../../services/authService";
 import "../../index.css";
 
 const INITIAL_FORM = {
@@ -18,8 +17,9 @@ const INITIAL_FORM = {
 export default function Register() {
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [agreeLegal, setAgreeLegal] = useState(false);
-  const { saveProfile } = useAdmissions();
   const { messages } = useLanguage();
   const copy = messages.auth.register;
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ export default function Register() {
     if (!/^\+?[\d\s]{10,}$/.test(formData.telephone)) {
       nextErrors.telephone = copy.errors.invalidPhone;
     }
-    if (formData.password.length < 6) {
+    if (formData.password.length < 8) {
       nextErrors.password = copy.errors.shortPassword;
     }
     if (formData.password !== formData.confirmPassword) {
@@ -63,6 +63,8 @@ export default function Register() {
         [name]: "",
       }));
     }
+
+    if (formError) setFormError("");
   };
 
   const handleLegalChange = (event) => {
@@ -76,47 +78,34 @@ export default function Register() {
     }
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!validate()) {
       return;
     }
 
-    const nextStudentProfile = {
-      nom: formData.nom.trim(),
-      prenom: formData.prenom.trim(),
-      dateNaiss: "",
-      lieuNaiss: "",
-      sexe: "",
-      nationalite: "",
-      email: formData.email.trim(),
-      telephone: formData.telephone.trim(),
-      pays: "",
-      adresse: "",
-    };
+    setIsSubmitting(true);
+    setFormError("");
 
-    localStorage.setItem("userRole", "student");
-    localStorage.setItem("userEmail", formData.email.trim());
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
+    try {
+      await registerStudent({
+        nom: formData.nom.trim(),
+        prenom: formData.prenom.trim(),
         email: formData.email.trim(),
-        firstName: formData.prenom.trim(),
-        lastName: formData.nom.trim(),
-        phone: formData.telephone.trim(),
-        role: "student",
-      })
-    );
-    saveProfile(nextStudentProfile);
-    registerStudentAccount({
-      email: formData.email.trim(),
-      password: formData.password,
-      firstName: formData.prenom.trim(),
-      lastName: formData.nom.trim(),
-    });
+        password: formData.password,
+      });
 
-    navigate("/profil");
+      navigate("/login", {
+        state: {
+          message: "Compte cree avec succes. Vous pouvez maintenant vous connecter.",
+        },
+      });
+    } catch (error) {
+      setFormError(error.message || "Impossible de creer le compte pour le moment.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -154,6 +143,12 @@ export default function Register() {
             </div>
 
             <form onSubmit={handleSubmit} className="auth-register-form">
+              {formError ? (
+                <div className="auth-feedback auth-feedback-error" role="alert">
+                  {formError}
+                </div>
+              ) : null}
+
               <div className="auth-register-grid">
                 <label className="auth-register-field">
                   <span>{copy.fields.nom}</span>
@@ -163,6 +158,7 @@ export default function Register() {
                     placeholder={copy.placeholders.nom}
                     value={formData.nom}
                     onChange={handleChange}
+                    disabled={isSubmitting}
                   />
                   {errors.nom ? <small className="error-message">{errors.nom}</small> : null}
                 </label>
@@ -175,6 +171,7 @@ export default function Register() {
                     placeholder={copy.placeholders.prenom}
                     value={formData.prenom}
                     onChange={handleChange}
+                    disabled={isSubmitting}
                   />
                   {errors.prenom ? (
                     <small className="error-message">{errors.prenom}</small>
@@ -189,6 +186,7 @@ export default function Register() {
                     placeholder={copy.placeholders.email}
                     value={formData.email}
                     onChange={handleChange}
+                    disabled={isSubmitting}
                   />
                   {errors.email ? <small className="error-message">{errors.email}</small> : null}
                 </label>
@@ -201,6 +199,7 @@ export default function Register() {
                     placeholder={copy.placeholders.telephone}
                     value={formData.telephone}
                     onChange={handleChange}
+                    disabled={isSubmitting}
                   />
                   {errors.telephone ? (
                     <small className="error-message">{errors.telephone}</small>
@@ -215,6 +214,7 @@ export default function Register() {
                     placeholder={copy.placeholders.password}
                     value={formData.password}
                     onChange={handleChange}
+                    disabled={isSubmitting}
                   />
                   {errors.password ? (
                     <small className="error-message">{errors.password}</small>
@@ -229,6 +229,7 @@ export default function Register() {
                     placeholder={copy.placeholders.confirmPassword}
                     value={formData.confirmPassword}
                     onChange={handleChange}
+                    disabled={isSubmitting}
                   />
                   {errors.confirmPassword ? (
                     <small className="error-message">{errors.confirmPassword}</small>
@@ -237,7 +238,12 @@ export default function Register() {
               </div>
 
               <label className="auth-register-legal">
-                <input type="checkbox" checked={agreeLegal} onChange={handleLegalChange} />
+                <input
+                  type="checkbox"
+                  checked={agreeLegal}
+                  onChange={handleLegalChange}
+                  disabled={isSubmitting}
+                />
                 <span>
                   {copy.legal.beforeTerms}
                   <a href="#conditions" onClick={(event) => event.preventDefault()}>
@@ -252,8 +258,8 @@ export default function Register() {
               </label>
               {errors.legal ? <small className="error-message">{errors.legal}</small> : null}
 
-              <button type="submit" className="auth-register-submit">
-                {copy.submit}
+              <button type="submit" className="auth-register-submit" disabled={isSubmitting}>
+                {isSubmitting ? "Creation..." : copy.submit}
               </button>
             </form>
 

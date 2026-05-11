@@ -272,7 +272,7 @@ const fr = {
         prenom: "Votre prenom",
         email: "votre.email@exemple.com",
         telephone: "+213 555 123 456",
-        password: "Minimum 6 caracteres",
+        password: "Minimum 8 caracteres",
         confirmPassword: "Confirmer le mot de passe",
       },
       legal: {
@@ -290,7 +290,7 @@ const fr = {
         prenomRequired: "Le prenom est obligatoire.",
         invalidEmail: "Veuillez saisir une adresse e-mail valide.",
         invalidPhone: "Veuillez saisir un numero de telephone valide.",
-        shortPassword: "Le mot de passe doit contenir au moins 6 caracteres.",
+        shortPassword: "Le mot de passe doit contenir au moins 8 caracteres.",
         passwordMismatch:
           "La confirmation du mot de passe ne correspond pas.",
         legalRequired: "Vous devez accepter les conditions d'utilisation.",
