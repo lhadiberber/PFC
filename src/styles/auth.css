@@ -54,6 +54,13 @@
   gap: 18px
 }
 
+.auth-register-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px
+}
+
 .auth-register-brand {
   display: inline-flex;
   align-items: center;
@@ -376,6 +383,11 @@
 
   .auth-register-brand {
     align-self: center
+  }
+
+  .auth-register-topbar {
+    flex-direction: column;
+    align-items: stretch
   }
 
   .auth-register-intro,

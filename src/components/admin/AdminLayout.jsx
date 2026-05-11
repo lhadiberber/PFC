@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import LanguageSelector from "../LanguageSelector";
 import Button from "../ui/Button";
 import PageHeader from "../ui/PageHeader";
 import { useAdmissions } from "../../context/AdmissionsContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { getAdminStats } from "../../utils/adminApplications";
 
 function getStoredAdminProfile() {
@@ -168,38 +170,38 @@ function AdminIcon({ name }) {
   }
 }
 
-function getMenuItems() {
+function getMenuItems(t) {
   return [
     {
       section: "",
       items: [
         {
           id: "dashboard",
-          label: "Dashboard",
+          label: t("adminLayout.menu.dashboard"),
           icon: "dashboard",
           path: "/admin",
         },
         {
           id: "candidatures",
-          label: "Candidatures",
+          label: t("adminLayout.menu.candidatures"),
           icon: "folder",
           path: "/admin/candidatures",
         },
         {
           id: "etudiants",
-          label: "Etudiants",
+          label: t("adminLayout.menu.students"),
           icon: "students",
           path: "/admin/etudiants",
         },
         {
           id: "documents",
-          label: "Documents",
+          label: t("adminLayout.menu.documents"),
           icon: "document",
           path: "/admin/documents",
         },
         {
           id: "profil",
-          label: "Profil",
+          label: t("adminLayout.menu.profile"),
           icon: "profile",
           path: "/admin/profil",
         },
@@ -219,6 +221,7 @@ export default function AdminLayout({
   searchPlaceholder = "Rechercher...",
   showSearch = true,
 }) {
+  const { locale, t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const notifRef = useRef(null);
@@ -230,13 +233,13 @@ export default function AdminLayout({
   const [currentTime, setCurrentTime] = useState(() => new Date());
 
   const adminStats = useMemo(() => getAdminStats(applications), [applications]);
-  const menuItems = useMemo(() => getMenuItems(), []);
+  const menuItems = useMemo(() => getMenuItems(t), [t]);
   const activeMenu = getActiveMenu(location.pathname);
 
-  const operatorName = adminProfile?.fullName || "Administrateur plateforme";
-  const operatorRole = adminProfile?.role || "Gestionnaire des admissions";
+  const operatorName = adminProfile?.fullName || t("adminLayout.defaultOperator");
+  const operatorRole = adminProfile?.role || t("adminLayout.defaultRole");
   const operatorInitials = buildInitials(operatorName);
-  const formattedDate = currentTime.toLocaleDateString("fr-FR", {
+  const formattedDate = currentTime.toLocaleDateString(locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -306,8 +309,8 @@ export default function AdminLayout({
           <div className="admin-sidebar-brand">
             <div className="admin-brand-mark">PFC</div>
             <div className="admin-brand-copy">
-              <h2 className="admin-logo">Portail Admissions</h2>
-              <p className="admin-logo-subtitle">Centre de pilotage administratif</p>
+              <h2 className="admin-logo">{t("common.portalAdmissions")}</h2>
+              <p className="admin-logo-subtitle">{t("adminLayout.sidebarSubtitle")}</p>
             </div>
           </div>
 
@@ -364,7 +367,7 @@ export default function AdminLayout({
         <header className="admin-header admin-header-focused">
           <div className="admin-header-top">
             <div className="admin-header-content admin-header-copy-block">
-              <span className="admin-page-tag admin-page-tag-admin">Espace administrateur</span>
+              <span className="admin-page-tag admin-page-tag-admin">{t("adminLayout.spaceTag")}</span>
               <PageHeader
                 title={title}
                 subtitle={subtitle}
@@ -375,8 +378,10 @@ export default function AdminLayout({
             {headerAction ? <div className="admin-header-top-actions">{headerAction}</div> : null}
 
             <div className="admin-header-meta">
+              <LanguageSelector compact className="admin-language-selector" />
+
               <div className="admin-header-date">
-                <span className="admin-header-meta-label">Date</span>
+                <span className="admin-header-meta-label">{t("adminLayout.dateLabel")}</span>
                 <strong>{formattedDate}</strong>
               </div>
 
@@ -392,7 +397,7 @@ export default function AdminLayout({
                 <Button
                   className="admin-header-icon-button"
                   onClick={() => setShowNotif((prev) => !prev)}
-                  title="Notifications de traitement"
+                  title={t("adminLayout.notificationTitle")}
                 >
                   <span className="admin-notification-icon">
                     <AdminIcon name="bell" />
@@ -403,16 +408,28 @@ export default function AdminLayout({
                 {showNotif && (
                   <div className="admin-notif-dropdown">
                     <div className="notif-item">
-                      <strong>{adminStats.totalCandidatures} candidatures consolidees</strong>
-                      <span>La campagne admin visible est centralisee dans ce tableau de bord.</span>
+                      <strong>
+                        {t("adminLayout.notifications.consolidated", {
+                          count: adminStats.totalCandidatures,
+                        })}
+                      </strong>
+                      <span>{t("adminLayout.notifications.consolidatedDetail")}</span>
                     </div>
                     <div className="notif-item">
-                      <strong>{adminStats.enAttente} decisions a traiter</strong>
-                      <span>Priorite operationnelle pour la file d'instruction.</span>
+                      <strong>
+                        {t("adminLayout.notifications.pending", {
+                          count: adminStats.enAttente,
+                        })}
+                      </strong>
+                      <span>{t("adminLayout.notifications.pendingDetail")}</span>
                     </div>
                     <div className="notif-item">
-                      <strong>{adminStats.documentsManquants} dossiers a verifier</strong>
-                      <span>Controle documentaire recommande avant arbitrage.</span>
+                      <strong>
+                        {t("adminLayout.notifications.documents", {
+                          count: adminStats.documentsManquants,
+                        })}
+                      </strong>
+                      <span>{t("adminLayout.notifications.documentsDetail")}</span>
                     </div>
                     <Button
                       className="notif-link"
@@ -421,7 +438,7 @@ export default function AdminLayout({
                         navigate("/admin/candidatures");
                       }}
                     >
-                      Ouvrir la file de traitement
+                      {t("adminLayout.openQueue")}
                     </Button>
                   </div>
                 )}
@@ -432,7 +449,7 @@ export default function AdminLayout({
           {showSearch && (
             <div className="admin-header-search">
               <label className="admin-search-caption" htmlFor="admin-global-search">
-                Recherche rapide
+                {t("adminLayout.searchCaption")}
               </label>
               <div className="admin-search admin-search-wide admin-search-prominent">
                 <span className="admin-search-icon">
@@ -449,8 +466,7 @@ export default function AdminLayout({
                 />
               </div>
               <p className="admin-search-helper">
-                Recherchez rapidement un etudiant, une universite, une specialite ou un numero
-                de dossier.
+                {t("adminLayout.searchHelper")}
               </p>
             </div>
           )}

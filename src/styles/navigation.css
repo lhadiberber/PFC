@@ -365,6 +365,18 @@ body.student-sidebar-collapsed .main-content {
   border-top: 1px solid rgba(255, 255, 255, .15)
 }
 
+.student-sidebar-language {
+  margin-bottom: 12px;
+}
+
+.student-sidebar-language .language-selector {
+  width: 100%;
+}
+
+.student-sidebar-language .language-selector-control {
+  width: 100%;
+}
+
 .navbar-vertical-student.student-sidebar-collapsed {
   width: 86px;
   padding: 18px 10px
@@ -456,5 +468,30 @@ body.student-sidebar-collapsed .main-content {
   }
   .navbar-vertical .navbar-logout-vertical {
     margin-top: 0
+  }
+}
+
+html[dir="rtl"] .main-content {
+  margin-left: 0;
+  margin-right: 236px;
+}
+
+html[dir="rtl"] body.student-sidebar-collapsed .main-content {
+  margin-right: 86px;
+}
+
+html[dir="rtl"] .navbar-vertical {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] .student-nav-item:hover {
+  transform: translate(-4px);
+}
+
+@media (max-width: 768px) {
+  html[dir="rtl"] .main-content,
+  html[dir="rtl"] body.student-sidebar-collapsed .main-content {
+    margin-right: 0;
   }
 }

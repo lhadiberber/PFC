@@ -48,7 +48,10 @@ Le projet est encore en phase frontend.
 ## Structure utile
 
 - `src/App.jsx` : routes et etat global
+- `src/pages/Auth/` : connexion, inscription et confirmation
 - `src/pages/Student/` : parcours etudiant
 - `src/pages/Admin/` : espace admin
+- `src/legacy/` : anciens ecrans conserves hors du parcours actif
+- `archives/` : anciens fichiers sortis de `src`
 - `src/components/` : composants partages
 - `src/utils/` : helpers frontend

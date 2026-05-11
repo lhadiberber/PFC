@@ -1,21 +1,24 @@
 import React from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import LanguageSelector from "../../components/LanguageSelector";
 import { useAdmissions } from "../../context/AdmissionsContext";
+import { useLanguage } from "../../context/LanguageContext";
 import "../../index.css";
 
 export default function Success() {
   const [searchParams] = useSearchParams();
   const { lastSubmittedApplication } = useAdmissions();
+  const { locale, messages, t } = useLanguage();
   const numeroDossier =
     searchParams.get("numeroDossier") || lastSubmittedApplication?.numeroDossier || "";
 
   const now = new Date();
-  const formattedDate = now.toLocaleDateString("fr-FR", {
+  const formattedDate = now.toLocaleDateString(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
-  const formattedTime = now.toLocaleTimeString("fr-FR", {
+  const formattedTime = now.toLocaleTimeString(locale, {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -23,32 +26,36 @@ export default function Success() {
   return (
     <div className="success-page">
       <div className="success-content">
-        <div className="success-icon">OK</div>
-        <h1>Votre candidature a ete soumise avec succes.</h1>
-
-        {numeroDossier && (
-          <div className="numero-dossier">
-            <p>Numero de dossier :</p>
-            <span className="dossier-number">{numeroDossier}</span>
-          </div>
-        )}
-
-        <div className="submission-date">
-          <p>
-            Soumis le {formattedDate} a {formattedTime}
-          </p>
+        <div className="auth-register-topbar success-topbar">
+          <Link to="/" className="auth-register-brand">
+            <span className="auth-register-brand-mark">PFC</span>
+            <span className="auth-register-brand-text">{messages.common.brand}</span>
+          </Link>
+          <LanguageSelector />
         </div>
 
-        <p className="success-message-text">
-          Vous pouvez suivre le statut de votre candidature dans "Mes candidatures".
-        </p>
+        <div className="success-icon">OK</div>
+        <h1>{t("success.title")}</h1>
+
+        {numeroDossier ? (
+          <div className="numero-dossier">
+            <p>{t("success.dossierLabel")}</p>
+            <span className="dossier-number">{numeroDossier}</span>
+          </div>
+        ) : null}
+
+        <div className="submission-date">
+          <p>{t("success.submittedAt", { date: formattedDate, time: formattedTime })}</p>
+        </div>
+
+        <p className="success-message-text">{t("success.message")}</p>
 
         <div className="success-buttons">
           <Link to="/mes-candidatures">
-            <button className="home-btn">Voir mes candidatures</button>
+            <button className="home-btn">{t("success.viewApplications")}</button>
           </Link>
           <Link to="/dashboard">
-            <button className="dashboard-btn">Retour au tableau de bord</button>
+            <button className="dashboard-btn">{t("success.backDashboard")}</button>
           </Link>
         </div>
       </div>

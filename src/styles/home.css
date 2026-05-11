@@ -75,6 +75,12 @@
   position: relative
 }
 
+.campus-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px
+}
+
 .campus-btn-login {
   display: flex;
   align-items: center;
@@ -913,6 +919,10 @@
   .campus-nav {
     display: none
   }
+  .campus-header-actions {
+    width: 100%;
+    justify-content: space-between
+  }
   .campus-hero-title {
     font-size: 2.2rem
   }
@@ -950,6 +960,9 @@
 @media (max-width: 480px) {
   .campus-logo .logo-text {
     font-size: 18px
+  }
+  .campus-header-actions {
+    gap: 10px
   }
   .campus-btn-login {
     padding: 8px 14px;

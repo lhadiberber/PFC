@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import LanguageSelector from "./LanguageSelector";
+import { useLanguage } from "../context/LanguageContext";
 import "../index.css";
 
 function getStoredSidebarCollapsed() {
@@ -99,6 +101,7 @@ StudentNavIcon.propTypes = {
 };
 
 export default function Navbar() {
+  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => getStoredSidebarCollapsed());
@@ -149,25 +152,25 @@ export default function Navbar() {
   }
 
   const fullName = [profileData.prenom, profileData.nom].filter(Boolean).join(" ").trim();
-  const displayName = fullName || profileData.email || "Etudiant";
+  const displayName = fullName || profileData.email || t("studentNav.fallbackUser");
   const initials = buildInitials(displayName);
 
   const navItems = [
     {
       to: "/dashboard",
-      label: "Dashboard",
+      label: t("studentNav.dashboard"),
       icon: "dashboard",
       active: location.pathname === "/dashboard",
     },
     {
       to: "/mes-candidatures",
-      label: "Mes candidatures",
+      label: t("studentNav.applications"),
       icon: "folder",
       active: location.pathname === "/mes-candidatures" || location.pathname === "/candidatures",
     },
     {
       to: "/student-step1",
-      label: "Deposer un dossier",
+      label: t("studentNav.submit"),
       icon: "upload",
       active:
         location.pathname.startsWith("/student-step") ||
@@ -176,7 +179,7 @@ export default function Navbar() {
     },
     {
       to: "/profil",
-      label: "Profil",
+      label: t("studentNav.profile"),
       icon: "profile",
       active: location.pathname === "/profil",
     },
@@ -193,9 +196,9 @@ export default function Navbar() {
           <div className="student-sidebar-mark">PFC</div>
           <div className="student-sidebar-copy">
             <Link to="/dashboard" className="student-sidebar-brand-link">
-              Portail Admissions
+              {t("common.portalAdmissions")}
             </Link>
-            <p className="student-sidebar-subtitle">Espace candidat</p>
+            <p className="student-sidebar-subtitle">{t("common.candidateSpace")}</p>
           </div>
         </div>
 
@@ -203,8 +206,8 @@ export default function Navbar() {
           type="button"
           className="student-sidebar-toggle"
           onClick={() => setSidebarCollapsed((current) => !current)}
-          title={sidebarCollapsed ? "Developper la navigation" : "Replier la navigation"}
-          aria-label={sidebarCollapsed ? "Developper la navigation" : "Replier la navigation"}
+          title={sidebarCollapsed ? t("studentNav.expand") : t("studentNav.collapse")}
+          aria-label={sidebarCollapsed ? t("studentNav.expand") : t("studentNav.collapse")}
         >
           <StudentNavIcon name={sidebarCollapsed ? "collapse-right" : "collapse-left"} />
         </button>
@@ -214,7 +217,7 @@ export default function Navbar() {
         <span className="student-sidebar-avatar">{initials}</span>
         <div className="student-sidebar-user-copy">
           <strong>{displayName}</strong>
-          <span>Suivi de candidature</span>
+          <span>{t("studentNav.tracking")}</span>
         </div>
       </div>
 
@@ -234,11 +237,14 @@ export default function Navbar() {
       </div>
 
       <div className="student-sidebar-footer">
+        <div className="student-sidebar-language">
+          <LanguageSelector compact variant="dark" />
+        </div>
         <button onClick={handleLogout} className="student-nav-item student-nav-item-danger navbar-logout-vertical">
           <span className="nav-icon student-nav-icon">
             <StudentNavIcon name="logout" />
           </span>
-          <span className="nav-text student-nav-label">Deconnexion</span>
+          <span className="nav-text student-nav-label">{t("common.logout")}</span>
         </button>
       </div>
     </nav>

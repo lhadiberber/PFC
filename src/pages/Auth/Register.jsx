@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import LanguageSelector from "../../components/LanguageSelector";
 import { useAdmissions } from "../../context/AdmissionsContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { registerStudentAccount } from "../../utils/studentAccount";
 import "../../index.css";
 
@@ -18,27 +20,29 @@ export default function Register() {
   const [errors, setErrors] = useState({});
   const [agreeLegal, setAgreeLegal] = useState(false);
   const { saveProfile } = useAdmissions();
+  const { messages } = useLanguage();
+  const copy = messages.auth.register;
   const navigate = useNavigate();
 
   const validate = () => {
     const nextErrors = {};
 
-    if (!formData.nom.trim()) nextErrors.nom = "Le nom est obligatoire.";
-    if (!formData.prenom.trim()) nextErrors.prenom = "Le prenom est obligatoire.";
+    if (!formData.nom.trim()) nextErrors.nom = copy.errors.nomRequired;
+    if (!formData.prenom.trim()) nextErrors.prenom = copy.errors.prenomRequired;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      nextErrors.email = "Veuillez saisir une adresse e-mail valide.";
+      nextErrors.email = copy.errors.invalidEmail;
     }
     if (!/^\+?[\d\s]{10,}$/.test(formData.telephone)) {
-      nextErrors.telephone = "Veuillez saisir un numero de telephone valide.";
+      nextErrors.telephone = copy.errors.invalidPhone;
     }
     if (formData.password.length < 6) {
-      nextErrors.password = "Le mot de passe doit contenir au moins 6 caracteres.";
+      nextErrors.password = copy.errors.shortPassword;
     }
     if (formData.password !== formData.confirmPassword) {
-      nextErrors.confirmPassword = "La confirmation du mot de passe ne correspond pas.";
+      nextErrors.confirmPassword = copy.errors.passwordMismatch;
     }
     if (!agreeLegal) {
-      nextErrors.legal = "Vous devez accepter les conditions d'utilisation.";
+      nextErrors.legal = copy.errors.legalRequired;
     }
 
     setErrors(nextErrors);
@@ -118,51 +122,45 @@ export default function Register() {
   return (
     <div className="auth-page auth-register-page">
       <div className="auth-register-shell">
-        <Link to="/" className="auth-register-brand">
-          <span className="auth-register-brand-mark">PFC</span>
-          <span className="auth-register-brand-text">Admissions</span>
-        </Link>
+        <div className="auth-register-topbar">
+          <Link to="/" className="auth-register-brand">
+            <span className="auth-register-brand-mark">PFC</span>
+            <span className="auth-register-brand-text">{messages.common.brand}</span>
+          </Link>
+          <LanguageSelector />
+        </div>
 
         <div className="auth-register-card">
           <aside className="auth-register-intro">
-            <span className="auth-register-kicker">Plateforme d'admission universitaire</span>
-            <h1>Un espace clair et securise pour preparer votre candidature.</h1>
-            <p>
-              Creez votre compte pour completer votre profil, centraliser vos documents et
-              suivre vos demarches dans un parcours simple et rassurant.
-            </p>
+            <span className="auth-register-kicker">{copy.introKicker}</span>
+            <h1>{copy.introTitle}</h1>
+            <p>{copy.introDescription}</p>
 
             <div className="auth-register-highlights">
-              <div className="auth-register-highlight">
-                <strong>Depot en ligne</strong>
-                <span>Constituez votre dossier depuis un espace unique.</span>
-              </div>
-              <div className="auth-register-highlight">
-                <strong>Suivi centralise</strong>
-                <span>Retrouvez vos candidatures et vos pieces en temps reel.</span>
-              </div>
-              <div className="auth-register-highlight">
-                <strong>Plateforme securisee</strong>
-                <span>Vos informations restent associees a votre compte personnel.</span>
-              </div>
+              {copy.highlights.map((item) => (
+                <div key={item.title} className="auth-register-highlight">
+                  <strong>{item.title}</strong>
+                  <span>{item.description}</span>
+                </div>
+              ))}
             </div>
           </aside>
 
           <section className="auth-register-main">
             <div className="auth-register-header">
-              <span className="auth-register-badge">Inscription</span>
-              <h2>Creer un compte</h2>
-              <p>Inscrivez-vous pour candidater</p>
+              <span className="auth-register-badge">{copy.badge}</span>
+              <h2>{copy.title}</h2>
+              <p>{copy.subtitle}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="auth-register-form">
               <div className="auth-register-grid">
                 <label className="auth-register-field">
-                  <span>Nom</span>
+                  <span>{copy.fields.nom}</span>
                   <input
                     type="text"
                     name="nom"
-                    placeholder="Votre nom"
+                    placeholder={copy.placeholders.nom}
                     value={formData.nom}
                     onChange={handleChange}
                   />
@@ -170,11 +168,11 @@ export default function Register() {
                 </label>
 
                 <label className="auth-register-field">
-                  <span>Prenom</span>
+                  <span>{copy.fields.prenom}</span>
                   <input
                     type="text"
                     name="prenom"
-                    placeholder="Votre prenom"
+                    placeholder={copy.placeholders.prenom}
                     value={formData.prenom}
                     onChange={handleChange}
                   />
@@ -184,11 +182,11 @@ export default function Register() {
                 </label>
 
                 <label className="auth-register-field auth-register-field-full">
-                  <span>Email</span>
+                  <span>{copy.fields.email}</span>
                   <input
                     type="email"
                     name="email"
-                    placeholder="votre.email@exemple.com"
+                    placeholder={copy.placeholders.email}
                     value={formData.email}
                     onChange={handleChange}
                   />
@@ -196,11 +194,11 @@ export default function Register() {
                 </label>
 
                 <label className="auth-register-field auth-register-field-full">
-                  <span>Telephone</span>
+                  <span>{copy.fields.telephone}</span>
                   <input
                     type="tel"
                     name="telephone"
-                    placeholder="+213 555 123 456"
+                    placeholder={copy.placeholders.telephone}
                     value={formData.telephone}
                     onChange={handleChange}
                   />
@@ -210,11 +208,11 @@ export default function Register() {
                 </label>
 
                 <label className="auth-register-field">
-                  <span>Mot de passe</span>
+                  <span>{copy.fields.password}</span>
                   <input
                     type="password"
                     name="password"
-                    placeholder="Minimum 6 caracteres"
+                    placeholder={copy.placeholders.password}
                     value={formData.password}
                     onChange={handleChange}
                   />
@@ -224,11 +222,11 @@ export default function Register() {
                 </label>
 
                 <label className="auth-register-field">
-                  <span>Confirmation du mot de passe</span>
+                  <span>{copy.fields.confirmPassword}</span>
                   <input
                     type="password"
                     name="confirmPassword"
-                    placeholder="Confirmer le mot de passe"
+                    placeholder={copy.placeholders.confirmPassword}
                     value={formData.confirmPassword}
                     onChange={handleChange}
                   />
@@ -241,27 +239,27 @@ export default function Register() {
               <label className="auth-register-legal">
                 <input type="checkbox" checked={agreeLegal} onChange={handleLegalChange} />
                 <span>
-                  J'accepte les{" "}
+                  {copy.legal.beforeTerms}
                   <a href="#conditions" onClick={(event) => event.preventDefault()}>
-                    conditions d'utilisation
-                  </a>{" "}
-                  et la{" "}
-                  <a href="#confidentialite" onClick={(event) => event.preventDefault()}>
-                    politique de confidentialite
+                    {copy.legal.terms}
                   </a>
-                  .
+                  {copy.legal.between}
+                  <a href="#confidentialite" onClick={(event) => event.preventDefault()}>
+                    {copy.legal.privacy}
+                  </a>
+                  {copy.legal.afterPrivacy}
                 </span>
               </label>
               {errors.legal ? <small className="error-message">{errors.legal}</small> : null}
 
               <button type="submit" className="auth-register-submit">
-                Creer mon compte
+                {copy.submit}
               </button>
             </form>
 
             <div className="auth-register-footer">
               <p>
-                Deja un compte ? <Link to="/login">Se connecter</Link>
+                {copy.footerText} <Link to="/login">{copy.footerLink}</Link>
               </p>
             </div>
           </section>

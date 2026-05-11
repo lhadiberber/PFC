@@ -5,7 +5,6 @@ import PropTypes from "prop-types";
 
 import "./index.css";
 import Home from "./pages/Home";
-import Student from "./pages/Student/Student";
 import StudentStep1 from "./pages/Student/StudentStep1";
 import StudentStep2 from "./pages/Student/StudentStep2";
 import StudentStep3 from "./pages/Student/StudentStep3";
@@ -18,9 +17,9 @@ import DocumentsAdmin from "./pages/Admin/DocumentsAdmin.jsx";
 import DetailDocumentAdmin from "./pages/Admin/DetailDocumentAdmin.jsx";
 import ProfilAdmin from "./pages/Admin/ProfilAdmin.jsx";
 import DetailCandidaturesAdmin from "./pages/Admin/DetailCandidaturesAdmin.jsx";
-import Login from "./pages/Student/Login";
-import Register from "./pages/Student/Register";
-import Success from "./pages/Student/Success";
+import Login from "./pages/Auth/Login";
+import Register from "./pages/Auth/Register";
+import Success from "./pages/Auth/Success";
 import StudentDashboard from "./pages/Student/StudentDashboard";
 import MesCandidatures from "./pages/Student/MesCandidatures";
 import Profil from "./pages/Student/Profil";
@@ -105,7 +104,7 @@ function AppContent() {
         <ToastContainer toasts={toasts} removeToast={removeToast} />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/student" element={<ProtectedRoute allowedRoles={["student"]}><Student /></ProtectedRoute>} />
+          <Route path="/student" element={<Navigate to="/student-step1" replace />} />
           <Route path="/student-step1" element={<ProtectedRoute allowedRoles={["student"]}><StudentStep1 /></ProtectedRoute>} />
           <Route path="/student-step2" element={<ProtectedRoute allowedRoles={["student"]}><StudentStep2 /></ProtectedRoute>} />
           <Route path="/student-step3" element={<ProtectedRoute allowedRoles={["student"]}><StudentStep3 /></ProtectedRoute>} />

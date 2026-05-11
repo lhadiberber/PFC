@@ -28,6 +28,57 @@
   --color-auth-ring: #667eea26;
 }
 
+html[dir="rtl"] body {
+  text-align: right;
+}
+
+.language-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.language-selector-label {
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.language-selector-control {
+  min-width: 104px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(26, 54, 93, .12);
+  border-radius: 12px;
+  background: #fff;
+  color: #163a63;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.language-selector-control:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, .12);
+}
+
+.language-selector-compact .language-selector-control {
+  min-width: 78px;
+}
+
+.language-selector-dark .language-selector-label {
+  color: rgba(255, 255, 255, .76);
+}
+
+.language-selector-dark .language-selector-control {
+  background: rgba(255, 255, 255, .08);
+  border-color: rgba(255, 255, 255, .18);
+  color: #fff;
+}
+
 /* Page Layout */
 
 .page {

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import LanguageSelector from "../../components/LanguageSelector";
+import { useLanguage } from "../../context/LanguageContext";
 import { isStudentProfileComplete } from "../../context/AdmissionsContext";
 import { isValidAdminCredentials, registerAdminLogin } from "../../utils/adminAccount";
 import { isValidStudentCredentials, registerStudentLogin } from "../../utils/studentAccount";
@@ -7,6 +9,8 @@ import "../../index.css";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { messages } = useLanguage();
+  const copy = messages.auth.login;
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -33,13 +37,13 @@ export default function Login() {
     const nextErrors = {};
 
     if (!formData.email.trim()) {
-      nextErrors.email = "L'adresse e-mail est requise.";
+      nextErrors.email = copy.errors.emailRequired;
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      nextErrors.email = "Veuillez saisir une adresse e-mail valide.";
+      nextErrors.email = copy.errors.invalidEmail;
     }
 
     if (!formData.password.trim()) {
-      nextErrors.password = "Le mot de passe est requis.";
+      nextErrors.password = copy.errors.passwordRequired;
     }
 
     return nextErrors;
@@ -65,7 +69,7 @@ export default function Login() {
     const savedProfile = localStorage.getItem("studentProfile");
     if (savedProfile && !isValidStudentCredentials(formData.email, formData.password)) {
       setErrors({
-        password: "Les identifiants etudiant saisis sont incorrects.",
+        password: copy.errors.invalidStudentCredentials,
       });
       return;
     }
@@ -73,7 +77,7 @@ export default function Login() {
     let parsedProfile = {};
     try {
       parsedProfile = savedProfile ? JSON.parse(savedProfile) : {};
-    } catch (error) {
+    } catch (_error) {
       parsedProfile = {};
     }
 
@@ -86,51 +90,45 @@ export default function Login() {
   return (
     <div className="auth-page auth-register-page">
       <div className="auth-register-shell">
-        <Link to="/" className="auth-register-brand">
-          <span className="auth-register-brand-mark">PFC</span>
-          <span className="auth-register-brand-text">Admissions</span>
-        </Link>
+        <div className="auth-register-topbar">
+          <Link to="/" className="auth-register-brand">
+            <span className="auth-register-brand-mark">PFC</span>
+            <span className="auth-register-brand-text">{messages.common.brand}</span>
+          </Link>
+          <LanguageSelector />
+        </div>
 
         <div className="auth-register-card">
           <aside className="auth-register-intro">
-            <span className="auth-register-kicker">Acces a votre espace personnel</span>
-            <h1>Retrouvez votre compte pour suivre vos candidatures en toute simplicite.</h1>
-            <p>
-              Connectez-vous pour completer votre dossier, consulter l'etat de vos demarches
-              et acceder a votre espace d'admission depuis une interface claire et securisee.
-            </p>
+            <span className="auth-register-kicker">{copy.introKicker}</span>
+            <h1>{copy.introTitle}</h1>
+            <p>{copy.introDescription}</p>
 
             <div className="auth-register-highlights">
-              <div className="auth-register-highlight">
-                <strong>Acces rapide</strong>
-                <span>Retrouvez vos informations et votre progression en quelques secondes.</span>
-              </div>
-              <div className="auth-register-highlight">
-                <strong>Suivi de candidature</strong>
-                <span>Consultez vos depots, vos etapes et vos decisions depuis un seul espace.</span>
-              </div>
-              <div className="auth-register-highlight">
-                <strong>Connexion securisee</strong>
-                <span>Votre compte reste associe a vos informations et a vos documents.</span>
-              </div>
+              {copy.highlights.map((item) => (
+                <div key={item.title} className="auth-register-highlight">
+                  <strong>{item.title}</strong>
+                  <span>{item.description}</span>
+                </div>
+              ))}
             </div>
           </aside>
 
           <section className="auth-register-main">
             <div className="auth-register-header">
-              <span className="auth-register-badge">Connexion</span>
-              <h2>Se connecter</h2>
-              <p>Accedez a votre espace personnel et suivez vos demarches</p>
+              <span className="auth-register-badge">{copy.badge}</span>
+              <h2>{copy.title}</h2>
+              <p>{copy.subtitle}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="auth-register-form">
               <div className="auth-register-grid">
                 <label className="auth-register-field auth-register-field-full">
-                  <span>Email</span>
+                  <span>{messages.common.email}</span>
                   <input
                     type="email"
                     name="email"
-                    placeholder="votre.email@exemple.com"
+                    placeholder={copy.emailPlaceholder}
                     value={formData.email}
                     onChange={handleChange}
                   />
@@ -138,11 +136,11 @@ export default function Login() {
                 </label>
 
                 <label className="auth-register-field auth-register-field-full">
-                  <span>Mot de passe</span>
+                  <span>{messages.common.password}</span>
                   <input
                     type="password"
                     name="password"
-                    placeholder="Saisissez votre mot de passe"
+                    placeholder={copy.passwordPlaceholder}
                     value={formData.password}
                     onChange={handleChange}
                   />
@@ -153,13 +151,13 @@ export default function Login() {
               </div>
 
               <button type="submit" className="auth-register-submit">
-                Se connecter
+                {copy.submit}
               </button>
             </form>
 
             <div className="auth-register-footer">
               <p>
-                Pas encore de compte ? <Link to="/register">Creer un compte</Link>
+                {copy.footerText} <Link to="/register">{copy.footerLink}</Link>
               </p>
             </div>
           </section>

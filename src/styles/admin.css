@@ -5677,6 +5677,13 @@
   gap: 12px
 }
 
+.admin-language-selector .language-selector-control {
+  min-width: 84px;
+  height: 54px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px #0000000d;
+}
+
 .admin-header-date,
 .admin-header-user {
   display: flex;
@@ -5905,6 +5912,14 @@
   .admin-student-stats-grid {
     grid-template-columns: minmax(0, 1fr)
   }
+}
+
+html[dir="rtl"] .admin-layout {
+  direction: rtl;
+}
+
+html[dir="rtl"] .admin-nav-item:hover {
+  transform: translate(-4px);
 }
 
 /* Documents admin */
