@@ -7,8 +7,7 @@ Backend Node.js/Express pour l'API PFC Admissions.
 - Node.js
 - Express.js
 - MySQL via `mysql2`
-- Auth avec JWT + bcrypt
-- Uploads avec multer
+- Connexion MySQL via `mysql2`
 
 ## Installation
 
@@ -17,6 +16,28 @@ npm install
 ```
 
 Copier `.env.example` vers `.env`, puis adapter les variables MySQL/JWT.
+
+Variables minimales:
+
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=pfc_admissions
+JWT_SECRET=change_this_secret_before_production
+PORT=5000
+```
+
+Au demarrage, le backend tente de creer automatiquement la base
+`pfc_admissions` si l'utilisateur MySQL configure en a le droit.
+
+Si la creation automatique echoue, creez la base manuellement dans MySQL:
+
+```sql
+CREATE DATABASE IF NOT EXISTS pfc_admissions
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+```
 
 ## Scripts
 
@@ -62,6 +83,4 @@ backend/
 
 - `GET /` : message API
 - `GET /api/health` : statut API
-- `POST /api/auth/register` : creation de compte
-- `POST /api/auth/login` : connexion JWT
-- `GET /api/auth/me` : utilisateur connecte
+- `GET /api/health/db` : test explicite de connexion MySQL
