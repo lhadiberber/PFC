@@ -5,7 +5,8 @@ import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { useAdmissions } from "../../context/AdmissionsContext";
+import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { listAdminApplications } from "../../services/adminService";
 import { downloadCsv } from "../../utils/exportCsv";
 import { downloadPdfReport } from "../../utils/exportPdf";
 import {
@@ -86,7 +87,10 @@ function FilterIcon() {
 
 export default function CandidaturesAdmin() {
   const navigate = useNavigate();
-  const { applications } = useAdmissions();
+  const [adminApplicationsData, setAdminApplicationsData] = useState([]);
+  const [isLoadingApplications, setIsLoadingApplications] = useState(true);
+  const [applicationsError, setApplicationsError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("query") || "");
   const [filterStatus, setFilterStatus] = useState(searchParams.get("status") || "tous");
@@ -106,6 +110,56 @@ export default function CandidaturesAdmin() {
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadApplications() {
+      const token = getAuthToken();
+
+      if (!token) {
+        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+        return;
+      }
+
+      setIsLoadingApplications(true);
+      setApplicationsError("");
+
+      try {
+        const data = await listAdminApplications();
+        if (isActive) {
+          setAdminApplicationsData(data);
+        }
+      } catch (error) {
+        if (!isActive) return;
+
+        if (error.status === 401) {
+          const message = "Session expiree. Veuillez vous reconnecter.";
+          clearAuthSession();
+          navigate("/login", { state: { message } });
+          return;
+        }
+
+        setApplicationsError(
+          error.status === 403
+            ? "Acces refuse. Cette page est reservee aux administrateurs."
+            : error.message || "Impossible de charger les candidatures."
+        );
+      } finally {
+        if (isActive) {
+          setIsLoadingApplications(false);
+        }
+      }
+    }
+
+    loadApplications();
+
+    return () => {
+      isActive = false;
+    };
+  }, [navigate, reloadKey]);
 
   useEffect(() => {
     setSearchQuery(searchParams.get("query") || "");
@@ -165,7 +219,11 @@ export default function CandidaturesAdmin() {
     setSearchParams(params, { replace: true });
   };
 
-  const adminApplications = useMemo(() => applications.map(toAdminApplication), [applications]);
+  const applicationsSource = adminApplicationsData;
+  const adminApplications = useMemo(
+    () => applicationsSource.map(toAdminApplication),
+    [applicationsSource]
+  );
   const adminStats = useMemo(() => getAdminStats(adminApplications), [adminApplications]);
   const universityOptions = useMemo(
     () => [...new Set(adminApplications.map((item) => item.universite))].sort(),
@@ -437,6 +495,22 @@ export default function CandidaturesAdmin() {
       onSearchChange={handleSearchChange}
       searchPlaceholder="Rechercher un dossier, un etudiant ou une universite..."
     >
+      {isLoadingApplications ? (
+        <div className="student-profile-feedback">Chargement des candidatures...</div>
+      ) : null}
+
+      {applicationsError ? (
+        <div className="student-profile-feedback student-profile-feedback-error" role="alert">
+          {applicationsError}
+          <Button
+            className="admin-filter-tab"
+            onClick={() => setReloadKey((currentKey) => currentKey + 1)}
+          >
+            Reessayer
+          </Button>
+        </div>
+      ) : null}
+
       <section className="campus-section-container">
         <div className="campus-section-header">
           <h2>Filtres rapides</h2>

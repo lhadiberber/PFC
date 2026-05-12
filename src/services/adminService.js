@@ -19,3 +19,22 @@ export async function getAdminDashboard() {
     recentActivity: response.recentActivity || [],
   };
 }
+
+export async function listAdminApplications() {
+  const response = await apiRequest("/admin/applications");
+  return response.applications || [];
+}
+
+export async function getAdminApplication(id) {
+  const response = await apiRequest(`/admin/applications/${id}`);
+  return response.application || null;
+}
+
+export async function updateAdminApplicationStatus(id, payload) {
+  const response = await apiRequest(`/admin/applications/${id}/status`, {
+    method: "PATCH",
+    body: payload,
+  });
+
+  return response.application || null;
+}
