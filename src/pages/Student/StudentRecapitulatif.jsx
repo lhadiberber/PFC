@@ -5,7 +5,7 @@ import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { useAdmissions } from "../../context/AdmissionsContext";
 import { createApplication } from "../../services/applicationService";
-import { getAuthToken } from "../../services/authService";
+import { clearAuthSession, getAuthToken } from "../../services/authService";
 import { showLoading, showToast } from "../../utils/toast";
 import "../../index.css";
 
@@ -192,6 +192,10 @@ export default function StudentRecapitulatif() {
       navigate(`/success?numeroDossier=${createdApplication.numeroDossier}`);
     } catch (error) {
       const message = error.message || "Impossible de soumettre la candidature.";
+      if (error.status === 401) {
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+      }
       showLoading(false);
       setSubmitError(message);
       showToast(message, "error");

@@ -6,7 +6,7 @@ import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { listMyApplications } from "../../services/applicationService";
-import { getAuthToken } from "../../services/authService";
+import { clearAuthSession, getAuthToken } from "../../services/authService";
 import "../../index.css";
 
 const PROFILE_FIELDS = [
@@ -300,7 +300,13 @@ export default function MesCandidatures() {
         }
       } catch (error) {
         if (isMounted) {
-          setLoadError(error.message || "Impossible de charger vos candidatures.");
+          const message = error.message || "Impossible de charger vos candidatures.";
+          setLoadError(message);
+
+          if (error.status === 401) {
+            clearAuthSession();
+            navigate("/login", { replace: true, state: { message } });
+          }
         }
       } finally {
         if (isMounted) {
@@ -550,7 +556,7 @@ export default function MesCandidatures() {
           ))}
         </div>
 
-        {isLoading ? null : filteredApplications.length === 0 ? (
+        {isLoading || loadError ? null : filteredApplications.length === 0 ? (
           <EmptyState
             title={applicationsWithMetrics.length === 0 ? "Aucune candidature pour le moment" : "Aucun resultat"}
             description={
