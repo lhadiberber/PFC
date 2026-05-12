@@ -13,3 +13,13 @@ export async function createApplication(application) {
 
   return response.application;
 }
+
+export async function listMyApplications() {
+  const response = await apiRequest("/applications/my");
+  return response.applications || [];
+}
+
+export async function getApplicationById(id) {
+  const response = await apiRequest(`/applications/${id}`);
+  return response.application;
+}

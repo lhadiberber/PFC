@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
-import { useAdmissions } from "../../context/AdmissionsContext";
+import { listMyApplications } from "../../services/applicationService";
+import { getAuthToken } from "../../services/authService";
 import "../../index.css";
 
 const PROFILE_FIELDS = [
@@ -85,6 +86,49 @@ function formatShortDate(value) {
     month: "2-digit",
     year: "numeric",
   });
+}
+
+function normalizeStatus(status) {
+  switch (status) {
+    case "Acceptée":
+    case "Acceptee":
+      return "Acceptee";
+    case "Refusée":
+    case "Refusee":
+    case "Rejetee":
+      return "Rejetee";
+    default:
+      return "En attente";
+  }
+}
+
+function buildNumeroDossier(application) {
+  const date = new Date(application.date_depot || application.dateDepot || Date.now());
+  const year = Number.isNaN(date.getTime()) ? new Date().getFullYear() : date.getFullYear();
+  return `CAND-${year}-${String(application.id).padStart(3, "0")}`;
+}
+
+function mapApiApplication(application) {
+  const statut = normalizeStatus(application.statut);
+
+  return {
+    id: application.id,
+    universite: application.universite || "",
+    specialite: application.formation || "",
+    niveauDemande: application.niveau || "",
+    motivation: application.motivation || "",
+    statut,
+    dateDepot: application.date_depot,
+    submittedAt: application.date_depot,
+    numeroDossier: buildNumeroDossier(application),
+    commentaireAdmin: application.commentaire_admin || "",
+    details: {
+      universite: application.universite || "",
+      specialite: application.formation || "",
+      niveauDemande: application.niveau || "",
+      motivation: application.motivation || "",
+    },
+  };
 }
 
 function getCompletionColor(percentage) {
@@ -222,12 +266,55 @@ StudentApplicationsIcon.propTypes = {
 };
 
 export default function MesCandidatures() {
-  const { applications } = useAdmissions();
+  const navigate = useNavigate();
+  const [applications, setApplications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("toutes");
   const [expandedId, setExpandedId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadApplications() {
+      const token = getAuthToken();
+
+      if (!token) {
+        navigate("/login", {
+          replace: true,
+          state: { message: "Session absente ou expiree. Veuillez vous reconnecter." },
+        });
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setLoadError("");
+        const applicationsResponse = await listMyApplications();
+
+        if (isMounted) {
+          setApplications(applicationsResponse.map(mapApiApplication));
+        }
+      } catch (error) {
+        if (isMounted) {
+          setLoadError(error.message || "Impossible de charger vos candidatures.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadApplications();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   const applicationsWithMetrics = useMemo(
     () =>
@@ -377,10 +464,25 @@ export default function MesCandidatures() {
               : "Tous les dossiers sont complets"}
           </span>
           <span className="admin-page-context neutral">
-            Dernier depot {latestApplication ? formatShortDate(latestApplication.submittedAt || latestApplication.dateDepot) : "non disponible"}
+            Dernier depot{" "}
+            {latestApplication
+              ? formatShortDate(latestApplication.submittedAt || latestApplication.dateDepot)
+              : "non disponible"}
           </span>
         </div>
       </section>
+
+      {isLoading ? (
+        <div className="student-profile-feedback student-profile-feedback-info" role="status">
+          Chargement de vos candidatures...
+        </div>
+      ) : null}
+
+      {loadError ? (
+        <div className="student-profile-feedback student-profile-feedback-error" role="alert">
+          {loadError}
+        </div>
+      ) : null}
 
       <section className="campus-section-container student-dashboard-panel">
         <div className="campus-section-header student-dashboard-section-head">
@@ -448,7 +550,7 @@ export default function MesCandidatures() {
           ))}
         </div>
 
-        {filteredApplications.length === 0 ? (
+        {isLoading ? null : filteredApplications.length === 0 ? (
           <EmptyState
             title={applicationsWithMetrics.length === 0 ? "Aucune candidature pour le moment" : "Aucun resultat"}
             description={
@@ -501,8 +603,8 @@ export default function MesCandidatures() {
                           <strong>{formatDate(application.submittedAt || application.dateDepot)}</strong>
                         </div>
                         <div className="student-candidature-meta-item">
-                          <span>Numero de dossier</span>
-                          <strong>{application.numeroDossier}</strong>
+                          <span>Niveau</span>
+                          <strong>{application.niveauDemande || "Non renseigne"}</strong>
                         </div>
                       </div>
 
@@ -594,9 +696,17 @@ export default function MesCandidatures() {
                               <div><span>Mention</span><strong>{application.details.mention || "Non precisee"}</strong></div>
                               <div><span>Formation</span><strong>{application.specialite || "Non renseignee"}</strong></div>
                               <div><span>Universite</span><strong>{application.universite || "Non renseignee"}</strong></div>
+                              <div><span>Niveau demande</span><strong>{application.niveauDemande || "Non renseigne"}</strong></div>
                             </div>
                           </section>
                         </div>
+
+                        {application.motivation ? (
+                          <section className="student-candidature-detail-card student-candidature-documents-card">
+                            <h4>Motivation</h4>
+                            <p>{application.motivation}</p>
+                          </section>
+                        ) : null}
 
                         <section className="student-candidature-detail-card student-candidature-documents-card">
                           <div className="student-candidature-documents-head">
