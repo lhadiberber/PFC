@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth.routes.js";
 import applicationRoutes from "./routes/application.routes.js";
 import documentRoutes from "./routes/document.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
+import studentRoutes from "./routes/student.routes.js";
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.get("/", (_request, response) => {
     profile: "/api/profile",
     applications: "/api/applications",
     documents: "/api/documents",
+    student: "/api/student",
   });
 });
 
@@ -62,6 +64,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/student", studentRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

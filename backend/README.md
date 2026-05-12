@@ -212,3 +212,9 @@ Upload attendu pour `POST /api/documents`:
 - formats acceptes: PDF, JPG, JPEG, PNG
 - taille maximale: 5 Mo
 - stockage local: `backend/uploads`
+
+## Dashboard etudiant
+
+Route protegee par JWT:
+
+- `GET /api/student/dashboard` : resume profil, candidatures, documents, statut global et activite recente de l'etudiant connecte
