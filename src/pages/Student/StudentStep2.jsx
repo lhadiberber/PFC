@@ -15,7 +15,7 @@ const ACADEMIC_FIELDS = [
   "specialiteActuelle",
 ];
 
-const TARGET_FIELDS = ["universite", "specialite", "niveauDemande"];
+const TARGET_FIELDS = ["universite", "specialite", "niveauDemande", "motivation"];
 
 const DIPLOMA_OPTIONS = [
   "Baccalaureat scientifique",
@@ -198,6 +198,9 @@ export default function StudentStep2() {
     }
     if (!formData.niveauDemande.trim()) {
       nextErrors.niveauDemande = "Le niveau demande est requis.";
+    }
+    if (!formData.motivation?.trim()) {
+      nextErrors.motivation = "La motivation est requise.";
     }
 
     return nextErrors;
@@ -493,7 +496,7 @@ export default function StudentStep2() {
 
           <div className="student-application-form-grid">
             <div className="student-application-field student-application-field-full">
-              <label htmlFor="application-motivation">Motivation courte</label>
+              <label htmlFor="application-motivation">Motivation courte *</label>
               <textarea
                 id="application-motivation"
                 name="motivation"
@@ -502,7 +505,9 @@ export default function StudentStep2() {
                 onChange={handleChange}
                 className="student-application-textarea"
                 rows={5}
+                required
               />
+              {errors.motivation ? <span className="error-message">{errors.motivation}</span> : null}
             </div>
 
             <div className="student-application-field student-application-field-full">

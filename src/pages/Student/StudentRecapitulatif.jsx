@@ -4,6 +4,8 @@ import ApplicationStepLayout from "../../components/student/ApplicationStepLayou
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { useAdmissions } from "../../context/AdmissionsContext";
+import { createApplication } from "../../services/applicationService";
+import { getAuthToken } from "../../services/authService";
 import { showLoading, showToast } from "../../utils/toast";
 import "../../index.css";
 
@@ -96,6 +98,8 @@ export default function StudentRecapitulatif() {
   const navigate = useNavigate();
   const { applicationDraft, submitApplication } = useAdmissions();
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const personalInfo = applicationDraft.personalInfo;
   const academicInfo = applicationDraft.academicInfo;
@@ -133,6 +137,10 @@ export default function StudentRecapitulatif() {
       }
     });
 
+    if (!hasValue(academicInfo.motivation)) {
+      missing.push("Motivation courte");
+    }
+
     DOCUMENT_ITEMS.forEach((item) => {
       if (!hasValue(documents[item.key])) {
         missing.push(item.label);
@@ -148,20 +156,48 @@ export default function StudentRecapitulatif() {
       return;
     }
 
+    setSubmitError("");
     setShowConfirm(true);
   };
 
-  const confirmValider = () => {
+  const confirmValider = async () => {
+    const token = getAuthToken();
+
+    if (!token) {
+      const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+      setSubmitError(message);
+      setShowConfirm(false);
+      showToast(message, "error");
+      navigate("/login", { state: { message } });
+      return;
+    }
+
     setShowConfirm(false);
+    setIsSubmitting(true);
+    setSubmitError("");
     showLoading(true, "Envoi de votre candidature...");
 
-    const createdApplication = submitApplication();
+    try {
+      await createApplication({
+        universite: academicInfo.universite,
+        formation: academicInfo.specialite,
+        niveau: academicInfo.niveauDemande,
+        motivation: academicInfo.motivation,
+      });
 
-    setTimeout(() => {
+      const createdApplication = submitApplication();
+
       showLoading(false);
       showToast("Candidature soumise avec succes.", "success");
       navigate(`/success?numeroDossier=${createdApplication.numeroDossier}`);
-    }, 1200);
+    } catch (error) {
+      const message = error.message || "Impossible de soumettre la candidature.";
+      showLoading(false);
+      setSubmitError(message);
+      showToast(message, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const sidebar = (
@@ -230,11 +266,17 @@ export default function StudentRecapitulatif() {
               <button className="retour-btn" onClick={() => setShowConfirm(false)}>
                 Annuler
               </button>
-              <button className="valider-btn" onClick={confirmValider}>
-                Oui, soumettre
+              <button className="valider-btn" onClick={confirmValider} disabled={isSubmitting}>
+                {isSubmitting ? "Envoi..." : "Oui, soumettre"}
               </button>
             </div>
           </div>
+        </div>
+      ) : null}
+
+      {submitError ? (
+        <div className="student-profile-feedback student-profile-feedback-error" role="alert">
+          {submitError}
         </div>
       ) : null}
 
@@ -366,8 +408,9 @@ export default function StudentRecapitulatif() {
             type="button"
             className="student-application-button student-application-button-primary"
             onClick={handleValiderClick}
+            disabled={isSubmitting}
           >
-            Soumettre la candidature
+            {isSubmitting ? "Envoi en cours..." : "Soumettre la candidature"}
           </button>
         </div>
       </div>
