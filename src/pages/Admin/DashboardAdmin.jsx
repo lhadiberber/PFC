@@ -7,6 +7,7 @@ import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
 import { useAdmissions } from "../../context/AdmissionsContext";
+import { getAdminDashboard } from "../../services/adminService";
 import {
   getAdminActionAlerts,
   formatAdminDate,
@@ -334,6 +335,9 @@ export default function DashboardAdmin() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { applications, activityLog } = useAdmissions();
+  const [adminDashboardData, setAdminDashboardData] = useState(null);
+  const [isAdminDashboardLoading, setIsAdminDashboardLoading] = useState(true);
+  const [adminDashboardError, setAdminDashboardError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [workQueueFilter, setWorkQueueFilter] = useState("tous");
@@ -398,9 +402,72 @@ export default function DashboardAdmin() {
     { value: "decision-finalisee", label: "Decision finalisee" },
   ];
 
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadAdminDashboard() {
+      setIsAdminDashboardLoading(true);
+      setAdminDashboardError("");
+
+      try {
+        const data = await getAdminDashboard();
+
+        if (isActive) {
+          setAdminDashboardData(data);
+        }
+      } catch (error) {
+        if (isActive) {
+          setAdminDashboardError(error.message || "Impossible de charger le dashboard admin.");
+        }
+      } finally {
+        if (isActive) {
+          setIsAdminDashboardLoading(false);
+        }
+      }
+    }
+
+    loadAdminDashboard();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const dashboardApplicationsSource = adminDashboardData?.applications?.length
+    ? adminDashboardData.applications
+    : applications;
+  const dashboardActivitySource = adminDashboardData?.recentActivity?.length
+    ? adminDashboardData.recentActivity.map((activity, index) => ({
+        id: `${activity.type || "activity"}-${activity.date || index}`,
+        applicationId: activity.applicationId || "",
+        icon:
+          activity.type === "document"
+            ? "Note"
+            : activity.status === "Acceptee"
+              ? "Validation"
+              : activity.status === "Rejetee"
+                ? "Refus"
+                : "Soumission",
+        title: activity.title || "Activite",
+        description: activity.description || "",
+        detail: "",
+        actorName: "Plateforme PFC",
+        actorRole: "Backend",
+        numeroDossier: "",
+        occurredAt: activity.date,
+        tone:
+          activity.status === "Acceptee"
+            ? "positive"
+            : activity.status === "Rejetee"
+              ? "danger"
+              : "info",
+        status: activity.status || "",
+      }))
+    : activityLog;
+
   const adminApplications = useMemo(
-    () => applications.map(toAdminApplication),
-    [applications]
+    () => dashboardApplicationsSource.map(toAdminApplication),
+    [dashboardApplicationsSource]
   );
   const universityOptions = useMemo(
     () => [...new Set(adminApplications.map((application) => application.universite).filter(Boolean))].sort(),
@@ -566,8 +633,8 @@ export default function DashboardAdmin() {
     [filteredAdminApplications]
   );
   const adminRecentActivity = useMemo(
-    () => getAdminRecentActivity(filteredAdminApplications, activityLog),
-    [activityLog, filteredAdminApplications]
+    () => getAdminRecentActivity(filteredAdminApplications, dashboardActivitySource),
+    [dashboardActivitySource, filteredAdminApplications]
   );
   const adminAlerts = useMemo(
     () => getAdminActionAlerts(filteredAdminApplications),
@@ -783,6 +850,40 @@ export default function DashboardAdmin() {
       }),
     },
   ];
+
+  const backendStats = adminDashboardData?.stats;
+  const displayedAdminStatCards = backendStats
+    ? adminStatCards.map((card) => {
+        if (card.id === "total") {
+          return { ...card, value: backendStats.totalCandidatures ?? card.value };
+        }
+        if (card.id === "pending") {
+          return {
+            ...card,
+            value: backendStats.enAttente ?? card.value,
+            detail: `${backendStats.documentsEnAttente ?? 0} document(s) en attente`,
+          };
+        }
+        if (card.id === "accepted") {
+          return { ...card, value: backendStats.acceptees ?? card.value };
+        }
+        if (card.id === "refused") {
+          return { ...card, value: backendStats.refusees ?? card.value };
+        }
+        if (card.id === "students") {
+          return { ...card, value: backendStats.totalEtudiants ?? card.value };
+        }
+        if (card.id === "incomplete") {
+          return {
+            ...card,
+            value: backendStats.dossiersIncomplets ?? card.value,
+            detail: `${backendStats.documentsEnAttente ?? 0} document(s) a verifier`,
+          };
+        }
+
+        return card;
+      })
+    : adminStatCards;
 
   const activeFilterCount = dashboardScopeSummary.length;
   const activeAdminAlerts = adminAlerts.filter((alert) => alert.count > 0).slice(0, 4);
@@ -1205,7 +1306,7 @@ export default function DashboardAdmin() {
             </div>
 
             <div className="admin-primary-stats-grid">
-              {adminStatCards.map((card) => (
+              {displayedAdminStatCards.map((card) => (
                 <button
                   key={card.id}
                   type="button"
