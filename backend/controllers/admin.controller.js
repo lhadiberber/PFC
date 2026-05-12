@@ -1,5 +1,10 @@
 import { pool } from "../config/db.js";
-import { findAdminDashboardData } from "../models/admin.model.js";
+import {
+  findAdminApplicationById,
+  findAdminApplications,
+  findAdminDashboardData,
+  updateAdminApplicationStatus,
+} from "../models/admin.model.js";
 
 const REQUIRED_DOCUMENT_TYPES = [
   { type: "Diplome", key: "copieBac" },
@@ -29,6 +34,10 @@ const ACADEMIC_FIELDS = [
   "universite",
 ];
 
+const DB_STATUS_PENDING = "En attente";
+const DB_STATUS_ACCEPTED = "Acceptée";
+const DB_STATUS_REJECTED = "Refusée";
+
 function hasValue(value) {
   return String(value ?? "").trim() !== "";
 }
@@ -45,6 +54,24 @@ function normalizeApplicationStatus(status) {
   }
 
   return "En attente";
+}
+
+function normalizeRequestedAdminStatus(status) {
+  const cleanStatus = String(status || "").trim().toLowerCase();
+
+  if (cleanStatus === "en attente") {
+    return DB_STATUS_PENDING;
+  }
+
+  if (cleanStatus.startsWith("accept")) {
+    return DB_STATUS_ACCEPTED;
+  }
+
+  if (cleanStatus.startsWith("refus") || cleanStatus.startsWith("rejet")) {
+    return DB_STATUS_REJECTED;
+  }
+
+  return null;
 }
 
 function normalizeDocumentStatus(status) {
@@ -141,6 +168,62 @@ function mapApplicationForFrontend(application, documentsByStudent) {
           ]
         : [],
     },
+  };
+}
+
+function mapApplicationListItem(application, documentsByStudent) {
+  const details = buildApplicationDetails(application, documentsByStudent);
+
+  return {
+    id: application.id,
+    student_id: application.student_id,
+    nom: application.nom,
+    prenom: application.prenom,
+    email: application.email,
+    universite: application.universite,
+    formation: application.formation,
+    niveau: application.niveau,
+    statut: normalizeApplicationStatus(application.statut),
+    date_depot: application.date_depot,
+    numeroDossier: buildNumeroDossier(application),
+    specialite: application.formation,
+    dateDepot: application.date_depot,
+    submittedAt: application.date_depot,
+    details,
+  };
+}
+
+function mapApplicationDetail(application, documents) {
+  const documentsByStudent = buildDocumentsByStudent(documents);
+
+  return {
+    ...mapApplicationForFrontend(application, documentsByStudent),
+    student: {
+      id: application.student_id,
+      nom: application.nom,
+      prenom: application.prenom,
+      email: application.email,
+    },
+    profile: {
+      telephone: application.telephone,
+      date_naissance: application.date_naissance,
+      nationalite: application.nationalite,
+      adresse: application.adresse,
+      diplome_actuel: application.diplome_actuel,
+      etablissement: application.etablissement,
+      specialite_actuelle: application.specialite_actuelle,
+      annee_obtention: application.annee_obtention,
+      moyenne: application.moyenne,
+    },
+    documents: documents.map((document) => ({
+      id: document.id,
+      application_id: document.application_id,
+      type_document: document.type_document,
+      nom_fichier: document.nom_fichier,
+      statut: normalizeDocumentStatus(document.statut),
+      date_upload: document.date_upload,
+    })),
+    commentaire_admin: application.commentaire_admin || "",
   };
 }
 
@@ -315,6 +398,80 @@ export async function getAdminDashboard(_request, response, next) {
         items: buildPendingDocuments(documents),
       },
       recentActivity: buildRecentActivity(applications, documents, students),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listAdminApplications(_request, response, next) {
+  try {
+    const applications = await findAdminApplications();
+    const { documents } = await findAdminDashboardData();
+    const documentsByStudent = buildDocumentsByStudent(documents);
+
+    response.json({
+      success: true,
+      applications: applications.map((application) =>
+        mapApplicationListItem(application, documentsByStudent)
+      ),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getAdminApplication(request, response, next) {
+  try {
+    const result = await findAdminApplicationById(request.params.id);
+
+    if (!result) {
+      response.status(404).json({
+        success: false,
+        message: "Candidature introuvable.",
+      });
+      return;
+    }
+
+    response.json({
+      success: true,
+      application: mapApplicationDetail(result.application, result.documents),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateAdminApplicationStatusController(request, response, next) {
+  try {
+    const statut = normalizeRequestedAdminStatus(request.body.statut);
+
+    if (!statut) {
+      response.status(400).json({
+        success: false,
+        message: "Statut invalide. Utilisez En attente, Acceptée ou Refusée.",
+      });
+      return;
+    }
+
+    const result = await updateAdminApplicationStatus(
+      request.params.id,
+      statut,
+      request.body.commentaire_admin
+    );
+
+    if (!result) {
+      response.status(404).json({
+        success: false,
+        message: "Candidature introuvable.",
+      });
+      return;
+    }
+
+    response.json({
+      success: true,
+      message: "Statut de la candidature mis a jour.",
+      application: mapApplicationDetail(result.application, result.documents),
     });
   } catch (error) {
     next(error);

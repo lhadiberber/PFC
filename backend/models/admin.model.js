@@ -137,3 +137,71 @@ export async function findAdminDashboardData() {
     students: studentRows.map(normalizeUser),
   };
 }
+
+export async function findAdminApplications() {
+  const [rows] = await pool.execute(
+    `SELECT ${APPLICATION_FIELDS}
+     FROM applications a
+     INNER JOIN users u ON u.id = a.student_id
+     LEFT JOIN student_profiles sp ON sp.user_id = u.id
+     ORDER BY a.date_depot DESC, a.id DESC`
+  );
+
+  return rows.map(normalizeApplication);
+}
+
+export async function findAdminApplicationById(id) {
+  const [applicationRows] = await pool.execute(
+    `SELECT ${APPLICATION_FIELDS}
+     FROM applications a
+     INNER JOIN users u ON u.id = a.student_id
+     LEFT JOIN student_profiles sp ON sp.user_id = u.id
+     WHERE a.id = ?
+     LIMIT 1`,
+    [id]
+  );
+  const application = normalizeApplication(applicationRows[0]);
+
+  if (!application) {
+    return null;
+  }
+
+  const [documentRows] = await pool.execute(
+    `SELECT ${DOCUMENT_FIELDS}
+     FROM documents d
+     INNER JOIN users u ON u.id = d.student_id
+     WHERE d.student_id = ? AND (d.application_id = ? OR d.application_id IS NULL)
+     ORDER BY d.date_upload DESC, d.id DESC`,
+    [application.student_id, application.id]
+  );
+
+  return {
+    application,
+    documents: documentRows.map(normalizeDocument),
+  };
+}
+
+export async function updateAdminApplicationStatus(id, statut, commentaireAdmin) {
+  const values = [statut];
+  let commentSql = "";
+
+  if (commentaireAdmin !== undefined) {
+    commentSql = ", commentaire_admin = ?";
+    values.push(String(commentaireAdmin || "").trim() || null);
+  }
+
+  values.push(id);
+
+  const [result] = await pool.execute(
+    `UPDATE applications
+     SET statut = ?${commentSql}
+     WHERE id = ?`,
+    values
+  );
+
+  if (result.affectedRows === 0) {
+    return null;
+  }
+
+  return findAdminApplicationById(id);
+}
