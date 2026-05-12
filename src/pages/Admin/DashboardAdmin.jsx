@@ -7,6 +7,7 @@ import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
 import { useAdmissions } from "../../context/AdmissionsContext";
+import { clearAuthSession, getAuthToken } from "../../services/authService";
 import { getAdminDashboard } from "../../services/adminService";
 import {
   getAdminActionAlerts,
@@ -338,6 +339,7 @@ export default function DashboardAdmin() {
   const [adminDashboardData, setAdminDashboardData] = useState(null);
   const [isAdminDashboardLoading, setIsAdminDashboardLoading] = useState(true);
   const [adminDashboardError, setAdminDashboardError] = useState("");
+  const [reloadDashboardKey, setReloadDashboardKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [workQueueFilter, setWorkQueueFilter] = useState("tous");
@@ -406,6 +408,15 @@ export default function DashboardAdmin() {
     let isActive = true;
 
     async function loadAdminDashboard() {
+      const token = getAuthToken();
+
+      if (!token) {
+        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+        return;
+      }
+
       setIsAdminDashboardLoading(true);
       setAdminDashboardError("");
 
@@ -417,7 +428,18 @@ export default function DashboardAdmin() {
         }
       } catch (error) {
         if (isActive) {
-          setAdminDashboardError(error.message || "Impossible de charger le dashboard admin.");
+          if (error.status === 401) {
+            const message = "Session expiree. Veuillez vous reconnecter.";
+            clearAuthSession();
+            navigate("/login", { state: { message } });
+            return;
+          }
+
+          setAdminDashboardError(
+            error.status === 403
+              ? "Acces refuse. Ce tableau de bord est reserve aux administrateurs."
+              : error.message || "Impossible de charger le dashboard admin."
+          );
         }
       } finally {
         if (isActive) {
@@ -431,7 +453,7 @@ export default function DashboardAdmin() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [navigate, reloadDashboardKey]);
 
   const dashboardApplicationsSource = adminDashboardData?.applications?.length
     ? adminDashboardData.applications
@@ -1016,6 +1038,50 @@ export default function DashboardAdmin() {
     }
   };
 
+  if (isAdminDashboardLoading && !adminDashboardData) {
+    return (
+      <AdminLayout
+        title="Tableau de bord administrateur"
+        subtitle="Suivi et gestion des candidatures d'admission"
+      >
+        <section className="campus-section-container">
+          <div className="campus-section-header">
+            <div>
+              <h2>Chargement du dashboard</h2>
+              <p>Recuperation des statistiques admin depuis le backend...</p>
+            </div>
+          </div>
+          <div className="student-profile-feedback">Chargement en cours...</div>
+        </section>
+      </AdminLayout>
+    );
+  }
+
+  if (adminDashboardError && !adminDashboardData) {
+    return (
+      <AdminLayout
+        title="Tableau de bord administrateur"
+        subtitle="Suivi et gestion des candidatures d'admission"
+      >
+        <section className="campus-section-container">
+          <EmptyState
+            title="Dashboard admin indisponible"
+            description={adminDashboardError}
+            className="admin-empty-state"
+          />
+          <div className="admin-dashboard-topbar-actions">
+            <Button
+              className="campus-btn-primary"
+              onClick={() => setReloadDashboardKey((currentKey) => currentKey + 1)}
+            >
+              Reessayer
+            </Button>
+          </div>
+        </section>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout
       title="Tableau de bord administrateur"
@@ -1025,6 +1091,16 @@ export default function DashboardAdmin() {
       onSearchKeyDown={handleSearchKeyDown}
       searchPlaceholder="Rechercher un etudiant, une universite, une specialite ou un numero de dossier..."
     >
+      {adminDashboardError ? (
+        <div className="student-profile-feedback student-profile-feedback-error" role="alert">
+          {adminDashboardError}
+        </div>
+      ) : null}
+
+      {isAdminDashboardLoading ? (
+        <div className="student-profile-feedback">Actualisation des donnees admin...</div>
+      ) : null}
+
       <section className="campus-section-container">
         <div className="admin-dashboard-topbar">
           <div className="admin-dashboard-topbar-context">
