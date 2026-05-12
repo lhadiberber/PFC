@@ -117,6 +117,7 @@ function AppContent() {
           <Route path="/admin/etudiants" element={<ProtectedRoute allowedRoles={["admin"]}><EtudiantsAdmin /></ProtectedRoute>} />
           <Route path="/admin/etudiants/:id" element={<ProtectedRoute allowedRoles={["admin"]}><DetailEtudiantAdmin /></ProtectedRoute>} />
           <Route path="/admin/documents" element={<ProtectedRoute allowedRoles={["admin"]}><DocumentsAdmin /></ProtectedRoute>} />
+          <Route path="/admin/documents/:documentId" element={<ProtectedRoute allowedRoles={["admin"]}><DetailDocumentAdmin /></ProtectedRoute>} />
           <Route path="/admin/documents/:applicationId/:documentKey" element={<ProtectedRoute allowedRoles={["admin"]}><DetailDocumentAdmin /></ProtectedRoute>} />
           <Route path="/admin/profil" element={<ProtectedRoute allowedRoles={["admin"]}><ProfilAdmin /></ProtectedRoute>} />
           

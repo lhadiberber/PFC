@@ -48,3 +48,22 @@ export async function getAdminStudent(id) {
   const response = await apiRequest(`/admin/students/${id}`);
   return response.student || null;
 }
+
+export async function listAdminDocuments() {
+  const response = await apiRequest("/admin/documents");
+  return response.documents || [];
+}
+
+export async function getAdminDocument(id) {
+  const response = await apiRequest(`/admin/documents/${id}`);
+  return response.document || null;
+}
+
+export async function updateAdminDocumentStatus(id, payload) {
+  const response = await apiRequest(`/admin/documents/${id}/status`, {
+    method: "PATCH",
+    body: payload,
+  });
+
+  return response.document || null;
+}

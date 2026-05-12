@@ -5,14 +5,13 @@ import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { useAdmissions } from "../../context/AdmissionsContext";
+import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { listAdminDocuments } from "../../services/adminService";
 import { downloadCsv } from "../../utils/exportCsv";
 import { formatAdminDate } from "../../utils/adminApplications";
 import {
-  buildAdminDocumentRows,
   filterAdminDocumentRows,
   getAdminDocumentStats,
-  readDocumentReviews,
   sortAdminDocumentRows,
 } from "../../utils/adminDocuments";
 import "../../index.css";
@@ -102,15 +101,53 @@ function getVisiblePageNumbers(currentPage, totalPages) {
   return Array.from({ length: end - adjustedStart + 1 }, (_, index) => adjustedStart + index);
 }
 
+function buildNumeroDossier(application) {
+  if (!application?.id) {
+    return "Sans candidature";
+  }
+
+  const date = new Date(application.date_depot || Date.now());
+  const year = Number.isNaN(date.getTime()) ? new Date().getFullYear() : date.getFullYear();
+  return `CAND-${year}-${String(application.id).padStart(3, "0")}`;
+}
+
+function mapApiDocumentToRow(document) {
+  const studentName =
+    [document.student?.prenom, document.student?.nom].filter(Boolean).join(" ") ||
+    document.student?.email ||
+    "Etudiant non renseigne";
+  const application = document.application || null;
+
+  return {
+    id: String(document.id),
+    documentId: String(document.id),
+    applicationId: application?.id ? String(application.id) : "",
+    documentKey: String(document.id),
+    studentName,
+    university: application?.universite || "Candidature non liee",
+    depositedAt: document.date_upload,
+    depositedAtLabel: formatAdminDate(document.date_upload),
+    status: document.statut || "En attente",
+    fileName: document.nom_fichier || "Fichier indisponible",
+    typeLabel: document.type_document || "Document",
+    shortTypeLabel: document.type_document || "Document",
+    numeroDossier: buildNumeroDossier(application),
+    email: document.student?.email || "",
+    programme: application?.formation || "",
+    fileUrl: document.file_url || "",
+  };
+}
+
 export default function DocumentsAdmin() {
   const navigate = useNavigate();
-  const { applications } = useAdmissions();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("query") || "");
   const [filter, setFilter] = useState(searchParams.get("filter") || "tous");
   const [pageSize, setPageSize] = useState(Number(searchParams.get("pageSize")) || 10);
   const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
-  const [reviewsVersion, setReviewsVersion] = useState(0);
+  const [documentsData, setDocumentsData] = useState([]);
+  const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
+  const [documentsError, setDocumentsError] = useState("");
 
   useEffect(() => {
     setSearchQuery(searchParams.get("query") || "");
@@ -120,15 +157,50 @@ export default function DocumentsAdmin() {
   }, [searchParams]);
 
   useEffect(() => {
-    const syncReviews = () => setReviewsVersion((current) => current + 1);
-    window.addEventListener("admin:document-reviews-updated", syncReviews);
-    window.addEventListener("storage", syncReviews);
+    let isActive = true;
+
+    async function loadDocuments() {
+      const token = getAuthToken();
+
+      if (!token) {
+        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+        return;
+      }
+
+      setIsLoadingDocuments(true);
+      setDocumentsError("");
+
+      try {
+        const documents = await listAdminDocuments();
+        if (isActive) setDocumentsData(documents);
+      } catch (error) {
+        if (!isActive) return;
+
+        if (error.status === 401) {
+          const message = "Session expiree. Veuillez vous reconnecter.";
+          clearAuthSession();
+          navigate("/login", { state: { message } });
+          return;
+        }
+
+        setDocumentsError(
+          error.status === 403
+            ? "Acces refuse. Cette page est reservee aux administrateurs."
+            : error.message || "Impossible de charger les documents."
+        );
+      } finally {
+        if (isActive) setIsLoadingDocuments(false);
+      }
+    }
+
+    loadDocuments();
 
     return () => {
-      window.removeEventListener("admin:document-reviews-updated", syncReviews);
-      window.removeEventListener("storage", syncReviews);
+      isActive = false;
     };
-  }, []);
+  }, [navigate]);
 
   const updateRouteParams = (overrides = {}) => {
     const params = new URLSearchParams();
@@ -156,11 +228,7 @@ export default function DocumentsAdmin() {
     setSearchParams(params, { replace: true });
   };
 
-  const documentReviews = useMemo(() => readDocumentReviews(), [reviewsVersion]);
-  const allDocumentRows = useMemo(
-    () => buildAdminDocumentRows(applications, documentReviews),
-    [applications, documentReviews]
-  );
+  const allDocumentRows = useMemo(() => documentsData.map(mapApiDocumentToRow), [documentsData]);
   const searchScopedRows = useMemo(
     () => filterAdminDocumentRows(allDocumentRows, searchQuery, "tous"),
     [allDocumentRows, searchQuery]
@@ -276,6 +344,15 @@ export default function DocumentsAdmin() {
       </section>
 
       <section className="campus-section-container">
+        {documentsError ? (
+          <div className="student-profile-feedback student-profile-feedback-error">
+            {documentsError}
+          </div>
+        ) : null}
+        {isLoadingDocuments ? (
+          <div className="student-profile-feedback">Chargement des documents...</div>
+        ) : null}
+
         <div className="admin-documents-panel">
           <div className="campus-section-header admin-documents-panel-header">
             <div>
@@ -362,20 +439,12 @@ export default function DocumentsAdmin() {
                       className="row-clickable"
                       tabIndex={0}
                       onClick={() =>
-                        navigate(
-                          `/admin/documents/${encodeURIComponent(row.applicationId)}/${encodeURIComponent(
-                            row.documentKey
-                          )}`
-                        )
+                        navigate(`/admin/documents/${encodeURIComponent(row.documentId)}`)
                       }
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
-                          navigate(
-                            `/admin/documents/${encodeURIComponent(
-                              row.applicationId
-                            )}/${encodeURIComponent(row.documentKey)}`
-                          );
+                          navigate(`/admin/documents/${encodeURIComponent(row.documentId)}`);
                         }
                       }}
                     >
@@ -401,11 +470,7 @@ export default function DocumentsAdmin() {
                           className="admin-table-action-button"
                           onClick={(event) => {
                             event.stopPropagation();
-                            navigate(
-                              `/admin/documents/${encodeURIComponent(
-                                row.applicationId
-                              )}/${encodeURIComponent(row.documentKey)}`
-                            );
+                            navigate(`/admin/documents/${encodeURIComponent(row.documentId)}`);
                           }}
                         >
                           Voir

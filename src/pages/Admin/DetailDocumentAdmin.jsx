@@ -4,15 +4,51 @@ import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { useAdmissions } from "../../context/AdmissionsContext";
+import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { getAdminDocument, updateAdminDocumentStatus } from "../../services/adminService";
 import { formatAdminDate, formatAdminDateTime } from "../../utils/adminApplications";
-import {
-  findAdminDocumentRow,
-  readDocumentReviews,
-  updateDocumentReview,
-} from "../../utils/adminDocuments";
 import { showToast } from "../../utils/toast";
 import "../../index.css";
+
+function buildNumeroDossier(application) {
+  if (!application?.id) {
+    return "Sans candidature";
+  }
+
+  const date = new Date(application.date_depot || Date.now());
+  const year = Number.isNaN(date.getTime()) ? new Date().getFullYear() : date.getFullYear();
+  return `CAND-${year}-${String(application.id).padStart(3, "0")}`;
+}
+
+function mapApiDocumentToDetail(document) {
+  if (!document) {
+    return null;
+  }
+
+  const application = document.application || null;
+  const studentName =
+    [document.student?.prenom, document.student?.nom].filter(Boolean).join(" ") ||
+    document.student?.email ||
+    "Etudiant non renseigne";
+
+  return {
+    id: String(document.id),
+    applicationId: application?.id ? String(application.id) : "",
+    studentName,
+    email: document.student?.email || "",
+    typeLabel: document.type_document || "Document",
+    fileName: document.nom_fichier || "Fichier indisponible",
+    fileUrl: document.file_url || "",
+    status: document.statut || "En attente",
+    depositedAt: document.date_upload,
+    reviewUpdatedAt: "",
+    university: application?.universite || "Candidature non liee",
+    programme: application?.formation || "",
+    niveau: application?.niveau || "",
+    applicationStatus: application?.statut || "",
+    numeroDossier: buildNumeroDossier(application),
+  };
+}
 
 function buildHistoryEntries(documentRow) {
   const entries = [
@@ -55,27 +91,94 @@ function buildHistoryEntries(documentRow) {
 
 export default function DetailDocumentAdmin() {
   const navigate = useNavigate();
-  const { applicationId, documentKey } = useParams();
-  const { applications } = useAdmissions();
-  const [reviewsVersion, setReviewsVersion] = useState(0);
+  const { documentId, applicationId, documentKey } = useParams();
+  const resolvedDocumentId = documentId || documentKey || applicationId;
+  const [documentData, setDocumentData] = useState(null);
+  const [isLoadingDocument, setIsLoadingDocument] = useState(true);
+  const [documentError, setDocumentError] = useState("");
+  const [actionLoading, setActionLoading] = useState("");
 
   useEffect(() => {
-    const syncReviews = () => setReviewsVersion((current) => current + 1);
-    window.addEventListener("admin:document-reviews-updated", syncReviews);
-    window.addEventListener("storage", syncReviews);
+    let isActive = true;
+
+    async function loadDocument() {
+      const token = getAuthToken();
+
+      if (!token) {
+        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+        return;
+      }
+
+      setIsLoadingDocument(true);
+      setDocumentError("");
+
+      try {
+        const document = await getAdminDocument(resolvedDocumentId);
+        if (isActive) setDocumentData(document);
+      } catch (error) {
+        if (!isActive) return;
+
+        if (error.status === 401) {
+          const message = "Session expiree. Veuillez vous reconnecter.";
+          clearAuthSession();
+          navigate("/login", { state: { message } });
+          return;
+        }
+
+        setDocumentError(
+          error.status === 403
+            ? "Acces refuse. Cette page est reservee aux administrateurs."
+            : error.message || "Impossible de charger le document."
+        );
+      } finally {
+        if (isActive) setIsLoadingDocument(false);
+      }
+    }
+
+    loadDocument();
 
     return () => {
-      window.removeEventListener("admin:document-reviews-updated", syncReviews);
-      window.removeEventListener("storage", syncReviews);
+      isActive = false;
     };
-  }, []);
+  }, [resolvedDocumentId, navigate]);
 
-  const reviews = useMemo(() => readDocumentReviews(), [reviewsVersion]);
-  const documentId = `${applicationId}__${documentKey}`;
-  const documentRow = useMemo(
-    () => findAdminDocumentRow(applications, documentId, reviews),
-    [applications, documentId, reviews]
-  );
+  const documentRow = useMemo(() => mapApiDocumentToDetail(documentData), [documentData]);
+
+  if (isLoadingDocument && !documentRow) {
+    return (
+      <AdminLayout
+        title="Detail du document"
+        subtitle="Verification d'une piece candidate"
+        showSearch={false}
+      >
+        <section className="campus-section-container">
+          <div className="student-profile-feedback">Chargement du document...</div>
+        </section>
+      </AdminLayout>
+    );
+  }
+
+  if (documentError && !documentRow) {
+    return (
+      <AdminLayout
+        title="Detail du document"
+        subtitle="Verification d'une piece candidate"
+        showSearch={false}
+      >
+        <section className="campus-section-container">
+          <EmptyState
+            title="Impossible de charger le document"
+            description={documentError}
+            actionLabel="Retour aux documents"
+            actionTo="/admin/documents"
+            className="admin-empty-state"
+          />
+        </section>
+      </AdminLayout>
+    );
+  }
 
   if (!documentRow) {
     return (
@@ -99,9 +202,21 @@ export default function DetailDocumentAdmin() {
 
   const historyEntries = buildHistoryEntries(documentRow);
 
-  const handleReviewAction = (nextStatus) => {
-    updateDocumentReview(documentRow.id, nextStatus);
-    showToast(`Document passe en statut ${nextStatus.toLowerCase()}.`, "success");
+  const handleReviewAction = async (nextStatus) => {
+    setActionLoading(nextStatus);
+    setDocumentError("");
+
+    try {
+      const updatedDocument = await updateAdminDocumentStatus(documentRow.id, { statut: nextStatus });
+      setDocumentData(updatedDocument);
+      showToast(`Document passe en statut ${nextStatus.toLowerCase()}.`, "success");
+    } catch (error) {
+      const message = error.message || "Impossible de mettre a jour le statut du document.";
+      setDocumentError(message);
+      showToast(message, "error");
+    } finally {
+      setActionLoading("");
+    }
   };
 
   return (
@@ -150,26 +265,35 @@ export default function DetailDocumentAdmin() {
             <Button
               className="admin-detail-action-primary"
               onClick={() => handleReviewAction("Valide")}
+              disabled={Boolean(actionLoading)}
             >
-              Valider
+              {actionLoading === "Valide" ? "Validation..." : "Valider"}
             </Button>
             <Button
               className="admin-detail-action-danger"
               onClick={() => handleReviewAction("Refuse")}
+              disabled={Boolean(actionLoading)}
             >
-              Refuser
+              {actionLoading === "Refuse" ? "Refus..." : "Refuser"}
             </Button>
             <Button
               className="admin-table-action-button"
               onClick={() => handleReviewAction("En attente")}
+              disabled={Boolean(actionLoading)}
             >
-              Remettre en attente
+              {actionLoading === "En attente" ? "Mise a jour..." : "Remettre en attente"}
             </Button>
           </div>
         </div>
       </section>
 
       <section className="campus-section-container">
+        {documentError ? (
+          <div className="student-profile-feedback student-profile-feedback-error">
+            {documentError}
+          </div>
+        ) : null}
+
         <div className="admin-document-layout">
           <div className="admin-document-main">
             <article className="admin-meta-card">
@@ -211,10 +335,18 @@ export default function DetailDocumentAdmin() {
                 <div className="admin-document-file-icon">DOC</div>
                 <div className="admin-document-file-copy">
                   <strong>{documentRow.fileName}</strong>
-                  <span>
-                    Apercu indisponible dans cette maquette. Utilisez le dossier candidat pour
-                    consulter le contexte complet.
-                  </span>
+                  {documentRow.fileUrl ? (
+                    <a
+                      className="admin-table-action-button"
+                      href={documentRow.fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Voir / telecharger
+                    </a>
+                  ) : (
+                    <span>Fichier indisponible</span>
+                  )}
                 </div>
               </div>
             </article>
@@ -232,6 +364,8 @@ export default function DetailDocumentAdmin() {
                   ["Etudiant", documentRow.studentName],
                   ["Universite", documentRow.university],
                   ["Programme", documentRow.programme || "Non renseigne"],
+                  ["Niveau", documentRow.niveau || "Non renseigne"],
+                  ["Statut candidature", documentRow.applicationStatus || "Non liee"],
                   ["Numero de dossier", documentRow.numeroDossier],
                 ].map(([label, value]) => (
                   <div key={label} className="admin-application-info-item">
@@ -307,6 +441,7 @@ export default function DetailDocumentAdmin() {
                 <Button
                   className="admin-table-action-button"
                   onClick={() => navigate(`/admin/candidatures/${documentRow.applicationId}`)}
+                  disabled={!documentRow.applicationId}
                 >
                   Voir le dossier
                 </Button>
