@@ -1,14 +1,13 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { useAdmissions } from "../../context/AdmissionsContext";
+import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { getAdminStudent } from "../../services/adminService";
 import { formatAdminDate, formatAdminDateTime, toAdminApplication } from "../../utils/adminApplications";
 import {
-  buildStudentRecords,
-  findStudentRecordByApplicationId,
   getStudentStatusMeta,
 } from "../../utils/adminStudents";
 import "../../index.css";
@@ -25,33 +24,184 @@ function getFieldValue(value, fallback = "Non renseigne") {
   return value && String(value).trim() ? value : fallback;
 }
 
+function normalizeStatus(status) {
+  if (["Acceptée", "Acceptee", "AcceptÃ©e"].includes(status)) return "Acceptee";
+  if (["Refusée", "Refusee", "RefusÃ©e", "Rejetee"].includes(status)) return "Rejetee";
+  return "En attente";
+}
+
+function mapStudentDetailToRecord(data) {
+  if (!data?.user) {
+    return null;
+  }
+
+  const applications = (data.applications || []).map((application) =>
+    toAdminApplication({
+      id: application.id,
+      numeroDossier: application.numeroDossier,
+      universite: application.universite,
+      specialite: application.formation || application.specialite,
+      niveauDemande: application.niveau,
+      dateDepot: application.date_depot || application.dateDepot,
+      submittedAt: application.date_depot || application.submittedAt,
+      statut: normalizeStatus(application.statut),
+      details: application.details || {
+        nom: data.user.nom,
+        prenom: data.user.prenom,
+        email: data.user.email,
+        telephone: data.profile?.telephone,
+        dateNaiss: data.profile?.date_naissance,
+        nationalite: data.profile?.nationalite,
+        adresse: data.profile?.adresse,
+        typeBac: data.profile?.diplome_actuel,
+        diplomeActuel: data.profile?.diplome_actuel,
+        etablissementActuel: data.profile?.etablissement,
+        specialiteActuelle: data.profile?.specialite_actuelle,
+        anneeBac: data.profile?.annee_obtention,
+        moyenneBac: data.profile?.moyenne,
+      },
+      adminMeta: { internalPriority: "moyenne", internalStatus: "qualification", assignedTo: "" },
+    })
+  );
+  const latestApplication = applications[0] || null;
+  const baseRecord = {
+    key: String(data.user.id),
+    id: data.user.id,
+    prenom: data.user.prenom || "",
+    nom: data.user.nom || "",
+    fullName: [data.user.prenom, data.user.nom].filter(Boolean).join(" ") || data.user.email,
+    email: data.user.email,
+    telephone: data.profile?.telephone || "Non renseigne",
+    nationalite: data.profile?.nationalite || "Non renseignee",
+    latestApplicationId: latestApplication?.id || data.user.id,
+    latestDate: latestApplication?.dateDepot || data.user.created_at,
+    firstDate: data.user.created_at,
+    latestStatus: latestApplication?.statut || "En attente",
+    latestUniversite: latestApplication?.universite || "Aucune candidature",
+    latestProgramme: latestApplication?.specialite || "Aucune candidature",
+    latestDiplome: data.profile?.diplome_actuel || "Profil non complete",
+    latestYear: data.profile?.annee_obtention || "Non renseignee",
+    latestApplication,
+    applications,
+    documents: data.documents || [],
+    profile: data.profile || {},
+    candidaturesCount: applications.length,
+    pendingCount: applications.filter((application) => application.statut === "En attente").length,
+    acceptedCount: applications.filter((application) => application.statut === "Acceptee").length,
+    rejectedCount: applications.filter((application) => application.statut === "Rejetee").length,
+  };
+
+  return {
+    ...baseRecord,
+    statusMeta: getStudentStatusMeta({
+      ...baseRecord,
+      profilCompletion: data.profile?.telephone ? 100 : 50,
+      documentsCompletion: data.documents?.length ? 100 : 0,
+      academiqueCompletion: data.profile?.diplome_actuel ? 100 : 50,
+    }),
+  };
+}
+
 export default function DetailEtudiantAdmin() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { applications, activityLog } = useAdmissions();
+  const [studentData, setStudentData] = useState(null);
+  const [isLoadingStudent, setIsLoadingStudent] = useState(true);
+  const [studentError, setStudentError] = useState("");
 
-  const student = useMemo(() => {
-    const records = buildStudentRecords(applications.map(toAdminApplication)).map((record) => ({
-      ...record,
-      statusMeta: getStudentStatusMeta(record),
-    }));
+  useEffect(() => {
+    let isActive = true;
 
-    return findStudentRecordByApplicationId(records, id) || null;
-  }, [applications, id]);
+    async function loadStudent() {
+      const token = getAuthToken();
 
-  const history = useMemo(() => {
-    if (!student) {
-      return [];
+      if (!token) {
+        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+        return;
+      }
+
+      setIsLoadingStudent(true);
+      setStudentError("");
+
+      try {
+        const data = await getAdminStudent(id);
+        if (isActive) setStudentData(data);
+      } catch (error) {
+        if (!isActive) return;
+
+        if (error.status === 401) {
+          const message = "Session expiree. Veuillez vous reconnecter.";
+          clearAuthSession();
+          navigate("/login", { state: { message } });
+          return;
+        }
+
+        setStudentError(
+          error.status === 403
+            ? "Acces refuse. Cette page est reservee aux administrateurs."
+            : error.message || "Impossible de charger l'etudiant."
+        );
+      } finally {
+        if (isActive) setIsLoadingStudent(false);
+      }
     }
 
-    const studentApplicationIds = new Set(
-      student.applications.map((application) => String(application.id))
-    );
+    loadStudent();
 
-    return [...activityLog]
-      .filter((entry) => studentApplicationIds.has(String(entry.applicationId)))
-      .sort((first, second) => new Date(second.occurredAt) - new Date(first.occurredAt));
-  }, [activityLog, student]);
+    return () => {
+      isActive = false;
+    };
+  }, [id, navigate]);
+
+  const student = useMemo(() => mapStudentDetailToRecord(studentData), [studentData]);
+
+  const history = useMemo(() => {
+    if (!student) return [];
+
+    return student.applications.map((application) => ({
+      id: `application-${application.id}`,
+      title: "Candidature deposee",
+      description: `${application.specialite} - ${application.universite}`,
+      occurredAt: application.dateDepot,
+      tone: "info",
+    }));
+  }, [student]);
+
+  if (isLoadingStudent && !student) {
+    return (
+      <AdminLayout
+        title="Fiche etudiant"
+        subtitle="Consultation du profil et des informations de candidature"
+        showSearch={false}
+      >
+        <section className="campus-section-container">
+          <div className="student-profile-feedback">Chargement du profil etudiant...</div>
+        </section>
+      </AdminLayout>
+    );
+  }
+
+  if (studentError && !student) {
+    return (
+      <AdminLayout
+        title="Fiche etudiant"
+        subtitle="Consultation du profil et des informations de candidature"
+        showSearch={false}
+      >
+        <section className="campus-section-container">
+          <EmptyState
+            title="Impossible de charger l'etudiant"
+            description={studentError}
+            actionLabel="Retour aux etudiants"
+            actionTo="/admin/etudiants"
+            className="admin-empty-state"
+          />
+        </section>
+      </AdminLayout>
+    );
+  }
 
   if (!student) {
     return (
@@ -73,19 +223,30 @@ export default function DetailEtudiantAdmin() {
     );
   }
 
-  const latestApplication = student.latestApplication;
-  const documents = DOCUMENT_FIELDS.map((documentField) => {
-    const value =
-      documentField.key === "lettreMotivation"
-        ? latestApplication.details?.motivation || latestApplication.details?.lettreMotivation
-        : latestApplication.details?.[documentField.key];
+  const latestApplication = student.latestApplication || { details: {} };
+  const uploadedDocuments = Array.isArray(student.documents) ? student.documents : [];
+  const documents =
+    uploadedDocuments.length > 0
+      ? uploadedDocuments.map((document) => ({
+          key: String(document.id),
+          label: document.type_document || "Document",
+          value: document.nom_fichier,
+          status: document.statut,
+          provided: Boolean(document.nom_fichier),
+        }))
+      : DOCUMENT_FIELDS.map((documentField) => {
+          const value =
+            documentField.key === "lettreMotivation"
+              ? latestApplication.details?.motivation || latestApplication.details?.lettreMotivation
+              : latestApplication.details?.[documentField.key];
 
-    return {
-      ...documentField,
-      value,
-      provided: Boolean(value),
-    };
-  });
+          return {
+            ...documentField,
+            value,
+            status: "",
+            provided: Boolean(value),
+          };
+        });
 
   return (
     <AdminLayout
@@ -134,12 +295,18 @@ export default function DetailEtudiantAdmin() {
           </div>
 
           <div className="admin-application-hero-actions">
-            <Button
-              className="admin-header-primary-action"
-              onClick={() => navigate(`/admin/candidatures/${student.latestApplicationId}`)}
-            >
-              Voir la candidature
-            </Button>
+            {student.latestApplication ? (
+              <Button
+                className="admin-header-primary-action"
+                onClick={() => navigate(`/admin/candidatures/${student.latestApplicationId}`)}
+              >
+                Voir la candidature
+              </Button>
+            ) : (
+              <Button className="admin-header-primary-action" disabled>
+                Aucune candidature
+              </Button>
+            )}
           </div>
         </div>
       </section>
@@ -200,8 +367,43 @@ export default function DetailEtudiantAdmin() {
             <article className="admin-meta-card">
               <div className="admin-meta-card-header">
                 <div>
+                  <h3>Candidatures</h3>
+                  <p>Dossiers de candidature associes a cet etudiant</p>
+                </div>
+              </div>
+
+              {student.applications.length === 0 ? (
+                <p className="admin-note-empty">Aucune candidature pour cet etudiant.</p>
+              ) : (
+                <div className="admin-application-documents">
+                  {student.applications.map((application) => (
+                    <div key={application.id} className="admin-application-document-row provided">
+                      <div className="admin-application-document-main">
+                        <strong>{application.specialite}</strong>
+                        <span>
+                          {application.universite} - {formatAdminDate(application.dateDepot)}
+                        </span>
+                      </div>
+                      <div className="admin-application-document-side">
+                        <StatusBadge status={application.statut} />
+                        <Button
+                          className="admin-header-secondary-action"
+                          onClick={() => navigate(`/admin/candidatures/${application.id}`)}
+                        >
+                          Voir
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </article>
+
+            <article className="admin-meta-card">
+              <div className="admin-meta-card-header">
+                <div>
                   <h3>Documents</h3>
-                  <p>Pieces associees a la derniere candidature du profil</p>
+                  <p>Pieces associees au profil et aux candidatures</p>
                 </div>
               </div>
 
@@ -221,7 +423,7 @@ export default function DetailEtudiantAdmin() {
                     </div>
                     <div className="admin-application-document-side">
                       <span className={`admin-queue-pill ${document.provided ? "positive" : "warning"}`}>
-                        {document.provided ? "Recu" : "Manquant"}
+                        {document.status || (document.provided ? "Recu" : "Manquant")}
                       </span>
                     </div>
                   </div>
