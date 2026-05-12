@@ -3,7 +3,9 @@ import {
   getAdminApplication,
   getAdminDashboard,
   getAdminOverview,
+  getAdminStudent,
   listAdminApplications,
+  listAdminStudents,
   updateAdminApplicationStatusController,
 } from "../controllers/admin.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
@@ -20,6 +22,8 @@ router.patch(
   roleMiddleware("admin"),
   updateAdminApplicationStatusController
 );
+router.get("/students", authMiddleware, roleMiddleware("admin"), listAdminStudents);
+router.get("/students/:id", authMiddleware, roleMiddleware("admin"), getAdminStudent);
 router.get("/overview", authMiddleware, roleMiddleware("admin"), getAdminOverview);
 
 export default router;

@@ -3,6 +3,8 @@ import {
   findAdminApplicationById,
   findAdminApplications,
   findAdminDashboardData,
+  findAdminStudentById,
+  findAdminStudents,
   updateAdminApplicationStatus,
 } from "../models/admin.model.js";
 
@@ -224,6 +226,83 @@ function mapApplicationDetail(application, documents) {
       date_upload: document.date_upload,
     })),
     commentaire_admin: application.commentaire_admin || "",
+  };
+}
+
+function buildStudentGlobalStatus(student) {
+  const status = normalizeApplicationStatus(student.latest_status);
+
+  if (!student.candidatures_count) {
+    return "Aucune candidature";
+  }
+
+  if (status === "Acceptee") {
+    return "Accepté";
+  }
+
+  if (status === "Rejetee") {
+    return "Refusé";
+  }
+
+  return "En attente";
+}
+
+function mapStudentListItem(student) {
+  return {
+    id: student.id,
+    nom: student.nom,
+    prenom: student.prenom,
+    email: student.email,
+    telephone: student.telephone,
+    created_at: student.created_at,
+    candidaturesCount: student.candidatures_count,
+    statutGlobal: buildStudentGlobalStatus(student),
+    latestStatus: normalizeApplicationStatus(student.latest_status),
+    latestUniversite: student.latest_universite,
+    latestFormation: student.latest_formation,
+    latestDateDepot: student.latest_date_depot,
+    profile: {
+      nationalite: student.nationalite,
+      diplome_actuel: student.diplome_actuel,
+      annee_obtention: student.annee_obtention,
+    },
+  };
+}
+
+function mapStudentDetail(result) {
+  const documentsByStudent = buildDocumentsByStudent(result.documents);
+
+  return {
+    user: {
+      id: result.student.id,
+      nom: result.student.nom,
+      prenom: result.student.prenom,
+      email: result.student.email,
+      role: result.student.role,
+      created_at: result.student.created_at,
+    },
+    profile: {
+      telephone: result.student.telephone,
+      date_naissance: result.student.date_naissance,
+      nationalite: result.student.nationalite,
+      adresse: result.student.adresse,
+      diplome_actuel: result.student.diplome_actuel,
+      etablissement: result.student.etablissement,
+      specialite_actuelle: result.student.specialite_actuelle,
+      annee_obtention: result.student.annee_obtention,
+      moyenne: result.student.moyenne,
+    },
+    applications: result.applications.map((application) =>
+      mapApplicationListItem(application, documentsByStudent)
+    ),
+    documents: result.documents.map((document) => ({
+      id: document.id,
+      application_id: document.application_id,
+      type_document: document.type_document,
+      nom_fichier: document.nom_fichier,
+      statut: normalizeDocumentStatus(document.statut),
+      date_upload: document.date_upload,
+    })),
   };
 }
 
@@ -472,6 +551,40 @@ export async function updateAdminApplicationStatusController(request, response, 
       success: true,
       message: "Statut de la candidature mis a jour.",
       application: mapApplicationDetail(result.application, result.documents),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listAdminStudents(_request, response, next) {
+  try {
+    const students = await findAdminStudents();
+
+    response.json({
+      success: true,
+      students: students.map(mapStudentListItem),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getAdminStudent(request, response, next) {
+  try {
+    const result = await findAdminStudentById(request.params.id);
+
+    if (!result) {
+      response.status(404).json({
+        success: false,
+        message: "Etudiant introuvable.",
+      });
+      return;
+    }
+
+    response.json({
+      success: true,
+      student: mapStudentDetail(result),
     });
   } catch (error) {
     next(error);

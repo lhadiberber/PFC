@@ -45,6 +45,24 @@ const USER_FIELDS = `
   created_at
 `;
 
+const STUDENT_PROFILE_FIELDS = `
+  u.id,
+  u.nom,
+  u.prenom,
+  u.email,
+  u.role,
+  u.created_at,
+  sp.telephone,
+  sp.date_naissance,
+  sp.nationalite,
+  sp.adresse,
+  sp.diplome_actuel,
+  sp.etablissement,
+  sp.specialite_actuelle,
+  sp.annee_obtention,
+  sp.moyenne
+`;
+
 function formatDateOnly(value) {
   if (!value) {
     return "";
@@ -105,6 +123,35 @@ function normalizeUser(row) {
     email: row.email || "",
     role: row.role || "student",
     created_at: row.created_at,
+  };
+}
+
+function normalizeStudent(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    nom: row.nom || "",
+    prenom: row.prenom || "",
+    email: row.email || "",
+    role: row.role || "student",
+    created_at: row.created_at,
+    telephone: row.telephone || "",
+    date_naissance: formatDateOnly(row.date_naissance),
+    nationalite: row.nationalite || "",
+    adresse: row.adresse || "",
+    diplome_actuel: row.diplome_actuel || "",
+    etablissement: row.etablissement || "",
+    specialite_actuelle: row.specialite_actuelle || "",
+    annee_obtention: row.annee_obtention || "",
+    moyenne: row.moyenne ?? "",
+    candidatures_count: Number(row.candidatures_count || 0),
+    latest_status: row.latest_status || "",
+    latest_universite: row.latest_universite || "",
+    latest_formation: row.latest_formation || "",
+    latest_date_depot: row.latest_date_depot || null,
   };
 }
 
@@ -204,4 +251,73 @@ export async function updateAdminApplicationStatus(id, statut, commentaireAdmin)
   }
 
   return findAdminApplicationById(id);
+}
+
+export async function findAdminStudents() {
+  const [rows] = await pool.execute(
+    `SELECT
+       ${STUDENT_PROFILE_FIELDS},
+       COUNT(a.id) AS candidatures_count,
+       latest.statut AS latest_status,
+       latest.universite AS latest_universite,
+       latest.formation AS latest_formation,
+       latest.date_depot AS latest_date_depot
+     FROM users u
+     LEFT JOIN student_profiles sp ON sp.user_id = u.id
+     LEFT JOIN applications a ON a.student_id = u.id
+     LEFT JOIN (
+       SELECT a1.*
+       FROM applications a1
+       INNER JOIN (
+         SELECT student_id, MAX(date_depot) AS latest_date
+         FROM applications
+         GROUP BY student_id
+       ) a2 ON a2.student_id = a1.student_id AND a2.latest_date = a1.date_depot
+     ) latest ON latest.student_id = u.id
+     WHERE u.role = 'student'
+     GROUP BY u.id, sp.id, latest.id
+     ORDER BY u.created_at DESC, u.id DESC`
+  );
+
+  return rows.map(normalizeStudent);
+}
+
+export async function findAdminStudentById(id) {
+  const [studentRows] = await pool.execute(
+    `SELECT ${STUDENT_PROFILE_FIELDS}
+     FROM users u
+     LEFT JOIN student_profiles sp ON sp.user_id = u.id
+     WHERE u.id = ? AND u.role = 'student'
+     LIMIT 1`,
+    [id]
+  );
+  const student = normalizeStudent(studentRows[0]);
+
+  if (!student) {
+    return null;
+  }
+
+  const [applicationRows] = await pool.execute(
+    `SELECT ${APPLICATION_FIELDS}
+     FROM applications a
+     INNER JOIN users u ON u.id = a.student_id
+     LEFT JOIN student_profiles sp ON sp.user_id = u.id
+     WHERE a.student_id = ?
+     ORDER BY a.date_depot DESC, a.id DESC`,
+    [id]
+  );
+  const [documentRows] = await pool.execute(
+    `SELECT ${DOCUMENT_FIELDS}
+     FROM documents d
+     INNER JOIN users u ON u.id = d.student_id
+     WHERE d.student_id = ?
+     ORDER BY d.date_upload DESC, d.id DESC`,
+    [id]
+  );
+
+  return {
+    student,
+    applications: applicationRows.map(normalizeApplication),
+    documents: documentRows.map(normalizeDocument),
+  };
 }
