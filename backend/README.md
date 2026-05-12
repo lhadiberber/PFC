@@ -170,3 +170,36 @@ Routes protegees par JWT:
 - `POST /api/applications` : deposer une candidature
 - `GET /api/applications/my` : lister les candidatures de l'etudiant connecte
 - `GET /api/applications/:id` : consulter une candidature de l'etudiant connecte
+
+## Documents etudiant
+
+Table MySQL creee au demarrage:
+
+```sql
+CREATE TABLE IF NOT EXISTS documents (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  student_id INT UNSIGNED NOT NULL,
+  application_id INT UNSIGNED NULL,
+  type_document VARCHAR(80) NOT NULL,
+  nom_fichier VARCHAR(255) NOT NULL,
+  chemin_fichier VARCHAR(255) NOT NULL,
+  statut ENUM('En attente', 'Validé', 'Refusé') NOT NULL DEFAULT 'En attente',
+  date_upload TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX documents_student_id_index (student_id),
+  INDEX documents_application_id_index (application_id),
+  CONSTRAINT documents_student_id_fk
+    FOREIGN KEY (student_id) REFERENCES users(id)
+    ON DELETE CASCADE,
+  CONSTRAINT documents_application_id_fk
+    FOREIGN KEY (application_id) REFERENCES applications(id)
+    ON DELETE SET NULL
+);
+```
+
+Routes protegees par JWT:
+
+- `POST /api/documents` : enregistrer/deposer un document etudiant
+- `GET /api/documents/my` : lister les documents de l'etudiant connecte
+- `GET /api/documents/:id` : consulter un document de l'etudiant connecte
+- `DELETE /api/documents/:id` : supprimer un document de l'etudiant connecte

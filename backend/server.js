@@ -2,6 +2,7 @@ import "dotenv/config";
 import app from "./app.js";
 import { initializeDatabaseConnection } from "./config/db.js";
 import { ensureApplicationsTable } from "./models/application.model.js";
+import { ensureDocumentsTable } from "./models/document.model.js";
 import { ensureStudentProfilesTable } from "./models/profile.model.js";
 import { ensureUsersTable } from "./models/user.model.js";
 
@@ -15,11 +16,13 @@ async function startServer() {
     await ensureUsersTable();
     await ensureStudentProfilesTable();
     await ensureApplicationsTable();
+    await ensureDocumentsTable();
 
     console.log(`Connexion MySQL reussie (${dbInfo.host}/${dbInfo.database})`);
     console.log("Table users prete.");
     console.log("Table student_profiles prete.");
     console.log("Table applications prete.");
+    console.log("Table documents prete.");
 
     server = app.listen(PORT, () => {
       console.log(`API PFC Admissions lancee sur http://localhost:${PORT}`);
