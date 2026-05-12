@@ -199,7 +199,16 @@ CREATE TABLE IF NOT EXISTS documents (
 
 Routes protegees par JWT:
 
-- `POST /api/documents` : enregistrer/deposer un document etudiant
+- `POST /api/documents` : deposer un document etudiant en `multipart/form-data`
 - `GET /api/documents/my` : lister les documents de l'etudiant connecte
 - `GET /api/documents/:id` : consulter un document de l'etudiant connecte
 - `DELETE /api/documents/:id` : supprimer un document de l'etudiant connecte
+
+Upload attendu pour `POST /api/documents`:
+
+- champ fichier: `document`
+- champ texte obligatoire: `type_document`
+- champ texte optionnel: `application_id`
+- formats acceptes: PDF, JPG, JPEG, PNG
+- taille maximale: 5 Mo
+- stockage local: `backend/uploads`

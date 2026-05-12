@@ -1,3 +1,4 @@
+import { unlink } from "node:fs/promises";
 import {
   applicationBelongsToStudent,
   createDocument,
@@ -5,6 +6,10 @@ import {
   findDocumentByIdForStudent,
   findDocumentsByStudentId,
 } from "../models/document.model.js";
+import {
+  getUploadRelativePath,
+  resolveUploadedFilePath,
+} from "../middlewares/upload.middleware.js";
 
 function normalizeText(value) {
   return String(value || "").trim();
@@ -28,6 +33,29 @@ function validateDocumentPayload(payload) {
   return errors;
 }
 
+function buildDocumentPayload(request) {
+  return {
+    application_id: request.body.application_id,
+    type_document: request.body.type_document,
+    nom_fichier: request.file?.originalname,
+    chemin_fichier: request.file ? getUploadRelativePath(request.file.path) : "",
+  };
+}
+
+async function removeUploadedFile(filePath) {
+  if (!filePath) {
+    return;
+  }
+
+  try {
+    await unlink(resolveUploadedFilePath(filePath));
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      console.warn("Impossible de supprimer le fichier upload:", error.message);
+    }
+  }
+}
+
 async function ensureOptionalApplicationAccess(applicationId, studentId, response) {
   if (!applicationId) {
     return true;
@@ -46,10 +74,23 @@ async function ensureOptionalApplicationAccess(applicationId, studentId, respons
 }
 
 export async function uploadDocument(request, response, next) {
+  const uploadedFilePath = request.file ? getUploadRelativePath(request.file.path) : "";
+
   try {
-    const errors = validateDocumentPayload(request.body);
+    if (!request.file) {
+      response.status(400).json({
+        success: false,
+        message: "Le fichier du document est obligatoire.",
+      });
+      return;
+    }
+
+    const documentPayload = buildDocumentPayload(request);
+    const errors = validateDocumentPayload(documentPayload);
 
     if (Object.keys(errors).length > 0) {
+      await removeUploadedFile(uploadedFilePath);
+
       response.status(400).json({
         success: false,
         message: "Certaines informations du document sont obligatoires.",
@@ -59,16 +100,17 @@ export async function uploadDocument(request, response, next) {
     }
 
     const hasApplicationAccess = await ensureOptionalApplicationAccess(
-      request.body.application_id,
+      documentPayload.application_id,
       request.user.id,
       response
     );
 
     if (!hasApplicationAccess) {
+      await removeUploadedFile(uploadedFilePath);
       return;
     }
 
-    const document = await createDocument(request.user.id, request.body);
+    const document = await createDocument(request.user.id, documentPayload);
 
     response.status(201).json({
       success: true,
@@ -76,6 +118,7 @@ export async function uploadDocument(request, response, next) {
       document,
     });
   } catch (error) {
+    await removeUploadedFile(uploadedFilePath);
     next(error);
   }
 }
@@ -125,6 +168,8 @@ export async function deleteMyDocument(request, response, next) {
       });
       return;
     }
+
+    await removeUploadedFile(document.chemin_fichier);
 
     response.json({
       success: true,
