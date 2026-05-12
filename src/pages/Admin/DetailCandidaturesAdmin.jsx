@@ -6,6 +6,11 @@ import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
 import { useAdmissions } from "../../context/AdmissionsContext";
+import { clearAuthSession, getAuthToken } from "../../services/authService";
+import {
+  getAdminApplication,
+  updateAdminApplicationStatus as updateAdminApplicationStatusApi,
+} from "../../services/adminService";
 import { showToast } from "../../utils/toast";
 import {
   formatAdminDate,
@@ -101,10 +106,68 @@ export default function DetailCandidaturesAdmin() {
     internalStatus: "qualification",
   });
   const [noteDraft, setNoteDraft] = useState("");
+  const [remoteApplication, setRemoteApplication] = useState(null);
+  const [isLoadingApplication, setIsLoadingApplication] = useState(true);
+  const [applicationError, setApplicationError] = useState("");
+  const [statusActionLoading, setStatusActionLoading] = useState("");
 
-  const candidature = useMemo(
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadApplication() {
+      const token = getAuthToken();
+
+      if (!token) {
+        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+        return;
+      }
+
+      setIsLoadingApplication(true);
+      setApplicationError("");
+
+      try {
+        const application = await getAdminApplication(id);
+        if (isActive) {
+          setRemoteApplication(application);
+        }
+      } catch (error) {
+        if (!isActive) return;
+
+        if (error.status === 401) {
+          const message = "Session expiree. Veuillez vous reconnecter.";
+          clearAuthSession();
+          navigate("/login", { state: { message } });
+          return;
+        }
+
+        setApplicationError(
+          error.status === 403
+            ? "Acces refuse. Cette page est reservee aux administrateurs."
+            : error.message || "Impossible de charger la candidature."
+        );
+      } finally {
+        if (isActive) {
+          setIsLoadingApplication(false);
+        }
+      }
+    }
+
+    loadApplication();
+
+    return () => {
+      isActive = false;
+    };
+  }, [id, navigate]);
+
+  const localCandidature = useMemo(
     () => applications.map(toAdminApplication).find((item) => String(item.id) === String(id)),
     [applications, id]
+  );
+  const candidature = useMemo(
+    () => (remoteApplication ? toAdminApplication(remoteApplication) : localCandidature),
+    [localCandidature, remoteApplication]
   );
 
   useEffect(() => {
@@ -128,6 +191,40 @@ export default function DetailCandidaturesAdmin() {
       .filter((entry) => String(entry.applicationId) === String(candidature.id))
       .sort((first, second) => new Date(second.occurredAt) - new Date(first.occurredAt));
   }, [activityLog, candidature]);
+
+  if (isLoadingApplication && !candidature) {
+    return (
+      <AdminLayout
+        title="Dossier de candidature"
+        subtitle="Instruction et decision administrative"
+        showSearch={false}
+      >
+        <section className="campus-section-container">
+          <div className="student-profile-feedback">Chargement de la candidature...</div>
+        </section>
+      </AdminLayout>
+    );
+  }
+
+  if (applicationError && !candidature) {
+    return (
+      <AdminLayout
+        title="Dossier de candidature"
+        subtitle="Instruction et decision administrative"
+        showSearch={false}
+      >
+        <section className="campus-section-container">
+          <EmptyState
+            title="Impossible de charger la candidature"
+            description={applicationError}
+            actionLabel="Retour aux candidatures"
+            actionTo="/admin/candidatures"
+            className="admin-empty-state"
+          />
+        </section>
+      </AdminLayout>
+    );
+  }
 
   if (!candidature) {
     return (
@@ -189,9 +286,40 @@ export default function DetailCandidaturesAdmin() {
     "Aucune lettre de motivation n'a ete fournie dans cette version de la candidature."
   );
 
-  const handleStatusChange = (nextStatus) => {
-    updateApplicationStatus(candidature.id, nextStatus);
-    showToast(`Statut mis a jour : ${nextStatus}`, "success");
+  const handleStatusChange = async (nextStatus) => {
+    setStatusActionLoading(nextStatus);
+    setApplicationError("");
+
+    try {
+      const updatedApplication = await updateAdminApplicationStatusApi(candidature.id, {
+        statut: nextStatus,
+        commentaire_admin: noteDraft.trim() || undefined,
+      });
+
+      if (updatedApplication) {
+        setRemoteApplication(updatedApplication);
+      }
+
+      updateApplicationStatus(candidature.id, nextStatus);
+      showToast(`Statut mis a jour : ${nextStatus}`, "success");
+    } catch (error) {
+      const message = error.message || "Impossible de mettre a jour le statut.";
+
+      if (error.status === 401) {
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+        return;
+      }
+
+      setApplicationError(
+        error.status === 403
+          ? "Acces refuse. Cette action est reservee aux administrateurs."
+          : message
+      );
+      showToast(message, "error");
+    } finally {
+      setStatusActionLoading("");
+    }
   };
 
   const handleMetadataSubmit = (event) => {
@@ -266,6 +394,16 @@ export default function DetailCandidaturesAdmin() {
       subtitle="Instruction et decision administrative"
       showSearch={false}
     >
+      {applicationError ? (
+        <div className="student-profile-feedback student-profile-feedback-error" role="alert">
+          {applicationError}
+        </div>
+      ) : null}
+
+      {isLoadingApplication ? (
+        <div className="student-profile-feedback">Actualisation du dossier...</div>
+      ) : null}
+
       <section className="campus-section-container">
         <div className="admin-application-hero">
           <div className="admin-application-hero-copy">
@@ -312,15 +450,17 @@ export default function DetailCandidaturesAdmin() {
           <div className="admin-application-hero-actions">
             <Button
               className="admin-detail-action admin-detail-action-primary"
-              onClick={() => handleStatusChange("Acceptee")}
+              onClick={() => handleStatusChange("Acceptée")}
+              disabled={Boolean(statusActionLoading)}
             >
-              Accepter
+              {statusActionLoading === "Acceptée" ? "Mise a jour..." : "Accepter"}
             </Button>
             <Button
               className="admin-detail-action admin-detail-action-danger"
-              onClick={() => handleStatusChange("Rejetee")}
+              onClick={() => handleStatusChange("Refusée")}
+              disabled={Boolean(statusActionLoading)}
             >
-              Refuser
+              {statusActionLoading === "Refusée" ? "Mise a jour..." : "Refuser"}
             </Button>
             <Button
               className="admin-detail-action admin-detail-action-warning"
@@ -331,8 +471,9 @@ export default function DetailCandidaturesAdmin() {
             <Button
               className="admin-detail-action admin-detail-action-neutral"
               onClick={() => handleStatusChange("En attente")}
+              disabled={Boolean(statusActionLoading)}
             >
-              Mettre en attente
+              {statusActionLoading === "En attente" ? "Mise a jour..." : "Mettre en attente"}
             </Button>
           </div>
         </div>
