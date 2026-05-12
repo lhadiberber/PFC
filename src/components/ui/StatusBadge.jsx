@@ -8,10 +8,13 @@ const STATUS_CLASS_MAP = {
   Acceptee: "statut-acceptee",
   Accepte: "statut-acceptee",
   Valide: "statut-acceptee",
+  Validé: "statut-acceptee",
   Refusée: "statut-rejetee",
   Rejetee: "statut-rejetee",
   Refuse: "statut-rejetee",
   Refusee: "statut-rejetee",
+  Refusé: "statut-rejetee",
+  Manquant: "statut-attente",
 };
 
 export default function StatusBadge({ status, className = "" }) {

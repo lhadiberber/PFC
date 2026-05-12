@@ -37,11 +37,11 @@ const TARGET_ITEMS = [
 ];
 
 const DOCUMENT_ITEMS = [
-  { key: "copieBac", label: "Copie du bac ou diplome" },
+  { key: "copieBac", label: "Diplome" },
   { key: "releveNotes", label: "Releve de notes" },
-  { key: "carteIdentite", label: "Carte d'identite ou passeport" },
-  { key: "photo", label: "Photo d'identite" },
-  { key: "residence", label: "Justificatif de residence" },
+  { key: "carteIdentite", label: "Passeport / Carte d'identite" },
+  { key: "photo", label: "Lettre de motivation" },
+  { key: "residence", label: "Certificat de langue" },
   { key: "cv", label: "CV" },
 ];
 
@@ -79,7 +79,7 @@ function formatDate(value) {
 }
 
 function buildDocumentStatus(fileName) {
-  return fileName ? { label: "Depose", tone: "Valide" } : { label: "Manquant", tone: "En attente" };
+  return fileName ? "En attente" : "Manquant";
 }
 
 function getDisplayValue(source, key) {
@@ -364,7 +364,7 @@ export default function StudentRecapitulatif() {
                     <h3>{item.label}</h3>
                     <p>{documents[item.key] || "Aucun document depose pour cette piece."}</p>
                   </div>
-                  <StatusBadge status={status.tone} />
+                  <StatusBadge status={status} />
                 </div>
               );
             })}
