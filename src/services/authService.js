@@ -1,4 +1,4 @@
-const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(
   /\/+$/,
   ""
 );
@@ -10,7 +10,7 @@ const AUTH_STORAGE_KEYS = {
   email: "userEmail",
 };
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(message, status = 0, payload = null) {
     super(message);
     this.name = "ApiError";

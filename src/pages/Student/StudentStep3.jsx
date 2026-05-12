@@ -3,14 +3,20 @@ import { useNavigate } from "react-router-dom";
 import ApplicationStepLayout from "../../components/student/ApplicationStepLayout";
 import ProgressBar from "../../components/ui/ProgressBar";
 import { useAdmissions } from "../../context/AdmissionsContext";
+import { clearAuthSession, getAuthToken } from "../../services/authService";
+import {
+  deleteStudentDocument,
+  listMyDocuments,
+  uploadStudentDocument,
+} from "../../services/documentService";
 import "../../index.css";
 
 const documentConfig = {
   copieBac: {
-    label: "Copie du bac ou diplome",
+    label: "Diplome",
     accept: ".pdf,.jpg,.jpeg,.png",
     maxSize: 5 * 1024 * 1024,
-    icon: "BAC",
+    icon: "DIP",
   },
   releveNotes: {
     label: "Releve de notes",
@@ -19,30 +25,41 @@ const documentConfig = {
     icon: "NOTES",
   },
   carteIdentite: {
-    label: "Carte d'identite ou passeport",
+    label: "Passeport / Carte d'identite",
     accept: ".pdf,.jpg,.jpeg,.png",
     maxSize: 5 * 1024 * 1024,
     icon: "ID",
   },
   photo: {
-    label: "Photo d'identite",
-    accept: ".jpg,.jpeg,.png",
-    maxSize: 2 * 1024 * 1024,
-    icon: "PHOTO",
-  },
-  residence: {
-    label: "Justificatif de residence",
+    label: "Lettre de motivation",
     accept: ".pdf,.jpg,.jpeg,.png",
     maxSize: 5 * 1024 * 1024,
-    icon: "ADR",
+    icon: "LM",
+  },
+  residence: {
+    label: "Certificat de langue",
+    accept: ".pdf,.jpg,.jpeg,.png",
+    maxSize: 5 * 1024 * 1024,
+    icon: "LANG",
   },
   cv: {
     label: "CV",
-    accept: ".pdf,.doc,.docx",
+    accept: ".pdf,.jpg,.jpeg,.png",
     maxSize: 5 * 1024 * 1024,
     icon: "CV",
   },
 };
+
+const DOCUMENT_TYPE_BY_FIELD = Object.fromEntries(
+  Object.entries(documentConfig).map(([fieldName, config]) => [fieldName, config.label])
+);
+
+const FIELD_BY_DOCUMENT_TYPE = Object.fromEntries(
+  Object.entries(DOCUMENT_TYPE_BY_FIELD).map(([fieldName, documentType]) => [
+    documentType,
+    fieldName,
+  ])
+);
 
 function isImageDocument(fieldName) {
   return [".jpg", ".jpeg", ".png"].some((extension) =>
@@ -52,6 +69,32 @@ function isImageDocument(fieldName) {
 
 function formatMegabytes(size) {
   return `${size / (1024 * 1024)} MB`;
+}
+
+function mapApiDocumentsToFields(documents) {
+  return documents.reduce(
+    (mappedDocuments, document) => {
+      const fieldName = FIELD_BY_DOCUMENT_TYPE[document.type_document];
+
+      if (!fieldName || mappedDocuments.files[fieldName]) {
+        return mappedDocuments;
+      }
+
+      mappedDocuments.files[fieldName] = document.nom_fichier || "";
+      mappedDocuments.documentIds[fieldName] = document.id;
+      mappedDocuments.statuses[fieldName] = document.statut || "En attente";
+
+      return mappedDocuments;
+    },
+    { files: {}, documentIds: {}, statuses: {} }
+  );
+}
+
+function buildEmptyDocumentFiles() {
+  return Object.keys(documentConfig).reduce((fields, fieldName) => {
+    fields[fieldName] = "";
+    return fields;
+  }, {});
 }
 
 export default function StudentStep3() {
@@ -70,12 +113,79 @@ export default function StudentStep3() {
   const [previews, setPreviews] = useState({});
   const [errors, setErrors] = useState({});
   const [dragStates, setDragStates] = useState({});
+  const [documentIds, setDocumentIds] = useState({});
+  const [documentStatuses, setDocumentStatuses] = useState({});
+  const [uploadingFields, setUploadingFields] = useState({});
+  const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
+  const [pageError, setPageError] = useState("");
 
   const uploadedCount = useMemo(() => Object.values(files).filter(Boolean).length, [files]);
   const uploadProgress = useMemo(
     () => Math.round((uploadedCount / Object.keys(documentConfig).length) * 100),
     [uploadedCount]
   );
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadExistingDocuments() {
+      const token = getAuthToken();
+
+      if (!token) {
+        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+        return;
+      }
+
+      setIsLoadingDocuments(true);
+      setPageError("");
+
+      try {
+        const documents = await listMyDocuments();
+
+        if (!isActive) {
+          return;
+        }
+
+        const mappedDocuments = mapApiDocumentsToFields(documents);
+
+        const nextFiles = {
+          ...buildEmptyDocumentFiles(),
+          ...mappedDocuments.files,
+        };
+
+        setFiles(nextFiles);
+        setDocumentIds(mappedDocuments.documentIds);
+        setDocumentStatuses(mappedDocuments.statuses);
+        updateDocuments(nextFiles);
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        const message = error.message || "Impossible de charger les documents deja deposes.";
+
+        if (error.status === 401) {
+          clearAuthSession();
+          navigate("/login", { state: { message } });
+          return;
+        }
+
+        setPageError(message);
+      } finally {
+        if (isActive) {
+          setIsLoadingDocuments(false);
+        }
+      }
+    }
+
+    loadExistingDocuments();
+
+    return () => {
+      isActive = false;
+    };
+  }, [navigate]);
 
   useEffect(() => {
     return () => {
@@ -92,12 +202,14 @@ export default function StudentStep3() {
       return;
     }
 
-    const nextErrors = { ...errors };
-    delete nextErrors[fieldName];
-    setErrors(nextErrors);
+    setErrors((currentErrors) => {
+      const nextErrors = { ...currentErrors };
+      delete nextErrors[fieldName];
+      return nextErrors;
+    });
   };
 
-  const processFile = (file, fieldName) => {
+  const processFile = async (file, fieldName) => {
     const config = documentConfig[fieldName];
 
     if (!file) {
@@ -124,59 +236,137 @@ export default function StudentStep3() {
     }
 
     clearFieldError(fieldName);
+    setUploadingFields((currentFields) => ({ ...currentFields, [fieldName]: true }));
+    setPageError("");
 
-    setPreviews((currentPreviews) => {
-      if (currentPreviews[fieldName]) {
-        URL.revokeObjectURL(currentPreviews[fieldName]);
+    try {
+      const previousDocumentId = documentIds[fieldName];
+      const document = await uploadStudentDocument({
+        typeDocument: DOCUMENT_TYPE_BY_FIELD[fieldName],
+        file,
+      });
+
+      if (previousDocumentId && previousDocumentId !== document.id) {
+        try {
+          await deleteStudentDocument(previousDocumentId);
+        } catch (_error) {
+          // Le nouveau fichier est bien depose; l'ancien restera visible cote admin si la suppression echoue.
+        }
       }
 
-      return {
-        ...currentPreviews,
-        [fieldName]: isImageDocument(fieldName) ? URL.createObjectURL(file) : "",
-      };
-    });
+      setPreviews((currentPreviews) => {
+        if (currentPreviews[fieldName]) {
+          URL.revokeObjectURL(currentPreviews[fieldName]);
+        }
 
-    const nextFiles = {
-      ...files,
-      [fieldName]: file.name,
-    };
+        return {
+          ...currentPreviews,
+          [fieldName]: isImageDocument(fieldName) ? URL.createObjectURL(file) : "",
+        };
+      });
 
-    setFiles(nextFiles);
-    updateDocuments({ [fieldName]: file.name });
+      setFiles((currentFiles) => ({
+        ...currentFiles,
+        [fieldName]: document.nom_fichier || file.name,
+      }));
+      setDocumentIds((currentDocumentIds) => ({
+        ...currentDocumentIds,
+        [fieldName]: document.id,
+      }));
+      setDocumentStatuses((currentStatuses) => ({
+        ...currentStatuses,
+        [fieldName]: document.statut || "En attente",
+      }));
+      updateDocuments({ [fieldName]: document.nom_fichier || file.name });
+    } catch (error) {
+      const message = error.message || "Impossible de deposer ce document.";
+
+      if (error.status === 401) {
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+        return;
+      }
+
+      setErrors((currentErrors) => ({
+        ...currentErrors,
+        [fieldName]: message,
+      }));
+    } finally {
+      setUploadingFields((currentFields) => ({ ...currentFields, [fieldName]: false }));
+      if (fileInputRefs.current[fieldName]) {
+        fileInputRefs.current[fieldName].value = "";
+      }
+    }
   };
 
   const handleFileChange = (event, fieldName) => {
     processFile(event.target.files?.[0], fieldName);
   };
 
-  const handleRemoveFile = (fieldName) => {
-    setPreviews((currentPreviews) => {
-      if (currentPreviews[fieldName]) {
-        URL.revokeObjectURL(currentPreviews[fieldName]);
+  const handleRemoveFile = async (fieldName) => {
+    const documentId = documentIds[fieldName];
+
+    setUploadingFields((currentFields) => ({ ...currentFields, [fieldName]: true }));
+
+    try {
+      if (documentId) {
+        await deleteStudentDocument(documentId);
       }
 
-      return {
-        ...currentPreviews,
+      setPreviews((currentPreviews) => {
+        if (currentPreviews[fieldName]) {
+          URL.revokeObjectURL(currentPreviews[fieldName]);
+        }
+
+        return {
+          ...currentPreviews,
+          [fieldName]: "",
+        };
+      });
+
+      setFiles((currentFiles) => ({
+        ...currentFiles,
         [fieldName]: "",
-      };
-    });
+      }));
+      setDocumentIds((currentDocumentIds) => {
+        const nextDocumentIds = { ...currentDocumentIds };
+        delete nextDocumentIds[fieldName];
+        return nextDocumentIds;
+      });
+      setDocumentStatuses((currentStatuses) => {
+        const nextStatuses = { ...currentStatuses };
+        delete nextStatuses[fieldName];
+        return nextStatuses;
+      });
+      updateDocuments({ [fieldName]: "" });
+      clearFieldError(fieldName);
 
-    const nextFiles = {
-      ...files,
-      [fieldName]: "",
-    };
+      if (fileInputRefs.current[fieldName]) {
+        fileInputRefs.current[fieldName].value = "";
+      }
+    } catch (error) {
+      const message = error.message || "Impossible de retirer ce document.";
 
-    setFiles(nextFiles);
-    updateDocuments({ [fieldName]: "" });
-    clearFieldError(fieldName);
+      if (error.status === 401) {
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+        return;
+      }
 
-    if (fileInputRefs.current[fieldName]) {
-      fileInputRefs.current[fieldName].value = "";
+      setErrors((currentErrors) => ({
+        ...currentErrors,
+        [fieldName]: message,
+      }));
+    } finally {
+      setUploadingFields((currentFields) => ({ ...currentFields, [fieldName]: false }));
     }
   };
 
   const handleDragOver = (event, fieldName) => {
     event.preventDefault();
+    if (uploadingFields[fieldName]) {
+      return;
+    }
     setDragStates((currentState) => ({ ...currentState, [fieldName]: true }));
   };
 
@@ -188,11 +378,19 @@ export default function StudentStep3() {
   const handleDrop = (event, fieldName) => {
     event.preventDefault();
     setDragStates((currentState) => ({ ...currentState, [fieldName]: false }));
+    if (uploadingFields[fieldName]) {
+      return;
+    }
     processFile(event.dataTransfer.files?.[0], fieldName);
   };
 
   const handleRecapitulatif = () => {
     const nextErrors = {};
+
+    if (Object.values(uploadingFields).some(Boolean)) {
+      setPageError("Veuillez attendre la fin de l'envoi des documents.");
+      return;
+    }
 
     Object.keys(documentConfig).forEach((key) => {
       if (!files[key]) {
@@ -242,12 +440,16 @@ export default function StudentStep3() {
           <li key={key}>
             <div>
               <strong>{config.label}</strong>
-              <span>{files[key] || "Document non depose"}</span>
+              <span>{isLoadingDocuments ? "Chargement..." : files[key] || "Document non depose"}</span>
             </div>
             <span
               className={`student-application-doc-status ${files[key] ? "is-ready" : "is-missing"}`.trim()}
             >
-              {files[key] ? "Depose" : "Manquant"}
+              {uploadingFields[key]
+                ? "Envoi..."
+                : files[key]
+                  ? documentStatuses[key] || "Depose"
+                  : "Manquant"}
             </span>
           </li>
         ))}
@@ -276,6 +478,16 @@ export default function StudentStep3() {
               {uploadedCount}/{Object.keys(documentConfig).length} depose(s)
             </span>
           </div>
+
+          {pageError ? (
+            <div className="student-profile-feedback student-profile-feedback-error" role="alert">
+              {pageError}
+            </div>
+          ) : null}
+
+          {isLoadingDocuments ? (
+            <div className="student-profile-feedback">Chargement des documents deja deposes...</div>
+          ) : null}
 
           <div className="student-application-progress-banner">
             <div>
@@ -310,7 +522,11 @@ export default function StudentStep3() {
                   onDragOver={(event) => handleDragOver(event, fieldName)}
                   onDragLeave={(event) => handleDragLeave(event, fieldName)}
                   onDrop={(event) => handleDrop(event, fieldName)}
-                  onClick={() => fileInputRefs.current[fieldName]?.click()}
+                  onClick={() => {
+                    if (!uploadingFields[fieldName]) {
+                      fileInputRefs.current[fieldName]?.click();
+                    }
+                  }}
                 >
                   <input
                     type="file"
@@ -320,6 +536,7 @@ export default function StudentStep3() {
                     onChange={(event) => handleFileChange(event, fieldName)}
                     className="file-input-hidden"
                     accept={config.accept}
+                    disabled={uploadingFields[fieldName]}
                   />
 
                   {files[fieldName] ? (
@@ -334,25 +551,34 @@ export default function StudentStep3() {
 
                       <div className="file-info">
                         <span className="file-name">{files[fieldName]}</span>
-                        <span className="file-status">Document pret</span>
+                        <span className="file-status">
+                          {uploadingFields[fieldName]
+                            ? "Envoi en cours..."
+                            : `Document ${documentStatuses[fieldName] || "En attente"}`}
+                        </span>
                       </div>
 
                       <button
                         type="button"
                         className="remove-file-btn"
+                        disabled={uploadingFields[fieldName]}
                         onClick={(event) => {
                           event.stopPropagation();
                           handleRemoveFile(fieldName);
                         }}
                       >
-                        Retirer
+                        {uploadingFields[fieldName] ? "Traitement..." : "Retirer"}
                       </button>
                     </div>
                   ) : (
                     <div className="upload-placeholder">
                       <span className="upload-icon">{config.icon}</span>
                       <span className="upload-label">{config.label}</span>
-                      <span className="upload-hint">Cliquer ou glisser un fichier ici</span>
+                      <span className="upload-hint">
+                        {uploadingFields[fieldName]
+                          ? "Envoi du fichier..."
+                          : "Cliquer ou glisser un fichier ici"}
+                      </span>
                       <span className="upload-formats">{config.accept.replace(/,/g, ", ")}</span>
                     </div>
                   )}
@@ -387,8 +613,11 @@ export default function StudentStep3() {
             type="button"
             className="student-application-button student-application-button-primary"
             onClick={handleRecapitulatif}
+            disabled={isLoadingDocuments || Object.values(uploadingFields).some(Boolean)}
           >
-            Acceder au recapitulatif
+            {Object.values(uploadingFields).some(Boolean)
+              ? "Envoi des documents..."
+              : "Acceder au recapitulatif"}
           </button>
         </div>
       </div>
