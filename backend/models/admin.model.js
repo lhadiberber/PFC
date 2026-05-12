@@ -36,6 +36,25 @@ const DOCUMENT_FIELDS = `
   u.prenom
 `;
 
+const ADMIN_DOCUMENT_FIELDS = `
+  d.id,
+  d.student_id,
+  d.application_id,
+  d.type_document,
+  d.nom_fichier,
+  d.chemin_fichier,
+  d.statut,
+  d.date_upload,
+  u.nom,
+  u.prenom,
+  u.email,
+  a.universite,
+  a.formation,
+  a.niveau,
+  a.statut AS application_statut,
+  a.date_depot
+`;
+
 const USER_FIELDS = `
   id,
   nom,
@@ -112,6 +131,31 @@ function normalizeDocument(row) {
     date_upload: row.date_upload,
     nom: row.nom || "",
     prenom: row.prenom || "",
+  };
+}
+
+function normalizeAdminDocument(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    student_id: row.student_id,
+    application_id: row.application_id,
+    type_document: row.type_document || "",
+    nom_fichier: row.nom_fichier || "",
+    chemin_fichier: row.chemin_fichier || "",
+    statut: row.statut || "En attente",
+    date_upload: row.date_upload,
+    nom: row.nom || "",
+    prenom: row.prenom || "",
+    email: row.email || "",
+    universite: row.universite || "",
+    formation: row.formation || "",
+    niveau: row.niveau || "",
+    application_statut: row.application_statut || "",
+    date_depot: row.date_depot || null,
   };
 }
 
@@ -251,6 +295,47 @@ export async function updateAdminApplicationStatus(id, statut, commentaireAdmin)
   }
 
   return findAdminApplicationById(id);
+}
+
+export async function findAdminDocuments() {
+  const [rows] = await pool.execute(
+    `SELECT ${ADMIN_DOCUMENT_FIELDS}
+     FROM documents d
+     INNER JOIN users u ON u.id = d.student_id
+     LEFT JOIN applications a ON a.id = d.application_id
+     ORDER BY d.date_upload DESC, d.id DESC`
+  );
+
+  return rows.map(normalizeAdminDocument);
+}
+
+export async function findAdminDocumentById(id) {
+  const [rows] = await pool.execute(
+    `SELECT ${ADMIN_DOCUMENT_FIELDS}
+     FROM documents d
+     INNER JOIN users u ON u.id = d.student_id
+     LEFT JOIN applications a ON a.id = d.application_id
+     WHERE d.id = ?
+     LIMIT 1`,
+    [id]
+  );
+
+  return normalizeAdminDocument(rows[0]);
+}
+
+export async function updateAdminDocumentStatus(id, statut) {
+  const [result] = await pool.execute(
+    `UPDATE documents
+     SET statut = ?
+     WHERE id = ?`,
+    [statut, id]
+  );
+
+  if (result.affectedRows === 0) {
+    return null;
+  }
+
+  return findAdminDocumentById(id);
 }
 
 export async function findAdminStudents() {

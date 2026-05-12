@@ -1,4 +1,5 @@
 import "dotenv/config";
+import path from "node:path";
 import cors from "cors";
 import express from "express";
 import { testDatabaseConnection } from "./config/db.js";
@@ -22,6 +23,7 @@ app.use(
 );
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static(path.resolve(process.cwd(), process.env.UPLOAD_DIR || "uploads")));
 
 app.get("/", (_request, response) => {
   response.json({

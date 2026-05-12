@@ -3,9 +3,12 @@ import {
   findAdminApplicationById,
   findAdminApplications,
   findAdminDashboardData,
+  findAdminDocumentById,
+  findAdminDocuments,
   findAdminStudentById,
   findAdminStudents,
   updateAdminApplicationStatus,
+  updateAdminDocumentStatus,
 } from "../models/admin.model.js";
 
 const REQUIRED_DOCUMENT_TYPES = [
@@ -39,6 +42,8 @@ const ACADEMIC_FIELDS = [
 const DB_STATUS_PENDING = "En attente";
 const DB_STATUS_ACCEPTED = "Acceptée";
 const DB_STATUS_REJECTED = "Refusée";
+const DB_DOCUMENT_STATUS_VALIDATED = "Validé";
+const DB_DOCUMENT_STATUS_REFUSED = "Refusé";
 
 function hasValue(value) {
   return String(value ?? "").trim() !== "";
@@ -80,14 +85,42 @@ function normalizeDocumentStatus(status) {
   const cleanStatus = String(status || "").trim();
 
   if (["Validé", "Valide", "ValidÃ©"].includes(cleanStatus)) {
-    return "Validé";
+    return "Valide";
   }
 
   if (["Refusé", "Refuse", "RefusÃ©"].includes(cleanStatus)) {
-    return "Refusé";
+    return "Refuse";
   }
 
   return "En attente";
+}
+
+function normalizeRequestedDocumentStatus(status) {
+  const cleanStatus = String(status || "").trim().toLowerCase();
+
+  if (cleanStatus === "en attente") {
+    return DB_STATUS_PENDING;
+  }
+
+  if (cleanStatus.startsWith("valid")) {
+    return DB_DOCUMENT_STATUS_VALIDATED;
+  }
+
+  if (cleanStatus.startsWith("refus")) {
+    return DB_DOCUMENT_STATUS_REFUSED;
+  }
+
+  return null;
+}
+
+function buildDocumentFileUrl(request, cheminFichier) {
+  const normalizedPath = String(cheminFichier || "").replace(/\\/g, "/").replace(/^\/+/, "");
+
+  if (!normalizedPath) {
+    return "";
+  }
+
+  return `${request.protocol}://${request.get("host")}/${normalizedPath}`;
 }
 
 function buildNumeroDossier(application) {
@@ -353,8 +386,8 @@ function buildStats(applications, documents, students, documentsByStudent) {
     (counts, document) => {
       const status = normalizeDocumentStatus(document.statut);
 
-      if (status === "Validé") counts.documentsValides += 1;
-      else if (status === "Refusé") counts.documentsRefuses += 1;
+      if (status === "Valide") counts.documentsValides += 1;
+      else if (status === "Refuse") counts.documentsRefuses += 1;
       else counts.documentsEnAttente += 1;
 
       return counts;
@@ -399,6 +432,36 @@ function buildPendingDocuments(documents) {
       date_upload: document.date_upload,
       statut: normalizeDocumentStatus(document.statut),
     }));
+}
+
+function mapAdminDocument(document, request) {
+  return {
+    id: document.id,
+    student_id: document.student_id,
+    application_id: document.application_id,
+    type_document: document.type_document,
+    nom_fichier: document.nom_fichier,
+    chemin_fichier: document.chemin_fichier,
+    file_url: buildDocumentFileUrl(request, document.chemin_fichier),
+    statut: normalizeDocumentStatus(document.statut),
+    date_upload: document.date_upload,
+    student: {
+      id: document.student_id,
+      nom: document.nom,
+      prenom: document.prenom,
+      email: document.email,
+    },
+    application: document.application_id
+      ? {
+          id: document.application_id,
+          universite: document.universite,
+          formation: document.formation,
+          niveau: document.niveau,
+          statut: normalizeApplicationStatus(document.application_statut),
+          date_depot: document.date_depot,
+        }
+      : null,
+  };
 }
 
 function buildRecentActivity(applications, documents, students) {
@@ -515,6 +578,72 @@ export async function getAdminApplication(request, response, next) {
     response.json({
       success: true,
       application: mapApplicationDetail(result.application, result.documents),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listAdminDocuments(request, response, next) {
+  try {
+    const documents = await findAdminDocuments();
+
+    response.json({
+      success: true,
+      documents: documents.map((document) => mapAdminDocument(document, request)),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getAdminDocument(request, response, next) {
+  try {
+    const document = await findAdminDocumentById(request.params.id);
+
+    if (!document) {
+      response.status(404).json({
+        success: false,
+        message: "Document introuvable.",
+      });
+      return;
+    }
+
+    response.json({
+      success: true,
+      document: mapAdminDocument(document, request),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateAdminDocumentStatusController(request, response, next) {
+  try {
+    const statut = normalizeRequestedDocumentStatus(request.body.statut);
+
+    if (!statut) {
+      response.status(400).json({
+        success: false,
+        message: "Statut invalide. Utilisez En attente, Valide ou Refuse.",
+      });
+      return;
+    }
+
+    const document = await updateAdminDocumentStatus(request.params.id, statut);
+
+    if (!document) {
+      response.status(404).json({
+        success: false,
+        message: "Document introuvable.",
+      });
+      return;
+    }
+
+    response.json({
+      success: true,
+      message: "Statut du document mis a jour.",
+      document: mapAdminDocument(document, request),
     });
   } catch (error) {
     next(error);
