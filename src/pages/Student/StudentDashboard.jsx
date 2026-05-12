@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { useAdmissions } from "../../context/AdmissionsContext";
+import { clearAuthSession, getAuthToken } from "../../services/authService";
 import { getStudentDashboard } from "../../services/studentService";
 import "../../index.css";
 
@@ -429,15 +430,26 @@ StudentDashboardIcon.propTypes = {
 };
 
 export default function StudentDashboard() {
+  const navigate = useNavigate();
   const { applicationDraft, applications, profile, activityLog } = useAdmissions();
   const [dashboardData, setDashboardData] = useState(null);
   const [isDashboardLoading, setIsDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let isActive = true;
 
     async function loadDashboard() {
+      const token = getAuthToken();
+
+      if (!token) {
+        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+        return;
+      }
+
       setIsDashboardLoading(true);
       setDashboardError("");
 
@@ -449,6 +461,13 @@ export default function StudentDashboard() {
         }
       } catch (error) {
         if (isActive) {
+          if (error.status === 401) {
+            const message = "Session expiree. Veuillez vous reconnecter.";
+            clearAuthSession();
+            navigate("/login", { state: { message } });
+            return;
+          }
+
           setDashboardError(error.message || "Impossible de charger le tableau de bord.");
         }
       } finally {
@@ -463,7 +482,7 @@ export default function StudentDashboard() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [navigate, reloadKey]);
 
   const latestBackendApplication = useMemo(
     () => mapDashboardApplication(dashboardData?.applications?.latest),
@@ -871,6 +890,59 @@ export default function StudentDashboard() {
     },
   ];
 
+  if (isDashboardLoading && !dashboardData) {
+    return (
+      <div className="student-dashboard-shell">
+        <section className="student-dashboard-hero">
+          <div className="student-dashboard-hero-copy">
+            <span className="student-dashboard-kicker">Espace etudiant</span>
+            <h1>Chargement du tableau de bord</h1>
+            <p className="student-dashboard-subtitle">
+              Recuperation de vos donnees depuis le backend...
+            </p>
+          </div>
+        </section>
+
+        <section className="campus-section-container student-dashboard-panel">
+          <div className="student-profile-feedback">Chargement en cours...</div>
+        </section>
+      </div>
+    );
+  }
+
+  if (dashboardError && !dashboardData) {
+    return (
+      <div className="student-dashboard-shell">
+        <section className="student-dashboard-hero">
+          <div className="student-dashboard-hero-copy">
+            <span className="student-dashboard-kicker">Espace etudiant</span>
+            <h1>Tableau de bord indisponible</h1>
+            <p className="student-dashboard-subtitle">{dashboardError}</p>
+          </div>
+        </section>
+
+        <section className="campus-section-container student-dashboard-panel">
+          <EmptyState
+            title="Impossible de charger vos donnees"
+            description="Verifiez que le backend est lance, puis reessayez."
+            actionLabel="Retour au profil"
+            actionTo="/profil"
+            className="admin-empty-state"
+          />
+          <div className="student-dashboard-panel-actions">
+            <button
+              type="button"
+              className="student-application-button student-application-button-primary"
+              onClick={() => setReloadKey((currentKey) => currentKey + 1)}
+            >
+              Reessayer
+            </button>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="student-dashboard-shell">
       <section className="student-dashboard-hero">
@@ -900,6 +972,16 @@ export default function StudentDashboard() {
           </span>
         </div>
       </section>
+
+      {dashboardError ? (
+        <div className="student-profile-feedback student-profile-feedback-error" role="alert">
+          {dashboardError}
+        </div>
+      ) : null}
+
+      {isDashboardLoading ? (
+        <div className="student-profile-feedback">Actualisation du tableau de bord...</div>
+      ) : null}
 
       <section className="campus-section-container student-dashboard-panel">
         <div className="campus-section-header student-dashboard-section-head">
