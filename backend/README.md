@@ -218,3 +218,9 @@ Upload attendu pour `POST /api/documents`:
 Route protegee par JWT:
 
 - `GET /api/student/dashboard` : resume profil, candidatures, documents, statut global et activite recente de l'etudiant connecte
+
+## Dashboard admin
+
+Route protegee par JWT avec role `admin`:
+
+- `GET /api/admin/dashboard` : statistiques globales, candidatures recentes, repartition des statuts, documents a verifier et activite recente

@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import { testDatabaseConnection } from "./config/db.js";
 import { errorMiddleware, notFoundMiddleware } from "./middlewares/error.middleware.js";
+import adminRoutes from "./routes/admin.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import applicationRoutes from "./routes/application.routes.js";
 import documentRoutes from "./routes/document.routes.js";
@@ -32,6 +33,7 @@ app.get("/", (_request, response) => {
     applications: "/api/applications",
     documents: "/api/documents",
     student: "/api/student",
+    admin: "/api/admin",
   });
 });
 
@@ -65,6 +67,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/student", studentRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
