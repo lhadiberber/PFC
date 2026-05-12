@@ -1,19 +1,95 @@
-import { findProfileByUserId, upsertProfile } from "../models/profile.model.js";
+import {
+  findStudentProfileByUserId,
+  upsertStudentProfile,
+} from "../models/profile.model.js";
 
-export async function getProfile(request, response, next) {
+function normalizeText(value) {
+  return String(value || "").trim();
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validateProfilePayload(payload) {
+  const errors = {};
+  const email = normalizeText(payload.email);
+  const anneeObtention = normalizeText(payload.annee_obtention);
+  const moyenne = normalizeText(payload.moyenne);
+
+  if (!normalizeText(payload.nom)) errors.nom = "Le nom est obligatoire.";
+  if (!normalizeText(payload.prenom)) errors.prenom = "Le prenom est obligatoire.";
+  if (!email) {
+    errors.email = "L'email est obligatoire.";
+  } else if (!isValidEmail(email)) {
+    errors.email = "Format d'email invalide.";
+  }
+
+  if (anneeObtention && !/^\d{4}$/.test(anneeObtention)) {
+    errors.annee_obtention = "L'annee d'obtention doit contenir 4 chiffres.";
+  }
+
+  if (moyenne) {
+    const numericAverage = Number(moyenne);
+
+    if (Number.isNaN(numericAverage) || numericAverage < 0 || numericAverage > 20) {
+      errors.moyenne = "La moyenne doit etre comprise entre 0 et 20.";
+    }
+  }
+
+  return errors;
+}
+
+export async function getMyProfile(request, response, next) {
   try {
-    const profile = await findProfileByUserId(request.user.id);
-    response.json({ success: true, profile });
+    const profile = await findStudentProfileByUserId(request.user.id);
+
+    if (!profile) {
+      response.status(404).json({
+        success: false,
+        message: "Utilisateur introuvable.",
+      });
+      return;
+    }
+
+    response.json({
+      success: true,
+      profile,
+    });
   } catch (error) {
     next(error);
   }
 }
 
-export async function saveProfile(request, response, next) {
+export async function updateMyProfile(request, response, next) {
   try {
-    const profile = await upsertProfile(request.user.id, request.body);
-    response.json({ success: true, profile });
+    const errors = validateProfilePayload(request.body);
+
+    if (Object.keys(errors).length > 0) {
+      response.status(400).json({
+        success: false,
+        message: "Certaines informations du profil sont invalides.",
+        errors,
+      });
+      return;
+    }
+
+    const profile = await upsertStudentProfile(request.user.id, request.body);
+
+    response.json({
+      success: true,
+      message: "Profil etudiant mis a jour.",
+      profile,
+    });
   } catch (error) {
+    if (error.code === "ER_DUP_ENTRY") {
+      response.status(409).json({
+        success: false,
+        message: "Cette adresse email est deja utilisee.",
+      });
+      return;
+    }
+
     next(error);
   }
 }

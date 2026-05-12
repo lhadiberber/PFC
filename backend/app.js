@@ -4,6 +4,7 @@ import express from "express";
 import { testDatabaseConnection } from "./config/db.js";
 import { errorMiddleware, notFoundMiddleware } from "./middlewares/error.middleware.js";
 import authRoutes from "./routes/auth.routes.js";
+import profileRoutes from "./routes/profile.routes.js";
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.get("/", (_request, response) => {
     message: "Bienvenue sur l'API PFC Admissions.",
     health: "/api/health",
     auth: "/api/auth",
+    profile: "/api/profile",
   });
 });
 
@@ -53,6 +55,7 @@ app.get("/api/health/db", async (_request, response, next) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

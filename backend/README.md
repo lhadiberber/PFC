@@ -111,3 +111,33 @@ Routes disponibles:
 - `POST /api/auth/register` : inscription etudiant
 - `POST /api/auth/login` : connexion utilisateur
 - `GET /api/auth/me` : utilisateur connecte via `Authorization: Bearer <token>`
+
+## Profil etudiant
+
+Table MySQL creee au demarrage:
+
+```sql
+CREATE TABLE IF NOT EXISTS student_profiles (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id INT UNSIGNED NOT NULL,
+  telephone VARCHAR(30) NULL,
+  date_naissance DATE NULL,
+  nationalite VARCHAR(100) NULL,
+  adresse VARCHAR(255) NULL,
+  diplome_actuel VARCHAR(120) NULL,
+  etablissement VARCHAR(160) NULL,
+  specialite_actuelle VARCHAR(160) NULL,
+  annee_obtention SMALLINT UNSIGNED NULL,
+  moyenne DECIMAL(5,2) NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY student_profiles_user_id_unique (user_id),
+  CONSTRAINT student_profiles_user_id_fk
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE
+);
+```
+
+Routes protegees par JWT:
+
+- `GET /api/profile/me` : lire le profil de l'etudiant connecte
+- `PUT /api/profile/me` : mettre a jour le profil de l'etudiant connecte

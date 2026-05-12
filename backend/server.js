@@ -1,6 +1,7 @@
 import "dotenv/config";
 import app from "./app.js";
 import { initializeDatabaseConnection } from "./config/db.js";
+import { ensureStudentProfilesTable } from "./models/profile.model.js";
 import { ensureUsersTable } from "./models/user.model.js";
 
 const PORT = Number(process.env.PORT) || 5000;
@@ -11,9 +12,11 @@ async function startServer() {
   try {
     const dbInfo = await initializeDatabaseConnection();
     await ensureUsersTable();
+    await ensureStudentProfilesTable();
 
     console.log(`Connexion MySQL reussie (${dbInfo.host}/${dbInfo.database})`);
     console.log("Table users prete.");
+    console.log("Table student_profiles prete.");
 
     server = app.listen(PORT, () => {
       console.log(`API PFC Admissions lancee sur http://localhost:${PORT}`);

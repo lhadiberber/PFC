@@ -2413,6 +2413,27 @@
   margin-bottom: 24px
 }
 
+.student-profile-feedback {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  font-size: .95rem;
+  font-weight: 700;
+  line-height: 1.5
+}
+
+.student-profile-feedback-info {
+  border: 1px solid rgba(37, 99, 235, .16);
+  background: #eff6ff;
+  color: #1d4ed8
+}
+
+.student-profile-feedback-error {
+  border: 1px solid rgba(220, 38, 38, .18);
+  background: #fef2f2;
+  color: #b91c1c
+}
+
 .student-profile-header-actions {
   display: flex;
   flex-wrap: wrap;

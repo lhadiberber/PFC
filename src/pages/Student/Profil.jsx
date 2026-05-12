@@ -1,8 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { useAdmissions } from "../../context/AdmissionsContext";
+import { getAuthToken } from "../../services/authService";
+import {
+  fetchMyProfile,
+  profileFromApi,
+  profileToApi,
+  saveMyProfile,
+} from "../../services/profileService";
 import {
   readStoredStudentAccount,
   syncStudentAccountProfile,
@@ -128,7 +135,31 @@ function sortApplications(applications) {
   });
 }
 
+function updateStoredUserProfile(profile) {
+  let storedUser = {};
+
+  try {
+    storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  } catch (_error) {
+    storedUser = {};
+  }
+
+  localStorage.setItem("userEmail", profile.email.trim());
+  localStorage.setItem(
+    "user",
+    JSON.stringify({
+      ...storedUser,
+      id: storedUser.id || profile.user_id,
+      nom: profile.nom,
+      prenom: profile.prenom,
+      email: profile.email,
+      role: storedUser.role || "student",
+    })
+  );
+}
+
 export default function Profil() {
+  const navigate = useNavigate();
   const {
     profile,
     hasSavedProfile,
@@ -146,6 +177,9 @@ export default function Profil() {
   const [errors, setErrors] = useState({});
   const [isEditing, setIsEditing] = useState(!hasSavedProfile);
   const [accountInfo, setAccountInfo] = useState(() => readStoredStudentAccount());
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState("");
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -168,6 +202,66 @@ export default function Profil() {
       setIsEditing(true);
     }
   }, [hasSavedProfile]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadRemoteProfile() {
+      const token = getAuthToken();
+
+      if (!token) {
+        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        setProfileError(message);
+        setIsInitialLoading(false);
+        navigate("/login", { replace: true, state: { message } });
+        return;
+      }
+
+      try {
+        const remoteProfile = await fetchMyProfile();
+        const mappedProfile = profileFromApi(
+          remoteProfile,
+          profile || emptyProfile,
+          applicationDraft.academicInfo
+        );
+
+        if (!isMounted) {
+          return;
+        }
+
+        setPersonalForm(mappedProfile.personal);
+        setAcademicForm({
+          ...emptyAcademicInfo,
+          ...mappedProfile.academic,
+        });
+        saveProfile(mappedProfile.personal);
+        updateAcademicInfo({
+          ...applicationDraft.academicInfo,
+          ...mappedProfile.academic,
+        });
+        updateStoredUserProfile(remoteProfile);
+        setAccountInfo(syncStudentAccountProfile(mappedProfile.personal));
+        setIsEditing(
+          countCompleted(mappedProfile.personal, PERSONAL_FIELDS) < PERSONAL_FIELDS.length
+        );
+        setProfileError("");
+      } catch (error) {
+        if (isMounted) {
+          setProfileError(error.message || "Impossible de charger le profil etudiant.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsInitialLoading(false);
+        }
+      }
+    }
+
+    loadRemoteProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const syncAccount = () => {
@@ -251,6 +345,8 @@ export default function Profil() {
         [name]: "",
       }));
     }
+
+    if (profileError) setProfileError("");
   };
 
   const handleAcademicChange = (event) => {
@@ -266,6 +362,8 @@ export default function Profil() {
         [name]: "",
       }));
     }
+
+    if (profileError) setProfileError("");
   };
 
   const validate = () => {
@@ -297,7 +395,7 @@ export default function Profil() {
     return nextErrors;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -305,31 +403,38 @@ export default function Profil() {
       return;
     }
 
-    saveProfile(personalForm);
-    updateAcademicInfo({
-      ...applicationDraft.academicInfo,
-      ...academicForm,
-      typeBac: academicForm.diplomeActuel || applicationDraft.academicInfo.typeBac,
-    });
+    setIsSavingProfile(true);
+    setProfileError("");
 
-    const syncedAccount = syncStudentAccountProfile(personalForm);
-    setAccountInfo(syncedAccount);
+    try {
+      const savedRemoteProfile = await saveMyProfile(profileToApi(personalForm, academicForm));
+      const mappedProfile = profileFromApi(savedRemoteProfile, personalForm, academicForm);
+      const nextAcademicInfo = {
+        ...applicationDraft.academicInfo,
+        ...mappedProfile.academic,
+        typeBac: mappedProfile.academic.diplomeActuel || applicationDraft.academicInfo.typeBac,
+      };
 
-    localStorage.setItem("userEmail", personalForm.email.trim());
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
-        email: personalForm.email.trim(),
-        firstName: personalForm.prenom.trim(),
-        lastName: personalForm.nom.trim(),
-        phone: personalForm.telephone.trim(),
-        role: "student",
-      })
-    );
+      setPersonalForm(mappedProfile.personal);
+      setAcademicForm({
+        ...emptyAcademicInfo,
+        ...mappedProfile.academic,
+      });
+      saveProfile(mappedProfile.personal);
+      updateAcademicInfo(nextAcademicInfo);
+      updateStoredUserProfile(savedRemoteProfile);
+      setAccountInfo(syncStudentAccountProfile(mappedProfile.personal));
 
-    setErrors({});
-    setIsEditing(false);
-    showToast("Profil etudiant mis a jour.", "success");
+      setErrors({});
+      setIsEditing(false);
+      showToast("Profil etudiant mis a jour.", "success");
+    } catch (error) {
+      const message = error.message || "Impossible d'enregistrer le profil etudiant.";
+      setProfileError(message);
+      showToast(message, "error");
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
   const handleCancel = () => {
@@ -339,6 +444,7 @@ export default function Profil() {
       ...applicationDraft.academicInfo,
     });
     setErrors({});
+    setProfileError("");
     setIsEditing(!hasSavedProfile);
   };
 
@@ -414,6 +520,7 @@ export default function Profil() {
                 type="button"
                 className="student-application-button student-application-button-secondary"
                 onClick={handleCancel}
+                disabled={isSavingProfile}
               >
                 Annuler
               </button>
@@ -421,8 +528,9 @@ export default function Profil() {
                 type="button"
                 className="student-application-button student-application-button-primary"
                 onClick={handleSave}
+                disabled={isSavingProfile || isInitialLoading}
               >
-                Enregistrer les modifications
+                {isSavingProfile ? "Enregistrement..." : "Enregistrer les modifications"}
               </button>
             </>
           ) : (
@@ -430,12 +538,25 @@ export default function Profil() {
               type="button"
               className="student-application-button student-application-button-primary"
               onClick={() => setIsEditing(true)}
+              disabled={isInitialLoading}
             >
               Modifier le profil
             </button>
           )}
         </div>
       </header>
+
+      {isInitialLoading ? (
+        <div className="student-profile-feedback student-profile-feedback-info" role="status">
+          Chargement du profil etudiant...
+        </div>
+      ) : null}
+
+      {profileError ? (
+        <div className="student-profile-feedback student-profile-feedback-error" role="alert">
+          {profileError}
+        </div>
+      ) : null}
 
       <section className="student-dashboard-panel student-profile-identity-card">
         <div className="student-profile-identity-main">

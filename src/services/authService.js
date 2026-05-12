@@ -33,7 +33,7 @@ async function readJsonResponse(response) {
   }
 }
 
-async function apiRequest(endpoint, options = {}) {
+export async function apiRequest(endpoint, options = {}) {
   const { method = "GET", body, token } = options;
   const headers = {
     Accept: "application/json",
