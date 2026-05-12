@@ -1,10 +1,11 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { useAdmissions } from "../../context/AdmissionsContext";
+import { getStudentDashboard } from "../../services/studentService";
 import "../../index.css";
 
 const PROFILE_FIELDS = [
@@ -33,11 +34,11 @@ const ACADEMIC_FIELDS = [
 ];
 
 const DOCUMENT_FIELDS = [
-  { key: "copieBac", label: "Copie du bac ou diplome" },
+  { key: "copieBac", label: "Diplome" },
   { key: "releveNotes", label: "Releve de notes" },
-  { key: "carteIdentite", label: "Carte d'identite ou passeport" },
-  { key: "photo", label: "Photo d'identite" },
-  { key: "residence", label: "Justificatif de residence" },
+  { key: "carteIdentite", label: "Passeport / Carte d'identite" },
+  { key: "photo", label: "Lettre de motivation" },
+  { key: "residence", label: "Certificat de langue" },
   { key: "cv", label: "CV" },
 ];
 
@@ -158,15 +159,48 @@ function getCompletionColor(percentage) {
 }
 
 function getStatusTone(status) {
-  if (status === "Acceptee") {
+  if (["Acceptee", "Acceptée"].includes(status)) {
     return "acceptee";
   }
 
-  if (status === "Rejetee") {
+  if (["Rejetee", "Refusée"].includes(status)) {
     return "refusee";
   }
 
   return "attente";
+}
+
+function normalizeDashboardStatus(status) {
+  if (["Acceptée", "Acceptee", "AcceptÃ©e"].includes(status)) {
+    return "Acceptee";
+  }
+
+  if (["Refusée", "Refusee", "RefusÃ©e", "Rejetee"].includes(status)) {
+    return "Rejetee";
+  }
+
+  return "En attente";
+}
+
+function mapDashboardApplication(application) {
+  if (!application) {
+    return null;
+  }
+
+  return {
+    id: application.id,
+    numeroDossier: buildNumeroDossier(application),
+    universite: application.universite || "",
+    specialite: application.formation || "",
+    niveauDemande: application.niveau || "",
+    statut: normalizeDashboardStatus(application.statut),
+    submittedAt: application.date_depot,
+    dateDepot: application.date_depot,
+    adminMeta: {
+      lastUpdatedAt: application.date_depot,
+    },
+    details: {},
+  };
 }
 
 function buildFinalProgress(latestApplication, averageCompletion, missingDocumentsCount) {
@@ -396,25 +430,70 @@ StudentDashboardIcon.propTypes = {
 
 export default function StudentDashboard() {
   const { applicationDraft, applications, profile, activityLog } = useAdmissions();
+  const [dashboardData, setDashboardData] = useState(null);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState("");
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadDashboard() {
+      setIsDashboardLoading(true);
+      setDashboardError("");
+
+      try {
+        const data = await getStudentDashboard();
+
+        if (isActive) {
+          setDashboardData(data);
+        }
+      } catch (error) {
+        if (isActive) {
+          setDashboardError(error.message || "Impossible de charger le tableau de bord.");
+        }
+      } finally {
+        if (isActive) {
+          setIsDashboardLoading(false);
+        }
+      }
+    }
+
+    loadDashboard();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const latestBackendApplication = useMemo(
+    () => mapDashboardApplication(dashboardData?.applications?.latest),
+    [dashboardData]
+  );
 
   const latestApplication = useMemo(
-    () =>
-      [...applications].sort((first, second) => {
+    () => {
+      if (latestBackendApplication) {
+        return latestBackendApplication;
+      }
+
+      return [...applications].sort((first, second) => {
         const firstDate = new Date(first.submittedAt || first.dateDepot || 0);
         const secondDate = new Date(second.submittedAt || second.dateDepot || 0);
         return secondDate - firstDate;
-      })[0],
-    [applications]
+      })[0];
+    },
+    [applications, latestBackendApplication]
   );
 
   const mergedProfile = useMemo(
     () =>
       buildMergedRecord(PROFILE_FIELDS, [
+        dashboardData?.user,
         profile,
         applicationDraft.personalInfo,
         latestApplication?.details,
       ]),
-    [applicationDraft.personalInfo, latestApplication, profile]
+    [applicationDraft.personalInfo, dashboardData, latestApplication, profile]
   );
 
   const mergedAcademic = useMemo(
@@ -427,8 +506,23 @@ export default function StudentDashboard() {
   );
 
   const documents = useMemo(
-    () =>
-      DOCUMENT_FIELDS.map((document) => {
+    () => {
+      const apiDocuments = dashboardData?.documents?.items || [];
+
+      if (apiDocuments.length > 0 || dashboardData?.documents) {
+        return DOCUMENT_FIELDS.map((document) => {
+          const apiDocument = apiDocuments.find((item) => item.type_document === document.label);
+
+          return {
+            ...document,
+            fileName: apiDocument?.nom_fichier || "",
+            status: apiDocument?.statut || "En attente",
+            isSubmitted: Boolean(apiDocument),
+          };
+        });
+      }
+
+      return DOCUMENT_FIELDS.map((document) => {
         const fileName = pickFirstFilled(
           [applicationDraft.documents, latestApplication?.details],
           document.key
@@ -439,13 +533,17 @@ export default function StudentDashboard() {
           fileName,
           isSubmitted: hasValue(fileName),
         };
-      }),
-    [applicationDraft.documents, latestApplication]
+      });
+    },
+    [applicationDraft.documents, dashboardData, latestApplication]
   );
 
   const profileCompletion = useMemo(
-    () => toPercent(countCompletedFields(mergedProfile, PROFILE_FIELDS), PROFILE_FIELDS.length),
-    [mergedProfile]
+    () =>
+      dashboardData?.profile
+        ? dashboardData.profile.completion
+        : toPercent(countCompletedFields(mergedProfile, PROFILE_FIELDS), PROFILE_FIELDS.length),
+    [dashboardData, mergedProfile]
   );
 
   const academicCompletion = useMemo(
@@ -455,7 +553,10 @@ export default function StudentDashboard() {
 
   const submittedDocumentsCount = documents.filter((document) => document.isSubmitted).length;
   const missingDocuments = documents.filter((document) => !document.isSubmitted);
-  const documentsCompletion = toPercent(submittedDocumentsCount, documents.length);
+  const documentsCompletion =
+    dashboardData?.documents?.completion ??
+    toPercent(submittedDocumentsCount, documents.length);
+  const applicationsTotal = dashboardData?.applications?.total ?? applications.length;
   const averageCompletion = Math.round(
     (profileCompletion + academicCompletion + documentsCompletion) / 3
   );
@@ -484,6 +585,21 @@ export default function StudentDashboard() {
   });
 
   const recentActivity = useMemo(() => {
+    if (dashboardData?.recentActivity?.length) {
+      return dashboardData.recentActivity.map((entry, index) => ({
+        id: `${entry.type || "activity"}-${entry.date || index}`,
+        title: entry.title || "Activite du dossier",
+        description: entry.description || "",
+        detail: entry.type === "application" ? latestApplication?.universite : "",
+        tone: entry.status === "Acceptée" ? "positive" : "info",
+        status: normalizeDashboardStatus(entry.status),
+        rawDate: entry.date,
+        displayDate: formatDateTime(entry.date),
+        timeLabel: formatRelativeTime(entry.date),
+        icon: entry.type === "document" ? "documents" : "folder",
+      }));
+    }
+
     const applicationIds = new Set(applications.map((application) => String(application.id)));
     const publicEntries = activityLog
       .filter(
@@ -527,7 +643,7 @@ export default function StudentDashboard() {
         icon: "folder",
       },
     ];
-  }, [activityLog, applications, latestApplication]);
+  }, [activityLog, applications, dashboardData, latestApplication]);
 
   const lastUpdate =
     recentActivity[0]?.rawDate ||
@@ -540,7 +656,7 @@ export default function StudentDashboard() {
     {
       id: "status",
       label: "Statut de la candidature",
-      value: statusPresentation.label,
+      value: dashboardData?.globalStatus || statusPresentation.label,
       detail: latestApplication
         ? `${latestApplication.numeroDossier} - ${formatDate(latestApplication.submittedAt || latestApplication.dateDepot)}`
         : "Aucune candidature finalisee pour le moment",
@@ -564,7 +680,7 @@ export default function StudentDashboard() {
     {
       id: "documents",
       label: "Documents deposes",
-      value: `${submittedDocumentsCount}/${documents.length}`,
+      value: `${dashboardData?.documents?.total ?? submittedDocumentsCount}/${documents.length}`,
       detail:
         submittedDocumentsCount === documents.length
           ? "Toutes les pieces attendues sont presentes."
@@ -772,7 +888,7 @@ export default function StudentDashboard() {
 
         <div className="student-dashboard-hero-meta">
           <span className="admin-page-context info">
-            {applications.length} candidature(s)
+            {applicationsTotal} candidature(s)
           </span>
           <span className={`admin-page-context ${latestApplication ? "neutral" : "warning"}`}>
             {latestApplication
