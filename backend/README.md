@@ -141,3 +141,32 @@ Routes protegees par JWT:
 
 - `GET /api/profile/me` : lire le profil de l'etudiant connecte
 - `PUT /api/profile/me` : mettre a jour le profil de l'etudiant connecte
+
+## Candidatures etudiant
+
+Table MySQL creee au demarrage:
+
+```sql
+CREATE TABLE IF NOT EXISTS applications (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  student_id INT UNSIGNED NOT NULL,
+  universite VARCHAR(160) NOT NULL,
+  formation VARCHAR(160) NOT NULL,
+  niveau VARCHAR(80) NOT NULL,
+  motivation TEXT NOT NULL,
+  statut ENUM('En attente', 'Acceptée', 'Refusée') NOT NULL DEFAULT 'En attente',
+  date_depot TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  commentaire_admin TEXT NULL,
+  PRIMARY KEY (id),
+  INDEX applications_student_id_index (student_id),
+  CONSTRAINT applications_student_id_fk
+    FOREIGN KEY (student_id) REFERENCES users(id)
+    ON DELETE CASCADE
+);
+```
+
+Routes protegees par JWT:
+
+- `POST /api/applications` : deposer une candidature
+- `GET /api/applications/my` : lister les candidatures de l'etudiant connecte
+- `GET /api/applications/:id` : consulter une candidature de l'etudiant connecte
