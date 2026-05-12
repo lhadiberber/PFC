@@ -38,3 +38,13 @@ export async function updateAdminApplicationStatus(id, payload) {
 
   return response.application || null;
 }
+
+export async function listAdminStudents() {
+  const response = await apiRequest("/admin/students");
+  return response.students || [];
+}
+
+export async function getAdminStudent(id) {
+  const response = await apiRequest(`/admin/students/${id}`);
+  return response.student || null;
+}

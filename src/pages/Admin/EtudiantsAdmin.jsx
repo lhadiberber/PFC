@@ -5,12 +5,12 @@ import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { useAdmissions } from "../../context/AdmissionsContext";
+import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { listAdminStudents } from "../../services/adminService";
 import { downloadCsv } from "../../utils/exportCsv";
 import { downloadPdfReport } from "../../utils/exportPdf";
-import { formatAdminDate, toAdminApplication } from "../../utils/adminApplications";
+import { formatAdminDate } from "../../utils/adminApplications";
 import {
-  buildStudentRecords,
   getStudentStatusMeta,
   sortStudentRecords,
 } from "../../utils/adminStudents";
@@ -19,6 +19,50 @@ import "../../index.css";
 
 function normalize(value) {
   return (value ?? "").toString().toLowerCase().trim();
+}
+
+function normalizeStatus(status) {
+  if (status === "Accepté" || status === "Accepte") return "Acceptee";
+  if (status === "Refusé" || status === "Refuse") return "Rejetee";
+  return "En attente";
+}
+
+function mapApiStudentToRecord(student) {
+  return {
+    key: String(student.id),
+    id: student.id,
+    prenom: student.prenom || "",
+    nom: student.nom || "",
+    fullName: [student.prenom, student.nom].filter(Boolean).join(" ") || student.email,
+    email: student.email || "Non renseigne",
+    telephone: student.telephone || "Non renseigne",
+    nationalite: student.profile?.nationalite || "Non renseignee",
+    latestApplicationId: student.id,
+    latestDate: student.latestDateDepot || student.created_at,
+    firstDate: student.created_at,
+    latestStatus: normalizeStatus(student.statutGlobal),
+    latestUniversite: student.latestUniversite || "Non renseignee",
+    latestSpecialite: student.latestFormation || "Non renseigne",
+    latestProgramme: student.latestFormation || "Non renseigne",
+    latestDiplome: student.profile?.diplome_actuel || "Non renseigne",
+    latestYear: student.profile?.annee_obtention || "Non renseignee",
+    latestApplication: {
+      id: student.id,
+      statut: normalizeStatus(student.statutGlobal),
+      universite: student.latestUniversite || "",
+      specialite: student.latestFormation || "",
+      adminMeta: { assignedTo: "", internalStatus: "qualification" },
+    },
+    applications: [],
+    candidaturesCount: student.candidaturesCount || 0,
+    pendingCount: normalizeStatus(student.statutGlobal) === "En attente" ? student.candidaturesCount || 0 : 0,
+    acceptedCount: normalizeStatus(student.statutGlobal) === "Acceptee" ? 1 : 0,
+    rejectedCount: normalizeStatus(student.statutGlobal) === "Rejetee" ? 1 : 0,
+    isNewThisWeek: false,
+    profilCompletion: student.telephone ? 100 : 50,
+    documentsCompletion: student.candidaturesCount > 0 ? 100 : 0,
+    academiqueCompletion: student.profile?.diplome_actuel ? 100 : 50,
+  };
 }
 
 function FilterIcon() {
@@ -96,8 +140,11 @@ StudentStatIcon.propTypes = {
 
 export default function EtudiantsAdmin() {
   const navigate = useNavigate();
-  const { applications } = useAdmissions();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [studentsData, setStudentsData] = useState([]);
+  const [isLoadingStudents, setIsLoadingStudents] = useState(true);
+  const [studentsError, setStudentsError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("query") || "");
   const [filter, setFilter] = useState(searchParams.get("filter") || "tous");
   const [filterUniversity, setFilterUniversity] = useState(
@@ -117,6 +164,56 @@ export default function EtudiantsAdmin() {
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadStudents() {
+      const token = getAuthToken();
+
+      if (!token) {
+        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+        return;
+      }
+
+      setIsLoadingStudents(true);
+      setStudentsError("");
+
+      try {
+        const data = await listAdminStudents();
+        if (isActive) {
+          setStudentsData(data);
+        }
+      } catch (error) {
+        if (!isActive) return;
+
+        if (error.status === 401) {
+          const message = "Session expiree. Veuillez vous reconnecter.";
+          clearAuthSession();
+          navigate("/login", { state: { message } });
+          return;
+        }
+
+        setStudentsError(
+          error.status === 403
+            ? "Acces refuse. Cette page est reservee aux administrateurs."
+            : error.message || "Impossible de charger les etudiants."
+        );
+      } finally {
+        if (isActive) {
+          setIsLoadingStudents(false);
+        }
+      }
+    }
+
+    loadStudents();
+
+    return () => {
+      isActive = false;
+    };
+  }, [navigate, reloadKey]);
 
   useEffect(() => {
     setSearchQuery(searchParams.get("query") || "");
@@ -161,17 +258,13 @@ export default function EtudiantsAdmin() {
     setSearchParams(params, { replace: true });
   };
 
-  const adminApplications = useMemo(
-    () => applications.map(toAdminApplication),
-    [applications]
-  );
   const studentRecords = useMemo(
     () =>
-      buildStudentRecords(adminApplications).map((student) => ({
+      studentsData.map(mapApiStudentToRecord).map((student) => ({
         ...student,
         statusMeta: getStudentStatusMeta(student),
       })),
-    [adminApplications]
+    [studentsData]
   );
 
   const universityOptions = useMemo(
@@ -397,6 +490,22 @@ export default function EtudiantsAdmin() {
       onSearchChange={handleSearchChange}
       searchPlaceholder="Rechercher un etudiant, un email, une universite ou un programme..."
     >
+      {isLoadingStudents ? (
+        <div className="student-profile-feedback">Chargement des etudiants...</div>
+      ) : null}
+
+      {studentsError ? (
+        <div className="student-profile-feedback student-profile-feedback-error" role="alert">
+          {studentsError}
+          <Button
+            className="admin-filter-tab"
+            onClick={() => setReloadKey((currentKey) => currentKey + 1)}
+          >
+            Reessayer
+          </Button>
+        </div>
+      ) : null}
+
       <section className="campus-section-container">
         <div className="campus-section-header">
           <h2>Vue rapide des profils</h2>
