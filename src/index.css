@@ -5,3 +5,343 @@
 @import "./styles/home.css";
 @import "./styles/auth.css";
 @import "./styles/admin.css";
+
+/* Visual finishing layer */
+:root {
+  --ui-surface: #fff;
+  --ui-surface-soft: #f8fafc;
+  --ui-border: #e2e8f0;
+  --ui-border-strong: #cbd5e1;
+  --ui-text: #0f172a;
+  --ui-muted: #64748b;
+  --ui-primary: #1d4ed8;
+  --ui-primary-dark: #1e40af;
+  --ui-primary-soft: #eff6ff;
+  --ui-success: #047857;
+  --ui-success-soft: #ecfdf5;
+  --ui-warning: #b45309;
+  --ui-warning-soft: #fffbeb;
+  --ui-danger: #b91c1c;
+  --ui-danger-soft: #fef2f2;
+  --ui-radius: 8px;
+  --ui-shadow: 0 12px 30px rgba(15, 23, 42, .08);
+}
+
+.campus-btn-primary,
+.campus-btn-submit,
+.campus-btn-login,
+.home-btn,
+.dashboard-btn,
+.valider-btn,
+.retour-btn,
+.auth-register-submit,
+.student-application-button,
+.admin-table-action-button,
+.admin-filter-tab,
+.admin-pagination-page-button,
+.ui-empty-link,
+.ui-button {
+  border-radius: var(--ui-radius);
+  letter-spacing: 0;
+}
+
+.campus-btn-primary,
+.campus-btn-submit,
+.dashboard-btn,
+.valider-btn,
+.auth-register-submit,
+.student-application-button-primary,
+.admin-main .campus-btn-primary {
+  background: var(--ui-primary);
+  color: #fff;
+  border: 1px solid transparent;
+  box-shadow: 0 10px 22px rgba(29, 78, 216, .18);
+}
+
+.campus-btn-primary:hover,
+.campus-btn-submit:hover,
+.dashboard-btn:hover,
+.valider-btn:hover,
+.auth-register-submit:hover,
+.student-application-button-primary:hover,
+.admin-main .campus-btn-primary:hover {
+  background: var(--ui-primary-dark);
+  box-shadow: 0 14px 28px rgba(29, 78, 216, .22);
+}
+
+.campus-btn-secondary,
+.campus-btn-login,
+.home-btn,
+.retour-btn,
+.student-application-button-secondary,
+.admin-filter-tab,
+.admin-table-action-button,
+.admin-pagination-page-button {
+  background: #fff;
+  color: #334155;
+  border: 1px solid var(--ui-border-strong);
+  box-shadow: none;
+}
+
+.campus-btn-secondary:hover,
+.campus-btn-login:hover,
+.home-btn:hover,
+.retour-btn:hover,
+.student-application-button-secondary:hover,
+.admin-filter-tab:hover,
+.admin-table-action-button:hover,
+.admin-pagination-page-button:hover {
+  background: var(--ui-primary-soft);
+  color: var(--ui-primary);
+  border-color: #bfdbfe;
+}
+
+.admin-filter-tab.active,
+.admin-pagination-page-button.active {
+  background: var(--ui-primary);
+  color: #fff;
+  border-color: var(--ui-primary);
+  box-shadow: 0 10px 20px rgba(29, 78, 216, .18);
+}
+
+button:disabled,
+.campus-btn-primary:disabled,
+.auth-register-submit:disabled,
+.student-application-button:disabled,
+.admin-table-action-button:disabled,
+.admin-pagination-page-button:disabled {
+  cursor: not-allowed;
+  opacity: .62;
+  transform: none;
+  box-shadow: none;
+}
+
+.ui-card,
+.ui-empty-state,
+.student-dashboard-panel,
+.student-application-form-card,
+.student-application-recap-card,
+.student-candidature-card-v2,
+.student-candidature-detail-card,
+.student-candidature-progress-card,
+.student-application-upload-card,
+.auth-register-card,
+.admin-primary-stat-card,
+.admin-meta-card,
+.admin-documents-panel,
+.admin-analytics-card,
+.admin-worklist-overview-card,
+.admin-funnel-summary-card,
+.admin-mini-chart-card,
+.admin-empty-state {
+  border-radius: var(--ui-radius);
+}
+
+.student-dashboard-panel,
+.admin-primary-stat-card,
+.admin-meta-card,
+.admin-documents-panel,
+.admin-analytics-card,
+.admin-worklist-overview-card,
+.admin-funnel-summary-card,
+.admin-mini-chart-card,
+.auth-register-card {
+  border-color: rgba(148, 163, 184, .24);
+  box-shadow: var(--ui-shadow);
+}
+
+.admin-table-container {
+  border-radius: var(--ui-radius);
+  border-color: var(--ui-border);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
+}
+
+.admin-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-table th {
+  background: var(--ui-surface-soft);
+  color: #475569;
+  letter-spacing: 0;
+}
+
+.admin-table td {
+  color: #334155;
+}
+
+.admin-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.admin-empty-state,
+.ui-empty-state {
+  background: var(--ui-surface-soft);
+  border: 1px dashed var(--ui-border-strong);
+  color: var(--ui-muted);
+  font-style: normal;
+}
+
+.statut-badge {
+  min-width: auto;
+  min-height: 28px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.statut-attente {
+  background: var(--ui-warning-soft);
+  color: var(--ui-warning);
+  border-color: #fde68a;
+}
+
+.statut-acceptee,
+.statut-actif {
+  background: var(--ui-success-soft);
+  color: var(--ui-success);
+  border-color: #a7f3d0;
+}
+
+.statut-rejetee {
+  background: var(--ui-danger-soft);
+  color: var(--ui-danger);
+  border-color: #fecaca;
+}
+
+.student-profile-feedback {
+  border-radius: var(--ui-radius);
+  border: 1px solid #bfdbfe;
+  background: var(--ui-primary-soft);
+  color: var(--ui-primary);
+  font-weight: 700;
+}
+
+.student-profile-feedback-error {
+  border-color: #fecaca;
+  background: var(--ui-danger-soft);
+  color: var(--ui-danger);
+}
+
+.student-profile-feedback-success {
+  border-color: #a7f3d0;
+  background: var(--ui-success-soft);
+  color: var(--ui-success);
+}
+
+.student-application-input,
+.student-application-textarea,
+.student-candidatures-page-size-select,
+.language-selector-control,
+.form-input,
+.auth-register-field input,
+.auth-register-field select,
+.student-profile-field input,
+.student-profile-field select,
+.student-profile-field textarea,
+.admin-toolbar input,
+.admin-toolbar select,
+.admin-recent-search,
+.admin-documents-search {
+  border-radius: var(--ui-radius);
+  border-color: var(--ui-border-strong);
+}
+
+.student-application-input:focus,
+.student-application-textarea:focus,
+.student-candidatures-page-size-select:focus,
+.language-selector-control:focus,
+.form-input:focus,
+.auth-register-field input:focus,
+.auth-register-field select:focus,
+.student-profile-field input:focus,
+.student-profile-field select:focus,
+.student-profile-field textarea:focus,
+.admin-toolbar input:focus,
+.admin-toolbar select:focus,
+.admin-recent-search:focus-within,
+.admin-documents-search:focus-within {
+  outline: none;
+  border-color: var(--ui-primary);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, .14);
+}
+
+.admin-layout.theme-dark .admin-filter-tab,
+.admin-layout.theme-dark .admin-table-action-button,
+.admin-layout.theme-dark .admin-pagination-page-button {
+  background: rgba(15, 23, 42, .92);
+  color: #dbeafe;
+  border-color: rgba(148, 163, 184, .28);
+}
+
+.admin-layout.theme-dark .admin-filter-tab:hover,
+.admin-layout.theme-dark .admin-table-action-button:hover,
+.admin-layout.theme-dark .admin-pagination-page-button:hover {
+  background: rgba(30, 64, 175, .26);
+  color: #bfdbfe;
+  border-color: rgba(96, 165, 250, .38);
+}
+
+.admin-layout.theme-dark .admin-filter-tab.active,
+.admin-layout.theme-dark .admin-pagination-page-button.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.admin-layout.theme-dark .admin-empty-state,
+.admin-layout.theme-dark .ui-empty-state {
+  background: rgba(15, 23, 42, .72);
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, .28);
+}
+
+.admin-layout.theme-dark .admin-table th {
+  background: rgba(15, 23, 42, .78);
+  color: #cbd5e1;
+}
+
+.admin-layout.theme-dark .admin-table td,
+.admin-layout.theme-dark .admin-table-meta-text {
+  color: #e2e8f0;
+}
+
+.admin-layout.theme-dark .admin-table tbody tr:hover {
+  background: rgba(37, 99, 235, .1);
+}
+
+@media (max-width: 768px) {
+  .campus-hero-actions,
+  .student-application-actions,
+  .student-dashboard-panel-actions,
+  .admin-pagination,
+  .admin-table-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .campus-hero-actions > *,
+  .student-application-actions > *,
+  .student-dashboard-panel-actions > *,
+  .admin-table-footer > *,
+  .admin-pagination-buttons,
+  .admin-pagination-page-button {
+    width: 100%;
+  }
+
+  .admin-table-container {
+    margin-inline: -4px;
+  }
+
+  .student-dashboard-panel,
+  .admin-primary-stat-card,
+  .admin-meta-card,
+  .admin-documents-panel {
+    padding: 20px;
+  }
+}
