@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ApplicationStepLayout from "../../components/student/ApplicationStepLayout";
 import ProgressBar from "../../components/ui/ProgressBar";
@@ -94,12 +94,23 @@ function getDisplayValue(source, key) {
   return source[key] || "Non renseigne";
 }
 
+function buildBackendNumeroDossier(application) {
+  if (!application?.id) {
+    return "";
+  }
+
+  const date = new Date(application.date_depot || Date.now());
+  const year = Number.isNaN(date.getTime()) ? new Date().getFullYear() : date.getFullYear();
+  return `CAND-${year}-${String(application.id).padStart(3, "0")}`;
+}
+
 export default function StudentRecapitulatif() {
   const navigate = useNavigate();
   const { applicationDraft, submitApplication } = useAdmissions();
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const isSubmittingRef = useRef(false);
 
   const personalInfo = applicationDraft.personalInfo;
   const academicInfo = applicationDraft.academicInfo;
@@ -161,6 +172,10 @@ export default function StudentRecapitulatif() {
   };
 
   const confirmValider = async () => {
+    if (isSubmittingRef.current) {
+      return;
+    }
+
     const token = getAuthToken();
 
     if (!token) {
@@ -172,13 +187,14 @@ export default function StudentRecapitulatif() {
       return;
     }
 
+    isSubmittingRef.current = true;
     setShowConfirm(false);
     setIsSubmitting(true);
     setSubmitError("");
     showLoading(true, "Envoi de votre candidature...");
 
     try {
-      await createApplication({
+      const backendApplication = await createApplication({
         universite: academicInfo.universite,
         formation: academicInfo.specialite,
         niveau: academicInfo.niveauDemande,
@@ -186,10 +202,12 @@ export default function StudentRecapitulatif() {
       });
 
       const createdApplication = submitApplication();
+      const numeroDossier =
+        buildBackendNumeroDossier(backendApplication) || createdApplication.numeroDossier;
 
       showLoading(false);
       showToast("Candidature soumise avec succes.", "success");
-      navigate(`/success?numeroDossier=${createdApplication.numeroDossier}`);
+      navigate(`/success?numeroDossier=${numeroDossier}`);
     } catch (error) {
       const message = error.message || "Impossible de soumettre la candidature.";
       if (error.status === 401) {
@@ -200,6 +218,7 @@ export default function StudentRecapitulatif() {
       setSubmitError(message);
       showToast(message, "error");
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };

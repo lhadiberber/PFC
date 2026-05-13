@@ -183,6 +183,12 @@ function normalizeDashboardStatus(status) {
   return "En attente";
 }
 
+function buildNumeroDossier(application) {
+  const date = new Date(application.date_depot || application.dateDepot || Date.now());
+  const year = Number.isNaN(date.getTime()) ? new Date().getFullYear() : date.getFullYear();
+  return `CAND-${year}-${String(application.id).padStart(3, "0")}`;
+}
+
 function mapDashboardApplication(application) {
   if (!application) {
     return null;

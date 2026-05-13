@@ -143,6 +143,7 @@ export default function Navbar() {
     clearAuthSession();
     localStorage.removeItem("studentProfile");
     localStorage.removeItem("studentDocuments");
+    localStorage.removeItem("studentApplicationDraft");
     navigate("/login", { replace: true });
   };
 

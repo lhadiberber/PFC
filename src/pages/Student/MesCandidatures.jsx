@@ -7,6 +7,8 @@ import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { listMyApplications } from "../../services/applicationService";
 import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { listMyDocuments } from "../../services/documentService";
+import { fetchMyProfile } from "../../services/profileService";
 import "../../index.css";
 
 const PROFILE_FIELDS = [
@@ -42,8 +44,27 @@ const DOCUMENT_FIELDS = [
   { key: "cv", label: "CV" },
 ];
 
+const DOCUMENT_FIELD_BY_TYPE = {
+  diplome: "copieBac",
+  "copie du bac ou diplome": "copieBac",
+  "releve de notes": "releveNotes",
+  "passeport / carte d'identite": "carteIdentite",
+  "carte d'identite ou passeport": "carteIdentite",
+  "lettre de motivation": "photo",
+  "certificat de langue": "residence",
+  cv: "cv",
+};
+
 function hasValue(value) {
   return typeof value === "string" ? value.trim() !== "" : Boolean(value);
+}
+
+function normalizeKey(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function toPercent(completed, total) {
@@ -108,7 +129,44 @@ function buildNumeroDossier(application) {
   return `CAND-${year}-${String(application.id).padStart(3, "0")}`;
 }
 
-function mapApiApplication(application) {
+function mapApiProfileToDetails(profile = {}) {
+  return {
+    nom: profile.nom || "",
+    prenom: profile.prenom || "",
+    dateNaiss: profile.date_naissance || "",
+    nationalite: profile.nationalite || "",
+    telephone: profile.telephone || "",
+    email: profile.email || "",
+    adresse: profile.adresse || "",
+    diplomeActuel: profile.diplome_actuel || "",
+    typeBac: profile.diplome_actuel || "",
+    etablissementActuel: profile.etablissement || "",
+    anneeBac: profile.annee_obtention || "",
+    moyenneBac: profile.moyenne || "",
+    specialiteActuelle: profile.specialite_actuelle || "",
+  };
+}
+
+function mapApiDocumentsToDetails(documents = [], applicationId) {
+  return documents.reduce((details, document) => {
+    if (
+      document.application_id &&
+      String(document.application_id) !== String(applicationId)
+    ) {
+      return details;
+    }
+
+    const fieldName = DOCUMENT_FIELD_BY_TYPE[normalizeKey(document.type_document)];
+
+    if (fieldName && !details[fieldName]) {
+      details[fieldName] = document.nom_fichier || "";
+    }
+
+    return details;
+  }, {});
+}
+
+function mapApiApplication(application, profileDetails = {}, documentDetails = {}) {
   const statut = normalizeStatus(application.statut);
 
   return {
@@ -123,6 +181,8 @@ function mapApiApplication(application) {
     numeroDossier: buildNumeroDossier(application),
     commentaireAdmin: application.commentaire_admin || "",
     details: {
+      ...profileDetails,
+      ...documentDetails,
       universite: application.universite || "",
       specialite: application.formation || "",
       niveauDemande: application.niveau || "",
@@ -293,10 +353,24 @@ export default function MesCandidatures() {
       try {
         setIsLoading(true);
         setLoadError("");
-        const applicationsResponse = await listMyApplications();
+        const [applicationsResponse, documentsResponse, profileResponse] = await Promise.all([
+          listMyApplications(),
+          listMyDocuments(),
+          fetchMyProfile(),
+        ]);
+
+        const profileDetails = mapApiProfileToDetails(profileResponse);
 
         if (isMounted) {
-          setApplications(applicationsResponse.map(mapApiApplication));
+          setApplications(
+            applicationsResponse.map((application) =>
+              mapApiApplication(
+                application,
+                profileDetails,
+                mapApiDocumentsToDetails(documentsResponse, application.id)
+              )
+            )
+          );
         }
       } catch (error) {
         if (isMounted) {

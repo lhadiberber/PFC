@@ -576,13 +576,6 @@ function buildStatusChangeActivity(application, previousStatus, nextStatus) {
   });
 }
 
-function buildInitialActivityLog(applications) {
-  return [...applications]
-    .sort((first, second) => new Date(second.submittedAt || second.dateDepot) - new Date(first.submittedAt || first.dateDepot))
-    .slice(0, 20)
-    .map((application) => buildSubmissionActivity(application));
-}
-
 function normalizeApplication(application, index) {
   const details = application.details || {};
 
