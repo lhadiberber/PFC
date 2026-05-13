@@ -93,8 +93,7 @@ function parseStoredJson(key, fallback) {
 
   try {
     return JSON.parse(storedValue);
-  } catch (error) {
-    console.error(`Impossible de lire ${key} depuis localStorage`, error);
+  } catch (_error) {
     return fallback;
   }
 }
@@ -358,6 +357,11 @@ function getPersonDisplayName(details = {}, fallback = "Candidat") {
 }
 
 function readStoredAdminActor() {
+  const fallbackActor = {
+    name: localStorage.getItem("userEmail") || "Administrateur PFC",
+    role: "Gestionnaire de la plateforme",
+  };
+
   try {
     const rawProfile = localStorage.getItem("adminProfile");
     if (rawProfile) {
@@ -370,14 +374,11 @@ function readStoredAdminActor() {
         role: normalizeText(parsedProfile.role, "Gestionnaire de la plateforme"),
       };
     }
-  } catch (error) {
-    console.error("Impossible de lire le profil administrateur", error);
+  } catch (_error) {
+    return fallbackActor;
   }
 
-  return {
-    name: localStorage.getItem("userEmail") || "Administrateur PFC",
-    role: "Gestionnaire de la plateforme",
-  };
+  return fallbackActor;
 }
 
 function buildActivityId(prefix = "activity") {

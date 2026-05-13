@@ -125,8 +125,8 @@ export default function Navbar() {
           email: parsedProfile?.email || "",
         });
       }
-    } catch (error) {
-      console.error("Impossible de lire le profil etudiant", error);
+    } catch (_error) {
+      setProfileData({ prenom: "", nom: "", email: "" });
     }
   }, [location.pathname]);
 

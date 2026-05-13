@@ -27,6 +27,7 @@ export default function Home() {
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
@@ -53,6 +54,7 @@ export default function Home() {
 
   const handleLogin = (event) => {
     event.preventDefault();
+    setLoginError("");
 
     if (isValidAdminCredentials(email, password)) {
       setShowLoginMenu(false);
@@ -63,7 +65,7 @@ export default function Home() {
       return;
     }
 
-    alert(t("home.loginMenu.invalidCredentials"));
+    setLoginError(t("home.loginMenu.invalidCredentials"));
   };
 
   return (
@@ -96,7 +98,10 @@ export default function Home() {
               <button
                 type="button"
                 className="campus-btn-login"
-                onClick={() => setShowLoginMenu((current) => !current)}
+                onClick={() => {
+                  setLoginError("");
+                  setShowLoginMenu((current) => !current);
+                }}
               >
                 <span>{home.loginButton}</span>
                 <svg
@@ -119,7 +124,10 @@ export default function Home() {
                         type="email"
                         placeholder={messages.auth.login.emailPlaceholder}
                         value={email}
-                        onChange={(event) => setEmail(event.target.value)}
+                        onChange={(event) => {
+                          setEmail(event.target.value);
+                          setLoginError("");
+                        }}
                         required
                       />
                     </div>
@@ -129,10 +137,18 @@ export default function Home() {
                         type="password"
                         placeholder="********"
                         value={password}
-                        onChange={(event) => setPassword(event.target.value)}
+                        onChange={(event) => {
+                          setPassword(event.target.value);
+                          setLoginError("");
+                        }}
                         required
                       />
                     </div>
+                    {loginError ? (
+                      <p className="campus-dropdown-error" role="alert">
+                        {loginError}
+                      </p>
+                    ) : null}
                     <button type="submit" className="campus-btn-submit">
                       {home.loginMenu.submit}
                     </button>
