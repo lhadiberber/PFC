@@ -50,6 +50,18 @@ function mapApiDocumentToDetail(document) {
   };
 }
 
+function getDocumentConfirmationMessage(status) {
+  if (status === "Valide") {
+    return "Confirmer la validation de ce document ?";
+  }
+
+  if (status === "Refuse") {
+    return "Confirmer le refus de ce document ?";
+  }
+
+  return "Confirmer la remise en attente de ce document ?";
+}
+
 function buildHistoryEntries(documentRow) {
   const entries = [
     {
@@ -203,6 +215,10 @@ export default function DetailDocumentAdmin() {
   const historyEntries = buildHistoryEntries(documentRow);
 
   const handleReviewAction = async (nextStatus) => {
+    if (!window.confirm(getDocumentConfirmationMessage(nextStatus))) {
+      return;
+    }
+
     setActionLoading(nextStatus);
     setDocumentError("");
 

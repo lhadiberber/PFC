@@ -86,6 +86,18 @@ function getFinalDecisionLabel(status) {
   return "En attente";
 }
 
+function getStatusConfirmationMessage(status) {
+  if (status === "Acceptée") {
+    return "Confirmer l'acceptation de cette candidature ?";
+  }
+
+  if (status === "Refusée") {
+    return "Confirmer le refus de cette candidature ?";
+  }
+
+  return "Confirmer la remise en attente de cette candidature ?";
+}
+
 function getFieldValue(value, fallback = "Non renseigne") {
   return value && String(value).trim() ? value : fallback;
 }
@@ -287,6 +299,10 @@ export default function DetailCandidaturesAdmin() {
   );
 
   const handleStatusChange = async (nextStatus) => {
+    if (!window.confirm(getStatusConfirmationMessage(nextStatus))) {
+      return;
+    }
+
     setStatusActionLoading(nextStatus);
     setApplicationError("");
 

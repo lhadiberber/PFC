@@ -9,6 +9,7 @@ import {
   listMyDocuments,
   uploadStudentDocument,
 } from "../../services/documentService";
+import { showToast } from "../../utils/toast";
 import "../../index.css";
 
 const documentConfig = {
@@ -278,6 +279,7 @@ export default function StudentStep3() {
         [fieldName]: document.statut || "En attente",
       }));
       updateDocuments({ [fieldName]: document.nom_fichier || file.name });
+      showToast(`${config.label} depose avec succes.`, "success");
     } catch (error) {
       const message = error.message || "Impossible de deposer ce document.";
 
@@ -340,6 +342,7 @@ export default function StudentStep3() {
       });
       updateDocuments({ [fieldName]: "" });
       clearFieldError(fieldName);
+      showToast(`${documentConfig[fieldName].label} retire avec succes.`, "success");
 
       if (fileInputRefs.current[fieldName]) {
         fileInputRefs.current[fieldName].value = "";
