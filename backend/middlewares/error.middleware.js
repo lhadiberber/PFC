@@ -23,13 +23,11 @@ function getUploadMessage(error) {
 export function errorMiddleware(error, _request, response, _next) {
   const uploadError = isMulterError(error);
   const statusCode = error.statusCode || error.status || (uploadError ? 400 : 500);
-  const isProduction = process.env.NODE_ENV === "production";
   const rawMessage = uploadError ? getUploadMessage(error) : error.message;
-  const message = isProduction && statusCode === 500 ? "Erreur interne du serveur." : rawMessage;
+  const message = statusCode >= 500 ? "Erreur interne du serveur." : rawMessage;
 
   response.status(statusCode).json({
     success: false,
     message,
-    ...(!isProduction ? { stack: error.stack } : {}),
   });
 }

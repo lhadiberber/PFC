@@ -14,14 +14,14 @@ export function authMiddleware(request, _response, next) {
   const token = getTokenFromHeader(request.headers.authorization);
 
   if (!token) {
-    const error = new Error("Token d'authentification manquant.");
+    const error = new Error("Acces non autorise");
     error.statusCode = 401;
     next(error);
     return;
   }
 
   if (!process.env.JWT_SECRET) {
-    const error = new Error("JWT_SECRET n'est pas configure.");
+    const error = new Error("Configuration serveur invalide.");
     error.statusCode = 500;
     next(error);
     return;
@@ -31,7 +31,7 @@ export function authMiddleware(request, _response, next) {
     request.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
   } catch (jwtError) {
-    const error = new Error("Token invalide ou expire.");
+    const error = new Error("Acces non autorise");
     error.statusCode = 401;
     error.cause = jwtError;
     next(error);
