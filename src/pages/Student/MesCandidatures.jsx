@@ -110,17 +110,28 @@ function formatShortDate(value) {
 }
 
 function normalizeStatus(status) {
-  switch (status) {
-    case "Acceptée":
-    case "Acceptee":
-      return "Acceptee";
-    case "Refusée":
-    case "Refusee":
-    case "Rejetee":
-      return "Rejetee";
-    default:
-      return "En attente";
+  const cleanStatus = String(status || "").trim();
+  const normalizedStatus = normalizeKey(cleanStatus);
+
+  if (
+    normalizedStatus.startsWith("accept") ||
+    cleanStatus.includes("AcceptÃ") ||
+    cleanStatus.includes("AcceptÃƒ")
+  ) {
+    return "Acceptee";
   }
+
+  if (
+    normalizedStatus.startsWith("refus") ||
+    normalizedStatus.startsWith("rejet") ||
+    cleanStatus.includes("RefusÃ") ||
+    cleanStatus.includes("RejetÃ") ||
+    cleanStatus.includes("RefusÃƒ")
+  ) {
+    return "Rejetee";
+  }
+
+  return "En attente";
 }
 
 function buildNumeroDossier(application) {

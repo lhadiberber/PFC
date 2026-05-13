@@ -228,6 +228,13 @@ export default function DetailDocumentAdmin() {
       showToast(`Document passe en statut ${nextStatus.toLowerCase()}.`, "success");
     } catch (error) {
       const message = error.message || "Impossible de mettre a jour le statut du document.";
+
+      if (error.status === 401) {
+        clearAuthSession();
+        navigate("/login", { state: { message } });
+        return;
+      }
+
       setDocumentError(message);
       showToast(message, "error");
     } finally {

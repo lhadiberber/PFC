@@ -72,6 +72,32 @@ function formatMegabytes(size) {
   return `${size / (1024 * 1024)} MB`;
 }
 
+function normalizeDocumentStatus(status) {
+  const cleanStatus = String(status || "").trim();
+  const normalizedStatus = cleanStatus
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (
+    normalizedStatus.startsWith("valid") ||
+    cleanStatus.includes("ValidÃ") ||
+    cleanStatus.includes("ValidÃƒ")
+  ) {
+    return "Valide";
+  }
+
+  if (
+    normalizedStatus.startsWith("refus") ||
+    cleanStatus.includes("RefusÃ") ||
+    cleanStatus.includes("RefusÃƒ")
+  ) {
+    return "Refuse";
+  }
+
+  return "En attente";
+}
+
 function mapApiDocumentsToFields(documents) {
   return documents.reduce(
     (mappedDocuments, document) => {
@@ -83,7 +109,7 @@ function mapApiDocumentsToFields(documents) {
 
       mappedDocuments.files[fieldName] = document.nom_fichier || "";
       mappedDocuments.documentIds[fieldName] = document.id;
-      mappedDocuments.statuses[fieldName] = document.statut || "En attente";
+      mappedDocuments.statuses[fieldName] = normalizeDocumentStatus(document.statut);
 
       return mappedDocuments;
     },
@@ -276,7 +302,7 @@ export default function StudentStep3() {
       }));
       setDocumentStatuses((currentStatuses) => ({
         ...currentStatuses,
-        [fieldName]: document.statut || "En attente",
+        [fieldName]: normalizeDocumentStatus(document.statut),
       }));
       updateDocuments({ [fieldName]: document.nom_fichier || file.name });
       showToast(`${config.label} depose avec succes.`, "success");
