@@ -4,10 +4,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import LanguageSelector from "../LanguageSelector";
 import Button from "../ui/Button";
 import PageHeader from "../ui/PageHeader";
-import { useAdmissions } from "../../context/AdmissionsContext";
 import { useLanguage } from "../../context/LanguageContext";
-import { clearAuthSession } from "../../services/authService";
-import { getAdminStats } from "../../utils/adminApplications";
+import { getAdminDashboard } from "../../services/adminService";
+import { clearAuthSession, getAuthToken } from "../../services/authService";
 
 function getStoredAdminProfile() {
   try {
@@ -226,14 +225,17 @@ export default function AdminLayout({
   const navigate = useNavigate();
   const location = useLocation();
   const notifRef = useRef(null);
-  const { applications } = useAdmissions();
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("adminDarkMode") === "true");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => getStoredSidebarCollapsed());
   const [showNotif, setShowNotif] = useState(false);
   const [adminProfile, setAdminProfile] = useState(() => getStoredAdminProfile());
   const [currentTime, setCurrentTime] = useState(() => new Date());
+  const [adminStats, setAdminStats] = useState({
+    enAttente: 0,
+    totalCandidatures: 0,
+    documentsManquants: 0,
+  });
 
-  const adminStats = useMemo(() => getAdminStats(applications), [applications]);
   const menuItems = useMemo(() => getMenuItems(t), [t]);
   const activeMenu = getActiveMenu(location.pathname);
 
@@ -289,6 +291,40 @@ export default function AdminLayout({
       window.removeEventListener("storage", syncPreferences);
     };
   }, []);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadAdminStats() {
+      if (!getAuthToken()) {
+        return;
+      }
+
+      try {
+        const dashboard = await getAdminDashboard();
+        const stats = dashboard.stats || {};
+
+        if (isActive) {
+          setAdminStats({
+            enAttente: stats.enAttente || 0,
+            totalCandidatures: stats.totalCandidatures || 0,
+            documentsManquants: stats.documentsEnAttente || 0,
+          });
+        }
+      } catch (error) {
+        if (error.status === 401) {
+          clearAuthSession();
+          navigate("/login", { replace: true });
+        }
+      }
+    }
+
+    loadAdminStats();
+
+    return () => {
+      isActive = false;
+    };
+  }, [navigate]);
 
   const handleLogout = () => {
     clearAuthSession();

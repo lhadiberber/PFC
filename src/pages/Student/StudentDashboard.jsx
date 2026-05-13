@@ -431,7 +431,7 @@ StudentDashboardIcon.propTypes = {
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
-  const { applicationDraft, applications, profile, activityLog } = useAdmissions();
+  const { applicationDraft, profile } = useAdmissions();
   const [dashboardData, setDashboardData] = useState(null);
   const [isDashboardLoading, setIsDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState("");
@@ -489,20 +489,7 @@ export default function StudentDashboard() {
     [dashboardData]
   );
 
-  const latestApplication = useMemo(
-    () => {
-      if (latestBackendApplication) {
-        return latestBackendApplication;
-      }
-
-      return [...applications].sort((first, second) => {
-        const firstDate = new Date(first.submittedAt || first.dateDepot || 0);
-        const secondDate = new Date(second.submittedAt || second.dateDepot || 0);
-        return secondDate - firstDate;
-      })[0];
-    },
-    [applications, latestBackendApplication]
-  );
+  const latestApplication = latestBackendApplication;
 
   const mergedProfile = useMemo(
     () =>
@@ -575,7 +562,7 @@ export default function StudentDashboard() {
   const documentsCompletion =
     dashboardData?.documents?.completion ??
     toPercent(submittedDocumentsCount, documents.length);
-  const applicationsTotal = dashboardData?.applications?.total ?? applications.length;
+  const applicationsTotal = dashboardData?.applications?.total ?? 0;
   const averageCompletion = Math.round(
     (profileCompletion + academicCompletion + documentsCompletion) / 3
   );
@@ -619,31 +606,6 @@ export default function StudentDashboard() {
       }));
     }
 
-    const applicationIds = new Set(applications.map((application) => String(application.id)));
-    const publicEntries = activityLog
-      .filter(
-        (entry) =>
-          applicationIds.has(String(entry.applicationId)) &&
-          ["submission", "status_change"].includes(entry.type)
-      )
-      .sort((first, second) => new Date(second.occurredAt) - new Date(first.occurredAt))
-      .map((entry) => ({
-        id: entry.id,
-        title: entry.title,
-        description: entry.description,
-        detail: entry.detail,
-        tone: entry.tone || "neutral",
-        status: entry.status,
-        rawDate: entry.occurredAt,
-        displayDate: formatDateTime(entry.occurredAt),
-        timeLabel: formatRelativeTime(entry.occurredAt),
-        icon: entry.type === "status_change" ? "status" : "folder",
-      }));
-
-    if (publicEntries.length > 0) {
-      return publicEntries.slice(0, 4);
-    }
-
     if (!latestApplication) {
       return [];
     }
@@ -662,7 +624,7 @@ export default function StudentDashboard() {
         icon: "folder",
       },
     ];
-  }, [activityLog, applications, dashboardData, latestApplication]);
+  }, [dashboardData, latestApplication]);
 
   const lastUpdate =
     recentActivity[0]?.rawDate ||

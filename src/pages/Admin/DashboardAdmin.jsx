@@ -6,7 +6,6 @@ import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { useAdmissions } from "../../context/AdmissionsContext";
 import { clearAuthSession, getAuthToken } from "../../services/authService";
 import { getAdminDashboard } from "../../services/adminService";
 import {
@@ -335,7 +334,6 @@ const ROUTE_PARAM_DEFAULTS = {
 export default function DashboardAdmin() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { applications, activityLog } = useAdmissions();
   const [adminDashboardData, setAdminDashboardData] = useState(null);
   const [isAdminDashboardLoading, setIsAdminDashboardLoading] = useState(true);
   const [adminDashboardError, setAdminDashboardError] = useState("");
@@ -455,9 +453,7 @@ export default function DashboardAdmin() {
     };
   }, [navigate, reloadDashboardKey]);
 
-  const dashboardApplicationsSource = adminDashboardData?.applications?.length
-    ? adminDashboardData.applications
-    : applications;
+  const dashboardApplicationsSource = adminDashboardData?.applications || [];
   const dashboardActivitySource = adminDashboardData?.recentActivity?.length
     ? adminDashboardData.recentActivity.map((activity, index) => ({
         id: `${activity.type || "activity"}-${activity.date || index}`,
@@ -485,7 +481,7 @@ export default function DashboardAdmin() {
               : "info",
         status: activity.status || "",
       }))
-    : activityLog;
+    : [];
 
   const adminApplications = useMemo(
     () => dashboardApplicationsSource.map(toAdminApplication),

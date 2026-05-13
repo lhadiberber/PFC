@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import { studentApplications as mockApplications } from "../mocks/studentData";
 
 const AdmissionsContext = createContext(null);
 
@@ -8,8 +7,6 @@ const STORAGE_KEYS = {
   profile: "studentProfile",
   documents: "studentDocuments",
   draft: "studentApplicationDraft",
-  applications: "studentApplications",
-  activity: "admissionsActivityLog",
 };
 
 const defaultProfile = {
@@ -613,10 +610,6 @@ export function AdmissionsProvider({ children }) {
   const storedProfile = parseStoredJson(STORAGE_KEYS.profile, null);
   const storedDraft = parseStoredJson(STORAGE_KEYS.draft, null);
   const storedDocuments = parseStoredJson(STORAGE_KEYS.documents, null);
-  const storedApplications = parseStoredJson(STORAGE_KEYS.applications, null);
-  const storedActivityLog = parseStoredJson(STORAGE_KEYS.activity, null);
-  const hasStoredActivityLog = Array.isArray(storedActivityLog) && storedActivityLog.length > 0;
-
   const [profile, setProfile] = useState(() => normalizeProfile(storedProfile || {}));
   const [hasSavedProfile, setHasSavedProfile] = useState(() =>
     isStudentProfileComplete(storedProfile || {})
@@ -631,16 +624,8 @@ export function AdmissionsProvider({ children }) {
       documents: normalizeDocuments(storedDocuments || {}),
     };
   });
-  const [applications, setApplications] = useState(() => {
-    if (Array.isArray(storedApplications) && storedApplications.length > 0) {
-      return storedApplications.map(normalizeApplication);
-    }
-
-    return mockApplications.map(normalizeApplication);
-  });
-  const [activityLog, setActivityLog] = useState(() =>
-    hasStoredActivityLog ? storedActivityLog.map(normalizeActivityEntry) : []
-  );
+  const [applications, setApplications] = useState([]);
+  const [activityLog, setActivityLog] = useState([]);
   const [lastSubmittedApplication, setLastSubmittedApplication] = useState(null);
 
   useEffect(() => {
@@ -666,26 +651,9 @@ export function AdmissionsProvider({ children }) {
   }, [applicationDraft.documents]);
 
   useEffect(() => {
-    if (applications.length > 0) {
-      localStorage.setItem(STORAGE_KEYS.applications, JSON.stringify(applications));
-    } else {
-      localStorage.removeItem(STORAGE_KEYS.applications);
-    }
-  }, [applications]);
-
-  useEffect(() => {
-    if (activityLog.length > 0) {
-      localStorage.setItem(STORAGE_KEYS.activity, JSON.stringify(activityLog));
-    } else {
-      localStorage.removeItem(STORAGE_KEYS.activity);
-    }
-  }, [activityLog]);
-
-  useEffect(() => {
-    if (!hasStoredActivityLog && activityLog.length === 0 && applications.length > 0) {
-      setActivityLog(buildInitialActivityLog(applications));
-    }
-  }, [activityLog.length, applications, hasStoredActivityLog]);
+    localStorage.removeItem("studentApplications");
+    localStorage.removeItem("admissionsActivityLog");
+  }, []);
 
   const saveProfile = (nextProfile) => {
     const normalizedProfile = normalizeProfile(nextProfile);
