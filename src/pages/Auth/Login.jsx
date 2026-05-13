@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import LanguageSelector from "../../components/LanguageSelector";
 import { useLanguage } from "../../context/LanguageContext";
 import { isStudentProfileComplete } from "../../context/AdmissionsContext";
-import { loginUser, saveAuthSession } from "../../services/authService";
+import { getAuthSession, loginUser, saveAuthSession } from "../../services/authService";
 import "../../index.css";
 
 export default function Login() {
@@ -19,6 +19,16 @@ export default function Login() {
   const [formError, setFormError] = useState("");
   const [statusMessage, setStatusMessage] = useState(location.state?.message || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const session = getAuthSession();
+
+    if (!session) {
+      return;
+    }
+
+    navigate(session.role === "admin" ? "/admin" : "/dashboard", { replace: true });
+  }, [navigate]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;

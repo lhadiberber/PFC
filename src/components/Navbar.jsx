@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import LanguageSelector from "./LanguageSelector";
 import { useLanguage } from "../context/LanguageContext";
+import { clearAuthSession } from "../services/authService";
 import "../index.css";
 
 function getStoredSidebarCollapsed() {
@@ -139,12 +140,10 @@ export default function Navbar() {
   }, [sidebarCollapsed]);
 
   const handleLogout = () => {
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("userEmail");
+    clearAuthSession();
     localStorage.removeItem("studentProfile");
-    localStorage.removeItem("user");
     localStorage.removeItem("studentDocuments");
-    navigate("/");
+    navigate("/login", { replace: true });
   };
 
   if (hideNavbar) {

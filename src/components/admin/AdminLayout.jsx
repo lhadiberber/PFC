@@ -6,6 +6,7 @@ import Button from "../ui/Button";
 import PageHeader from "../ui/PageHeader";
 import { useAdmissions } from "../../context/AdmissionsContext";
 import { useLanguage } from "../../context/LanguageContext";
+import { clearAuthSession } from "../../services/authService";
 import { getAdminStats } from "../../utils/adminApplications";
 
 function getStoredAdminProfile() {
@@ -290,12 +291,10 @@ export default function AdminLayout({
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("user");
+    clearAuthSession();
     localStorage.removeItem("adminDarkMode");
     localStorage.removeItem("adminProfile");
-    navigate("/");
+    navigate("/login", { replace: true });
   };
 
   return (

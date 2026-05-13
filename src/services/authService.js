@@ -62,6 +62,10 @@ export async function apiRequest(endpoint, options = {}) {
   const payload = await readJsonResponse(response);
 
   if (!response.ok) {
+    if (response.status === 401) {
+      clearAuthSession();
+    }
+
     throw new ApiError(
       payload?.message || "Une erreur est survenue pendant la requete.",
       response.status,

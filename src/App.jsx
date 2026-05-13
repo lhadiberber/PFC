@@ -26,16 +26,25 @@ import Profil from "./pages/Student/Profil";
 import Navbar from "./components/Navbar";
 import ToastContainer from "./components/Toast";
 import { useAdmissions } from "./context/AdmissionsContext";
+import { clearAuthSession, getAuthSession } from "./services/authService";
 import { setToastFn, setLoadingFn, clearToastFn, clearLoadingFn } from "./utils/toast";
 
 // Protected Route component
 function ProtectedRoute({ children, allowedRoles }) {
   const location = useLocation();
   const { hasSavedProfile } = useAdmissions();
-  const userRole = localStorage.getItem("userRole");
+  const session = getAuthSession();
+  const userRole = session?.role;
 
-  if (!userRole) {
-    return <Navigate to="/login" replace />;
+  if (!session?.token || !userRole) {
+    clearAuthSession();
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ message: "Session absente ou expiree. Veuillez vous reconnecter." }}
+      />
+    );
   }
 
   if (allowedRoles && !allowedRoles.includes(userRole)) {
