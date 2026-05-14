@@ -1,5 +1,6 @@
 export function roleMiddleware(...allowedRoles) {
   return (request, _response, next) => {
+    // Controle l'acces aux routes selon le role JWT.
     if (!request.user) {
       const error = new Error("Acces non autorise");
       error.statusCode = 401;

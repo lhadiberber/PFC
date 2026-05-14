@@ -2,11 +2,6 @@
   font: inherit;
 }
 
-.ui-card {
-  background: var(--color-white);
-  border-radius: 14px;
-}
-
 .ui-page-header {
   margin-bottom: 24px;
 }

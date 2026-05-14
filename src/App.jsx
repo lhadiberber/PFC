@@ -29,7 +29,7 @@ import { useAdmissions } from "./context/AdmissionsContext";
 import { clearAuthSession, getAuthSession } from "./services/authService";
 import { setToastFn, setLoadingFn, clearToastFn, clearLoadingFn } from "./utils/toast";
 
-// Protected Route component
+// Verifie que la page demandee correspond au role connecte.
 function ProtectedRoute({ children, allowedRoles }) {
   const location = useLocation();
   const { hasSavedProfile } = useAdmissions();
@@ -63,13 +63,11 @@ ProtectedRoute.propTypes = {
   allowedRoles: PropTypes.arrayOf(PropTypes.string),
 };
 
-// Inner component that uses useLocation inside Router context
 function AppContent() {
   const [toasts, setToasts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("");
   
-  // Get current location to determine if navbar should be hidden
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith("/admin");
   const hideNavbar = ["/", "/login", "/register", "/success"].includes(location.pathname) || isAdminPage;
@@ -119,7 +117,7 @@ function AppContent() {
           <Route path="/student-step3" element={<ProtectedRoute allowedRoles={["student"]}><StudentStep3 /></ProtectedRoute>} />
           <Route path="/student-recapitulatif" element={<ProtectedRoute allowedRoles={["student"]}><StudentRecapitulatif /></ProtectedRoute>} />
           
-          {/* Admin Routes */}
+          {/* Routes admin */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><DashboardAdmin /></ProtectedRoute>} />
           <Route path="/admin/candidatures" element={<ProtectedRoute allowedRoles={["admin"]}><CandidaturesAdmin /></ProtectedRoute>} />
           <Route path="/admin/candidatures/:id" element={<ProtectedRoute allowedRoles={["admin"]}><DetailCandidaturesAdmin /></ProtectedRoute>} />

@@ -6,7 +6,7 @@
 @import "./styles/auth.css";
 @import "./styles/admin.css";
 
-/* Visual finishing layer */
+/* Finitions visuelles communes */
 :root {
   --ui-surface: #fff;
   --ui-surface-soft: #f8fafc;
@@ -116,7 +116,6 @@ button:disabled,
   box-shadow: none;
 }
 
-.ui-card,
 .ui-empty-state,
 .student-dashboard-panel,
 .student-application-form-card,

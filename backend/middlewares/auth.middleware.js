@@ -11,6 +11,7 @@ function getTokenFromHeader(authHeader = "") {
 }
 
 export function authMiddleware(request, _response, next) {
+  // Verifie le token envoye par le frontend.
   const token = getTokenFromHeader(request.headers.authorization);
 
   if (!token) {
