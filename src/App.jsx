@@ -23,6 +23,7 @@ import Success from "./pages/Auth/Success";
 import StudentDashboard from "./pages/Student/StudentDashboard";
 import MesCandidatures from "./pages/Student/MesCandidatures";
 import Profil from "./pages/Student/Profil";
+import SuperAdminDashboard from "./pages/SuperAdmin/SuperAdminDashboard.jsx";
 import Navbar from "./components/Navbar";
 import ToastContainer from "./components/Toast";
 import { useAdmissions } from "./context/AdmissionsContext";
@@ -30,6 +31,13 @@ import { clearAuthSession, getAuthSession } from "./services/authService";
 import { setToastFn, setLoadingFn, clearToastFn, clearLoadingFn } from "./utils/toast";
 
 const ADMIN_ROLES = ["admin", "super_admin"];
+const SUPER_ADMIN_HOME = "/super-admin";
+
+function getHomePath(role) {
+  if (role === "super_admin") return SUPER_ADMIN_HOME;
+  if (role === "admin") return "/admin";
+  return "/dashboard";
+}
 
 // Verifie que la page demandee correspond au role connecte.
 function ProtectedRoute({ children, allowedRoles }) {
@@ -50,7 +58,7 @@ function ProtectedRoute({ children, allowedRoles }) {
   }
 
   if (allowedRoles && !allowedRoles.includes(userRole)) {
-    return <Navigate to={ADMIN_ROLES.includes(userRole) ? "/admin" : "/dashboard"} replace />;
+    return <Navigate to={getHomePath(userRole)} replace />;
   }
 
   if (userRole === "student" && location.pathname !== "/profil" && !hasSavedProfile) {
@@ -71,8 +79,10 @@ function AppContent() {
   const [loadingText, setLoadingText] = useState("");
 
   const location = useLocation();
-  const isAdminPage = location.pathname.startsWith("/admin");
-  const hideNavbar = ["/", "/login", "/register", "/success"].includes(location.pathname) || isAdminPage;
+  const isAdminPage =
+    location.pathname.startsWith("/admin") || location.pathname.startsWith("/super-admin");
+  const hideNavbar =
+    ["/", "/login", "/register", "/success"].includes(location.pathname) || isAdminPage;
 
   useEffect(() => {
     setToastFn((message, type) => {
@@ -128,6 +138,7 @@ function AppContent() {
           <Route path="/admin/documents/:documentId" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><DetailDocumentAdmin /></ProtectedRoute>} />
           <Route path="/admin/documents/:applicationId/:documentKey" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><DetailDocumentAdmin /></ProtectedRoute>} />
           <Route path="/admin/profil" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><ProfilAdmin /></ProtectedRoute>} />
+          <Route path="/super-admin" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminDashboard /></ProtectedRoute>} />
 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

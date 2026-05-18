@@ -8,6 +8,12 @@ import "../../index.css";
 
 const ADMIN_ROLES = ["admin", "super_admin"];
 
+function getHomePath(role) {
+  if (role === "super_admin") return "/super-admin";
+  if (role === "admin") return "/admin";
+  return "/dashboard";
+}
+
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,7 +35,7 @@ export default function Login() {
       return;
     }
 
-    navigate(ADMIN_ROLES.includes(session.role) ? "/admin" : "/dashboard", { replace: true });
+    navigate(getHomePath(session.role), { replace: true });
   }, [navigate]);
 
   const handleChange = (event) => {
@@ -88,7 +94,7 @@ export default function Login() {
       saveAuthSession(session);
 
       if (ADMIN_ROLES.includes(session.user.role)) {
-        navigate("/admin");
+        navigate(getHomePath(session.user.role));
         return;
       }
 
