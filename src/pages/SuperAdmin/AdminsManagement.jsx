@@ -100,7 +100,7 @@ export default function AdminsManagement() {
     const email = formData.email.trim();
 
     if (!nom || !prenom || !email || !formData.password || !formData.confirmPassword) {
-      return "Tous les champs sont obligatoires.";
+      return "Veuillez remplir tous les champs.";
     }
 
     if (!isValidEmail(email)) {
@@ -297,7 +297,7 @@ export default function AdminsManagement() {
           <div>
             <span className="admin-page-context info">Nouveau compte</span>
             <h2>Creer un administrateur</h2>
-            <p>Le role est force cote backend sur admin.</p>
+            <p>Ajoutez un compte administrateur pour gerer les dossiers.</p>
           </div>
         </div>
 
@@ -354,12 +354,12 @@ export default function AdminsManagement() {
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleFieldChange}
-            placeholder="Confirmer le mot de passe"
+            placeholder="Confirmation du mot de passe"
             className="admin-search-input"
             disabled={isCreating}
           />
           <Button type="submit" className="admin-table-action-button" disabled={isCreating}>
-            {isCreating ? "Creation..." : "Creer"}
+            {isCreating ? "Creation..." : "Creer l'administrateur"}
           </Button>
         </form>
       </section>
