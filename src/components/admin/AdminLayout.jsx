@@ -6,7 +6,7 @@ import Button from "../ui/Button";
 import PageHeader from "../ui/PageHeader";
 import { useLanguage } from "../../context/LanguageContext";
 import { getAdminDashboard } from "../../services/adminService";
-import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { clearAuthSession, getAuthSession, getAuthToken } from "../../services/authService";
 
 function getStoredAdminProfile() {
   try {
@@ -26,6 +26,8 @@ function getStoredSidebarCollapsed() {
 }
 
 function getActiveMenu(pathname) {
+  if (pathname.startsWith("/super-admin/admins")) return "super-admin-admins";
+  if (pathname.startsWith("/super-admin")) return "super-admin-dashboard";
   if (pathname.startsWith("/admin/candidatures")) return "candidatures";
   if (pathname.startsWith("/admin/etudiants")) return "etudiants";
   if (pathname.startsWith("/admin/documents")) return "documents";
@@ -170,8 +172,8 @@ function AdminIcon({ name }) {
   }
 }
 
-function getMenuItems(t) {
-  return [
+function getMenuItems(t, role) {
+  const adminMenu = [
     {
       section: "",
       items: [
@@ -208,6 +210,34 @@ function getMenuItems(t) {
       ],
     },
   ];
+
+  if (role !== "super_admin") {
+    return adminMenu;
+  }
+
+  return [
+    {
+      section: "Super admin",
+      items: [
+        {
+          id: "super-admin-dashboard",
+          label: "Tableau de bord super admin",
+          icon: "shield",
+          path: "/super-admin",
+        },
+        {
+          id: "super-admin-admins",
+          label: "Gestion des administrateurs",
+          icon: "students",
+          path: "/super-admin/admins",
+        },
+      ],
+    },
+    {
+      section: "Espace admin",
+      items: adminMenu[0].items,
+    },
+  ];
 }
 
 export default function AdminLayout({
@@ -236,7 +266,8 @@ export default function AdminLayout({
     documentsManquants: 0,
   });
 
-  const menuItems = useMemo(() => getMenuItems(t), [t]);
+  const userRole = getAuthSession()?.role || "";
+  const menuItems = useMemo(() => getMenuItems(t, userRole), [t, userRole]);
   const activeMenu = getActiveMenu(location.pathname);
 
   const operatorName = adminProfile?.fullName || t("adminLayout.defaultOperator");
