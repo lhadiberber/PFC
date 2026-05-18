@@ -101,6 +101,14 @@ export async function createAdminController(request, response, next) {
 
 export async function updateAdminStatusController(request, response, next) {
   try {
+    if (Number(request.params.id) === Number(request.user.id)) {
+      response.status(400).json({
+        success: false,
+        message: "Vous ne pouvez pas desactiver votre propre compte.",
+      });
+      return;
+    }
+
     const admin = await findUserForAdminManagement(request.params.id);
 
     if (!isManagedAdmin(admin)) {
