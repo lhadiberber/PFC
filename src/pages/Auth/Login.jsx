@@ -6,6 +6,8 @@ import { isStudentProfileComplete } from "../../context/AdmissionsContext";
 import { getAuthSession, loginUser, saveAuthSession } from "../../services/authService";
 import "../../index.css";
 
+const ADMIN_ROLES = ["admin", "super_admin"];
+
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -27,7 +29,7 @@ export default function Login() {
       return;
     }
 
-    navigate(session.role === "admin" ? "/admin" : "/dashboard", { replace: true });
+    navigate(ADMIN_ROLES.includes(session.role) ? "/admin" : "/dashboard", { replace: true });
   }, [navigate]);
 
   const handleChange = (event) => {
@@ -85,7 +87,7 @@ export default function Login() {
 
       saveAuthSession(session);
 
-      if (session.user.role === "admin") {
+      if (ADMIN_ROLES.includes(session.user.role)) {
         navigate("/admin");
         return;
       }

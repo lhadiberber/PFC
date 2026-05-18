@@ -29,6 +29,8 @@ import { useAdmissions } from "./context/AdmissionsContext";
 import { clearAuthSession, getAuthSession } from "./services/authService";
 import { setToastFn, setLoadingFn, clearToastFn, clearLoadingFn } from "./utils/toast";
 
+const ADMIN_ROLES = ["admin", "super_admin"];
+
 // Verifie que la page demandee correspond au role connecte.
 function ProtectedRoute({ children, allowedRoles }) {
   const location = useLocation();
@@ -48,7 +50,7 @@ function ProtectedRoute({ children, allowedRoles }) {
   }
 
   if (allowedRoles && !allowedRoles.includes(userRole)) {
-    return <Navigate to={userRole === "admin" ? "/admin" : "/dashboard"} replace />;
+    return <Navigate to={ADMIN_ROLES.includes(userRole) ? "/admin" : "/dashboard"} replace />;
   }
 
   if (userRole === "student" && location.pathname !== "/profil" && !hasSavedProfile) {
@@ -117,15 +119,15 @@ function AppContent() {
           <Route path="/student-step3" element={<ProtectedRoute allowedRoles={["student"]}><StudentStep3 /></ProtectedRoute>} />
           <Route path="/student-recapitulatif" element={<ProtectedRoute allowedRoles={["student"]}><StudentRecapitulatif /></ProtectedRoute>} />
 
-          <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><DashboardAdmin /></ProtectedRoute>} />
-          <Route path="/admin/candidatures" element={<ProtectedRoute allowedRoles={["admin"]}><CandidaturesAdmin /></ProtectedRoute>} />
-          <Route path="/admin/candidatures/:id" element={<ProtectedRoute allowedRoles={["admin"]}><DetailCandidaturesAdmin /></ProtectedRoute>} />
-          <Route path="/admin/etudiants" element={<ProtectedRoute allowedRoles={["admin"]}><EtudiantsAdmin /></ProtectedRoute>} />
-          <Route path="/admin/etudiants/:id" element={<ProtectedRoute allowedRoles={["admin"]}><DetailEtudiantAdmin /></ProtectedRoute>} />
-          <Route path="/admin/documents" element={<ProtectedRoute allowedRoles={["admin"]}><DocumentsAdmin /></ProtectedRoute>} />
-          <Route path="/admin/documents/:documentId" element={<ProtectedRoute allowedRoles={["admin"]}><DetailDocumentAdmin /></ProtectedRoute>} />
-          <Route path="/admin/documents/:applicationId/:documentKey" element={<ProtectedRoute allowedRoles={["admin"]}><DetailDocumentAdmin /></ProtectedRoute>} />
-          <Route path="/admin/profil" element={<ProtectedRoute allowedRoles={["admin"]}><ProfilAdmin /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><DashboardAdmin /></ProtectedRoute>} />
+          <Route path="/admin/candidatures" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><CandidaturesAdmin /></ProtectedRoute>} />
+          <Route path="/admin/candidatures/:id" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><DetailCandidaturesAdmin /></ProtectedRoute>} />
+          <Route path="/admin/etudiants" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><EtudiantsAdmin /></ProtectedRoute>} />
+          <Route path="/admin/etudiants/:id" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><DetailEtudiantAdmin /></ProtectedRoute>} />
+          <Route path="/admin/documents" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><DocumentsAdmin /></ProtectedRoute>} />
+          <Route path="/admin/documents/:documentId" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><DetailDocumentAdmin /></ProtectedRoute>} />
+          <Route path="/admin/documents/:applicationId/:documentKey" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><DetailDocumentAdmin /></ProtectedRoute>} />
+          <Route path="/admin/profil" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><ProfilAdmin /></ProtectedRoute>} />
 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
