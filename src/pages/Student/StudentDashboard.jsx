@@ -460,10 +460,10 @@ export default function StudentDashboard() {
       setDashboardError("");
 
       try {
-        const data = await getStudentDashboard();
+        const dashboardResponse = await getStudentDashboard();
 
         if (isActive) {
-          setDashboardData(data);
+          setDashboardData(dashboardResponse);
         }
       } catch (error) {
         if (isActive) {

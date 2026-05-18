@@ -1,6 +1,6 @@
-/* Home Styles */
+/* Page d'accueil */
 
-/* Landing Shell */
+/* Structure d'accueil */
 
 .campus-landing {
   --primary-color: var(--color-brand-navy);
@@ -13,7 +13,7 @@
   font-family: Segoe UI, system-ui, -apple-system, sans-serif
 }
 
-/* Header */
+/* En-tete */
 
 .campus-header {
   position: fixed;
@@ -192,7 +192,7 @@
   text-decoration: underline
 }
 
-/* Hero */
+/* Section principale */
 
 .campus-hero {
   position: relative;
@@ -456,7 +456,7 @@
   color: var(--color-white)
 }
 
-/* Shared Sections */
+/* Sections communes */
 
 .campus-section-container {
   max-width: 1200px;
@@ -481,7 +481,7 @@
   color: var(--text-gray)
 }
 
-/* Steps */
+/* Etapes */
 
 .campus-steps {
   background: var(--bg-white)
@@ -530,7 +530,7 @@
   margin: 0
 }
 
-/* Universities */
+/* Universites */
 
 .campus-universities {
   background: linear-gradient(180deg, #f8fafc, #e2e8f0)
@@ -607,7 +607,7 @@
   gap: 5px
 }
 
-/* Calendar */
+/* Calendrier */
 
 .campus-calendar {
   background: var(--color-white)
@@ -693,7 +693,7 @@
   margin: 0
 }
 
-/* Features */
+/* Fonctionnalites */
 
 .campus-features {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
@@ -752,7 +752,7 @@
   margin: 0
 }
 
-/* Faq */
+/* FAQ */
 
 .campus-faq {
   background: var(--bg-light)
@@ -785,7 +785,7 @@
   margin: 0
 }
 
-/* Call To Action */
+/* Appel a l'action */
 
 .campus-cta {
   background: linear-gradient(135deg, var(--color-brand-green), #059669);
@@ -817,7 +817,7 @@
   font-size: 16px
 }
 
-/* Footer */
+/* Pied de page */
 
 .campus-footer {
   background: #1a1a2e;

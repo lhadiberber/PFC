@@ -89,7 +89,7 @@ export async function ensureApplicationsTable() {
 }
 
 export async function createApplication(studentId, application) {
-  const [result] = await pool.execute(
+  const [insertResult] = await pool.execute(
     `INSERT INTO applications (student_id, universite, formation, niveau, motivation)
      VALUES (?, ?, ?, ?, ?)`,
     [
@@ -101,7 +101,7 @@ export async function createApplication(studentId, application) {
     ]
   );
 
-  return findApplicationByIdForStudent(result.insertId, studentId);
+  return findApplicationByIdForStudent(insertResult.insertId, studentId);
 }
 
 export async function findApplicationsByStudentId(studentId) {

@@ -283,14 +283,14 @@ export async function updateAdminApplicationStatus(id, statut, commentaireAdmin)
 
   values.push(id);
 
-  const [result] = await pool.execute(
+  const [updateResult] = await pool.execute(
     `UPDATE applications
      SET statut = ?${commentSql}
      WHERE id = ?`,
     values
   );
 
-  if (result.affectedRows === 0) {
+  if (updateResult.affectedRows === 0) {
     return null;
   }
 
@@ -324,14 +324,14 @@ export async function findAdminDocumentById(id) {
 }
 
 export async function updateAdminDocumentStatus(id, statut) {
-  const [result] = await pool.execute(
+  const [updateResult] = await pool.execute(
     `UPDATE documents
      SET statut = ?
      WHERE id = ?`,
     [statut, id]
   );
 
-  if (result.affectedRows === 0) {
+  if (updateResult.affectedRows === 0) {
     return null;
   }
 

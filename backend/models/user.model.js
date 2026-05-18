@@ -41,10 +41,10 @@ export async function findUserById(id) {
 
 export async function createUser({ nom, prenom, email, passwordHash, role = "student" }) {
   const safeRole = ALLOWED_ROLES.has(role) ? role : "student";
-  const [result] = await pool.execute(
+  const [insertResult] = await pool.execute(
     "INSERT INTO users (nom, prenom, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
     [String(nom || "").trim(), String(prenom || "").trim(), normalizeEmail(email), passwordHash, safeRole]
   );
 
-  return findUserById(result.insertId);
+  return findUserById(insertResult.insertId);
 }

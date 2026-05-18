@@ -302,33 +302,33 @@ function mapStudentListItem(student) {
   };
 }
 
-function mapStudentDetail(result) {
-  const documentsByStudent = buildDocumentsByStudent(result.documents);
+function mapStudentDetail(studentDetail) {
+  const documentsByStudent = buildDocumentsByStudent(studentDetail.documents);
 
   return {
     user: {
-      id: result.student.id,
-      nom: result.student.nom,
-      prenom: result.student.prenom,
-      email: result.student.email,
-      role: result.student.role,
-      created_at: result.student.created_at,
+      id: studentDetail.student.id,
+      nom: studentDetail.student.nom,
+      prenom: studentDetail.student.prenom,
+      email: studentDetail.student.email,
+      role: studentDetail.student.role,
+      created_at: studentDetail.student.created_at,
     },
     profile: {
-      telephone: result.student.telephone,
-      date_naissance: result.student.date_naissance,
-      nationalite: result.student.nationalite,
-      adresse: result.student.adresse,
-      diplome_actuel: result.student.diplome_actuel,
-      etablissement: result.student.etablissement,
-      specialite_actuelle: result.student.specialite_actuelle,
-      annee_obtention: result.student.annee_obtention,
-      moyenne: result.student.moyenne,
+      telephone: studentDetail.student.telephone,
+      date_naissance: studentDetail.student.date_naissance,
+      nationalite: studentDetail.student.nationalite,
+      adresse: studentDetail.student.adresse,
+      diplome_actuel: studentDetail.student.diplome_actuel,
+      etablissement: studentDetail.student.etablissement,
+      specialite_actuelle: studentDetail.student.specialite_actuelle,
+      annee_obtention: studentDetail.student.annee_obtention,
+      moyenne: studentDetail.student.moyenne,
     },
-    applications: result.applications.map((application) =>
+    applications: studentDetail.applications.map((application) =>
       mapApplicationListItem(application, documentsByStudent)
     ),
-    documents: result.documents.map((document) => ({
+    documents: studentDetail.documents.map((document) => ({
       id: document.id,
       application_id: document.application_id,
       type_document: document.type_document,
@@ -565,9 +565,9 @@ export async function listAdminApplications(_request, response, next) {
 
 export async function getAdminApplication(request, response, next) {
   try {
-    const result = await findAdminApplicationById(request.params.id);
+    const applicationDetail = await findAdminApplicationById(request.params.id);
 
-    if (!result) {
+    if (!applicationDetail) {
       response.status(404).json({
         success: false,
         message: "Candidature introuvable.",
@@ -577,7 +577,7 @@ export async function getAdminApplication(request, response, next) {
 
     response.json({
       success: true,
-      application: mapApplicationDetail(result.application, result.documents),
+      application: mapApplicationDetail(applicationDetail.application, applicationDetail.documents),
     });
   } catch (error) {
     next(error);
@@ -662,13 +662,13 @@ export async function updateAdminApplicationStatusController(request, response, 
       return;
     }
 
-    const result = await updateAdminApplicationStatus(
+    const updatedApplication = await updateAdminApplicationStatus(
       request.params.id,
       statut,
       request.body.commentaire_admin
     );
 
-    if (!result) {
+    if (!updatedApplication) {
       response.status(404).json({
         success: false,
         message: "Candidature introuvable.",
@@ -679,7 +679,7 @@ export async function updateAdminApplicationStatusController(request, response, 
     response.json({
       success: true,
       message: "Statut de la candidature mis a jour.",
-      application: mapApplicationDetail(result.application, result.documents),
+      application: mapApplicationDetail(updatedApplication.application, updatedApplication.documents),
     });
   } catch (error) {
     next(error);
@@ -701,9 +701,9 @@ export async function listAdminStudents(_request, response, next) {
 
 export async function getAdminStudent(request, response, next) {
   try {
-    const result = await findAdminStudentById(request.params.id);
+    const studentDetail = await findAdminStudentById(request.params.id);
 
-    if (!result) {
+    if (!studentDetail) {
       response.status(404).json({
         success: false,
         message: "Etudiant introuvable.",
@@ -713,7 +713,7 @@ export async function getAdminStudent(request, response, next) {
 
     response.json({
       success: true,
-      student: mapStudentDetail(result),
+      student: mapStudentDetail(studentDetail),
     });
   } catch (error) {
     next(error);

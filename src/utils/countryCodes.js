@@ -1,4 +1,4 @@
-// Liste des indicatifs pays pour les formulaires
+// Indicatifs pays utilisés dans les formulaires.
 export const countryCodes = [
   { code: "+93", pays: "Afghanistan" },
   { code: "+355", pays: "Albanie" },
@@ -112,7 +112,7 @@ export const countryCodes = [
   { code: "+263", pays: "Zimbabwe" },
 ];
 
-// Liste des nationalités pour les formulaires
+// Nationalités proposées dans les formulaires.
 export const nationalities = [
   "Afghanistan", "Afrique du Sud", "Albanie", "Allemagne", "Algerie",
   "Argentine", "Australie", "Autriche", "Belgique", "Bresil",

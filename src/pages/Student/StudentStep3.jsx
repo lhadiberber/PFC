@@ -277,7 +277,7 @@ export default function StudentStep3() {
         try {
           await deleteStudentDocument(previousDocumentId);
         } catch (_error) {
-          // Le nouveau fichier est bien depose; l'ancien restera visible cote admin si la suppression echoue.
+          // On garde l'ancien document si la suppression echoue.
         }
       }
 

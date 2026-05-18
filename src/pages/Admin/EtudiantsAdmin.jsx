@@ -182,9 +182,9 @@ export default function EtudiantsAdmin() {
       setStudentsError("");
 
       try {
-        const data = await listAdminStudents();
+        const studentsResponse = await listAdminStudents();
         if (isActive) {
-          setStudentsData(data);
+          setStudentsData(studentsResponse);
         }
       } catch (error) {
         if (!isActive) return;

@@ -1,6 +1,6 @@
-/* Base Styles */
+/* Styles de base */
 
-/* Design Tokens */
+/* Variables visuelles */
 
 :root {
   --color-white: #fff;
@@ -79,7 +79,7 @@ html[dir="rtl"] body {
   color: #fff;
 }
 
-/* Page Layout */
+/* Mise en page */
 
 .page {
   max-width: 900px;
@@ -107,7 +107,7 @@ html[dir="rtl"] body {
   text-align: center
 }
 
-/* Form Elements */
+/* Formulaires */
 
 .form {
   width: 100%;
@@ -163,7 +163,7 @@ html[dir="rtl"] body {
   padding-right: 40px
 }
 
-/* Form Feedback */
+/* Messages de formulaire */
 
 .error-message {
   color: var(--color-danger);

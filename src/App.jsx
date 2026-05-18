@@ -67,7 +67,7 @@ function AppContent() {
   const [toasts, setToasts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("");
-  
+
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith("/admin");
   const hideNavbar = ["/", "/login", "/register", "/success"].includes(location.pathname) || isAdminPage;
@@ -116,8 +116,7 @@ function AppContent() {
           <Route path="/student-step2" element={<ProtectedRoute allowedRoles={["student"]}><StudentStep2 /></ProtectedRoute>} />
           <Route path="/student-step3" element={<ProtectedRoute allowedRoles={["student"]}><StudentStep3 /></ProtectedRoute>} />
           <Route path="/student-recapitulatif" element={<ProtectedRoute allowedRoles={["student"]}><StudentRecapitulatif /></ProtectedRoute>} />
-          
-          {/* Routes admin */}
+
           <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><DashboardAdmin /></ProtectedRoute>} />
           <Route path="/admin/candidatures" element={<ProtectedRoute allowedRoles={["admin"]}><CandidaturesAdmin /></ProtectedRoute>} />
           <Route path="/admin/candidatures/:id" element={<ProtectedRoute allowedRoles={["admin"]}><DetailCandidaturesAdmin /></ProtectedRoute>} />
@@ -127,7 +126,7 @@ function AppContent() {
           <Route path="/admin/documents/:documentId" element={<ProtectedRoute allowedRoles={["admin"]}><DetailDocumentAdmin /></ProtectedRoute>} />
           <Route path="/admin/documents/:applicationId/:documentKey" element={<ProtectedRoute allowedRoles={["admin"]}><DetailDocumentAdmin /></ProtectedRoute>} />
           <Route path="/admin/profil" element={<ProtectedRoute allowedRoles={["admin"]}><ProfilAdmin /></ProtectedRoute>} />
-          
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/success" element={<Success />} />

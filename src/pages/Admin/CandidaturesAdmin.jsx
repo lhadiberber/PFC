@@ -128,9 +128,9 @@ export default function CandidaturesAdmin() {
       setApplicationsError("");
 
       try {
-        const data = await listAdminApplications();
+        const applicationsResponse = await listAdminApplications();
         if (isActive) {
-          setAdminApplicationsData(data);
+          setAdminApplicationsData(applicationsResponse);
         }
       } catch (error) {
         if (!isActive) return;

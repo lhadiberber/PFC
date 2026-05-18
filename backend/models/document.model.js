@@ -107,7 +107,7 @@ export async function applicationBelongsToStudent(applicationId, studentId) {
 export async function createDocument(studentId, document) {
   const applicationId = normalizeId(document.application_id);
 
-  const [result] = await pool.execute(
+  const [insertResult] = await pool.execute(
     `INSERT INTO documents (
       student_id,
       application_id,
@@ -125,7 +125,7 @@ export async function createDocument(studentId, document) {
     ]
   );
 
-  return findDocumentByIdForStudent(result.insertId, studentId);
+  return findDocumentByIdForStudent(insertResult.insertId, studentId);
 }
 
 export async function findDocumentsByStudentId(studentId) {

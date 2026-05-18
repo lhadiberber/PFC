@@ -479,13 +479,13 @@ export default function Profil() {
       return;
     }
 
-    const result = updateStudentPassword(
+    const passwordUpdate = updateStudentPassword(
       passwordData.currentPassword,
       passwordData.newPassword
     );
 
-    if (!result.success) {
-      showToast(result.message, "error");
+    if (!passwordUpdate.success) {
+      showToast(passwordUpdate.message, "error");
       return;
     }
 
@@ -495,7 +495,7 @@ export default function Profil() {
       confirmPassword: "",
     });
     setAccountInfo(readStoredStudentAccount());
-    showToast(result.message, "success");
+    showToast(passwordUpdate.message, "success");
   };
 
   return (

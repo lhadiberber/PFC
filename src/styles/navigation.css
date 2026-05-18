@@ -1,6 +1,6 @@
-/* Navigation Styles */
+/* Navigation */
 
-/* Top Navigation */
+/* Barre principale */
 
 .navbar {
   background-color: var(--color-primary);
@@ -123,7 +123,7 @@
   }
 }
 
-/* App Layout */
+/* Structure de l'application */
 
 .main-content {
   margin-left: 236px;
@@ -151,7 +151,7 @@ body.student-sidebar-collapsed .main-content {
   }
 }
 
-/* Sidebar Navigation */
+/* Menu lateral */
 
 .navbar-vertical {
   position: fixed;

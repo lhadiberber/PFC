@@ -1,6 +1,6 @@
-/* Student Styles */
+/* Espace etudiant */
 
-/* Files And Recap */
+/* Documents et recapitulatif */
 
 .file-label {
   display: block;
@@ -62,7 +62,7 @@
   min-width: 150px
 }
 
-/* Success State */
+/* Ecran de succes */
 
 .success-page {
   display: flex;
@@ -125,7 +125,7 @@
   margin-top: 30px
 }
 
-/* Completion Cards */
+/* Cartes de progression */
 
 .completion-grid {
   display: grid;
@@ -246,7 +246,7 @@
   cursor: not-allowed
 }
 
-/* Step Indicator */
+/* Indicateur d'etapes */
 
 .step-indicator {
   display: flex;
@@ -397,7 +397,7 @@
   transition: background-color .3s ease
 }
 
-/* Applications */
+/* Candidatures */
 
 .candidatures-list {
   width: 100%;
@@ -633,7 +633,7 @@
   margin-bottom: 15px
 }
 
-/* Documents Upload */
+/* Upload des documents */
 
 .documents-form {
   max-width: 900px
@@ -813,7 +813,7 @@
   animation: pulse 1.5s infinite
 }
 
-/* Feedback */
+/* Messages utilisateur */
 
 .toast-container {
   position: fixed;
@@ -939,7 +939,7 @@
   margin-right: 8px
 }
 
-/* Student Dashboard */
+/* Dashboard etudiant */
 
 .dashboard-page {
   max-width: 900px
@@ -1183,7 +1183,7 @@
   }
 }
 
-/* Confirmation Dialog */
+/* Confirmation */
 
 .confirm-overlay {
   position: fixed;
@@ -1534,7 +1534,7 @@
   }
 }
 
-/* Profile Sections */
+/* Sections du profil */
 
 .form-section-title {
   margin: 25px 0 15px;
@@ -1549,7 +1549,7 @@
   padding: 0
 }
 
-/* Student Dashboard V2 */
+/* Dashboard etudiant */
 
 .student-dashboard-shell {
   max-width: 1240px;
@@ -1990,7 +1990,7 @@
   }
 }
 
-/* Student Applications Page */
+/* Page mes candidatures */
 
 .student-candidatures-shell {
   max-width: 1240px;
@@ -2400,7 +2400,7 @@
   }
 }
 
-/* Student Profile Page */
+/* Profil etudiant */
 
 .student-profile-shell {
   max-width: 1240px;
@@ -2741,7 +2741,7 @@
   }
 }
 
-/* Student Application Wizard */
+/* Parcours de candidature */
 
 .student-application-shell {
   max-width: 1240px;

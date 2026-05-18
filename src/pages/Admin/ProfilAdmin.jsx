@@ -137,13 +137,13 @@ export default function ProfilAdmin() {
       return;
     }
 
-    const result = updateAdminPassword(
+    const passwordUpdate = updateAdminPassword(
       passwordData.currentPassword,
       passwordData.newPassword
     );
 
-    if (!result.success) {
-      showToast(result.message, "error");
+    if (!passwordUpdate.success) {
+      showToast(passwordUpdate.message, "error");
       return;
     }
 

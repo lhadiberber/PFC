@@ -1,6 +1,6 @@
-/* Admin Styles */
+/* Espace administrateur */
 
-/* Admin Variables */
+/* Variables admin */
 
 :root {
   --admin-primary: var(--color-brand-navy);
@@ -24,7 +24,7 @@
   --admin-gray-900: #111827
 }
 
-/* Admin Search */
+/* Recherche admin */
 
 .admin-search {
   position: relative;
@@ -257,7 +257,7 @@
   box-shadow: 0 4px 12px #1a365d33
 }
 
-/* Admin Layout */
+/* Structure admin */
 
 .admin-layout {
   display: flex;
@@ -387,7 +387,7 @@
   min-width: 0
 }
 
-/* Header */
+/* En-tete */
 
 .admin-header {
   display: flex;
@@ -652,7 +652,7 @@
   font-size: .96rem
 }
 
-/* Kpi Banner */
+/* Bandeau KPI */
 
 .admin-kpi-banner {
   display: flex;
@@ -679,7 +679,7 @@
   font-size: .92rem
 }
 
-/* Stats */
+/* Statistiques */
 
 .admin-stats {
   display: grid !important;
@@ -1337,7 +1337,7 @@
   color: #b91c1c
 }
 
-/* Filters */
+/* Filtres */
 
 .admin-filter-tabs {
   display: flex;
@@ -1474,7 +1474,7 @@
   min-width: 120px
 }
 
-/* Table */
+/* Tableaux */
 
 .admin-table-container {
   overflow-x: auto;
@@ -1594,7 +1594,7 @@
   border-color: #ef44442e
 }
 
-/* Progress */
+/* Progression */
 
 .progress-group {
   display: flex;
@@ -1637,7 +1637,7 @@
   color: #6b7280
 }
 
-/* Feature Cards */
+/* Cartes fonctionnelles */
 
 .admin-main .campus-features-grid {
   display: grid;
@@ -1682,7 +1682,7 @@
   line-height: 1.55
 }
 
-/* Charts */
+/* Graphiques */
 
 .admin-chart {
   display: flex;
@@ -1743,7 +1743,7 @@
   color: #6b7280
 }
 
-/* Activity */
+/* Activite */
 
 .admin-activity-list {
   display: flex;
@@ -1999,7 +1999,7 @@
   margin-top: 2px
 }
 
-/* Admin Command Center */
+/* Centre de commande admin */
 
 .admin-sidebar-header {
   display: flex;
@@ -3850,7 +3850,7 @@
   font-weight: 800
 }
 
-/* Admin Metadata */
+/* Metadonnees admin */
 
 .admin-table-meta {
   display: flex;
@@ -4469,7 +4469,7 @@
   background: #f8fbff
 }
 
-/* Dark Theme */
+/* Theme sombre */
 
 .admin-layout.theme-dark {
   background: linear-gradient(180deg, #0f172a, #111827)
@@ -5589,7 +5589,7 @@
   }
 }
 
-/* Header refresh */
+/* Ajustements en-tete */
 
 .admin-header.admin-header-focused {
   display: flex;
@@ -6288,7 +6288,7 @@ html[dir="rtl"] .admin-nav-item:hover {
   }
 }
 
-/* Admin profile */
+/* Profil admin */
 
 .admin-profile-hero {
   display: flex;

@@ -126,8 +126,8 @@ export default function DetailEtudiantAdmin() {
       setStudentError("");
 
       try {
-        const data = await getAdminStudent(id);
-        if (isActive) setStudentData(data);
+        const studentResponse = await getAdminStudent(id);
+        if (isActive) setStudentData(studentResponse);
       } catch (error) {
         if (!isActive) return;
 

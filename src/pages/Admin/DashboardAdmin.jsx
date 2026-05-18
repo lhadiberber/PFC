@@ -419,10 +419,10 @@ export default function DashboardAdmin() {
       setAdminDashboardError("");
 
       try {
-        const data = await getAdminDashboard();
+        const dashboardResponse = await getAdminDashboard();
 
         if (isActive) {
-          setAdminDashboardData(data);
+          setAdminDashboardData(dashboardResponse);
         }
       } catch (error) {
         if (isActive) {
