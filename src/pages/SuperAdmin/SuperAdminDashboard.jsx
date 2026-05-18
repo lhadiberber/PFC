@@ -3,33 +3,96 @@ import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/admin/AdminLayout";
 import EmptyState from "../../components/ui/EmptyState";
 import { clearAuthSession } from "../../services/authService";
+import { getAdminDashboard } from "../../services/adminService";
 import { listManagedAdmins } from "../../services/superAdminService";
 import "../../index.css";
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
   const [admins, setAdmins] = useState([]);
+  const [platformStats, setPlatformStats] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const stats = useMemo(() => {
+  const dashboardData = useMemo(() => {
     const active = admins.filter((admin) => admin.is_active).length;
+    const totalStudents = Number(platformStats.totalEtudiants || 0);
+    const totalApplications = Number(platformStats.totalCandidatures || 0);
+    const pendingApplications = Number(platformStats.enAttente || 0);
+    const pendingDocuments = Number(platformStats.documentsEnAttente || 0);
 
     return {
-      total: admins.length,
-      active,
-      inactive: admins.length - active,
+      cards: [
+        {
+          label: "Administrateurs",
+          value: admins.length,
+          helper: "Comptes admin crees",
+          tone: "info",
+        },
+        {
+          label: "Admins actifs",
+          value: active,
+          helper: "Acces autorise",
+          tone: "positive",
+        },
+        {
+          label: "Admins desactives",
+          value: admins.length - active,
+          helper: "Connexion bloquee",
+          tone: "warning",
+        },
+        {
+          label: "Etudiants",
+          value: totalStudents,
+          helper: "Comptes etudiants",
+          tone: "neutral",
+        },
+        {
+          label: "Candidatures",
+          value: totalApplications,
+          helper: "Dossiers deposes",
+          tone: "info",
+        },
+      ],
+      watchItems: [
+        {
+          label: "Admins desactives",
+          value: admins.length - active,
+          helper: "A reactiver si besoin",
+          tone: admins.length - active > 0 ? "warning" : "positive",
+        },
+        {
+          label: "Candidatures en attente",
+          value: pendingApplications,
+          helper: "A traiter dans l'espace admin",
+          tone: pendingApplications > 0 ? "warning" : "positive",
+        },
+        {
+          label: "Documents en attente",
+          value: pendingDocuments,
+          helper: "A verifier par l'administration",
+          tone: pendingDocuments > 0 ? "warning" : "positive",
+        },
+      ],
     };
-  }, [admins]);
+  }, [admins, platformStats]);
 
   useEffect(() => {
     let isActive = true;
 
-    async function loadAdmins() {
+    async function loadDashboard() {
+      setIsLoading(true);
+      setError("");
+
       try {
-        const adminRows = await listManagedAdmins();
+        const [adminRows, adminDashboard] = await Promise.all([
+          listManagedAdmins(),
+          getAdminDashboard(),
+        ]);
+
         if (isActive) {
           setAdmins(adminRows);
+          setPlatformStats(adminDashboard.stats || {});
         }
       } catch (loadError) {
         if (isActive) {
@@ -42,7 +105,7 @@ export default function SuperAdminDashboard() {
             return;
           }
 
-          setError(loadError.message || "Impossible de charger les administrateurs.");
+          setError(loadError.message || "Impossible de charger les donnees du tableau de bord.");
         }
       } finally {
         if (isActive) {
@@ -51,7 +114,7 @@ export default function SuperAdminDashboard() {
       }
     }
 
-    loadAdmins();
+    loadDashboard();
 
     return () => {
       isActive = false;
@@ -61,7 +124,7 @@ export default function SuperAdminDashboard() {
   return (
     <AdminLayout
       title="Espace super administrateur"
-      subtitle="Gestion globale de la plateforme et des administrateurs."
+      subtitle="Gerez les administrateurs et suivez l'activite globale de la plateforme."
       showSearch={false}
     >
       {error ? (
@@ -71,21 +134,16 @@ export default function SuperAdminDashboard() {
       ) : null}
 
       <section className="admin-primary-stats-grid">
-        <div className="admin-primary-stat-card admin-primary-stat-card-info">
-          <span className="admin-stat-label">Administrateurs</span>
-          <strong>{isLoading ? "..." : stats.total}</strong>
-          <small>Total des comptes admin</small>
-        </div>
-        <div className="admin-primary-stat-card admin-primary-stat-card-positive">
-          <span className="admin-stat-label">Admins actifs</span>
-          <strong>{isLoading ? "..." : stats.active}</strong>
-          <small>Acces autorise</small>
-        </div>
-        <div className="admin-primary-stat-card admin-primary-stat-card-warning">
-          <span className="admin-stat-label">Admins desactives</span>
-          <strong>{isLoading ? "..." : stats.inactive}</strong>
-          <small>Connexion bloquee</small>
-        </div>
+        {dashboardData.cards.map((card) => (
+          <div
+            key={card.label}
+            className={`admin-primary-stat-card admin-primary-stat-card-${card.tone}`}
+          >
+            <span className="admin-stat-label">{card.label}</span>
+            <strong>{isLoading ? "..." : card.value}</strong>
+            <small>{card.helper}</small>
+          </div>
+        ))}
       </section>
 
       <section className="admin-card">
@@ -93,14 +151,14 @@ export default function SuperAdminDashboard() {
           <div>
             <span className="admin-page-context info">Acces reserve</span>
             <h2>Super administrateur</h2>
-            <p>Retrouvez ici les actions utiles pour administrer les comptes admin.</p>
+            <p>Retrouvez les raccourcis utiles pour piloter la plateforme.</p>
           </div>
         </div>
 
         {isLoading ? (
           <EmptyState
-            title="Chargement des administrateurs..."
-            description="Les indicateurs seront disponibles dans un instant."
+            title="Chargement du tableau de bord..."
+            description="Les donnees seront disponibles dans un instant."
             className="admin-empty-state"
           />
         ) : null}
@@ -117,11 +175,63 @@ export default function SuperAdminDashboard() {
           </Link>
           <Link to="/admin" className="admin-quick-action-card admin-quick-action-card-info">
             <div className="admin-quick-action-body">
-              <strong>Acceder au tableau de bord admin</strong>
-              <span>Consulter les candidatures, les etudiants et les documents.</span>
+              <strong>Acces espace admin</strong>
+              <span>Ouvrir le tableau de bord administrateur.</span>
+            </div>
+          </Link>
+          <Link
+            to="/admin/candidatures"
+            className="admin-quick-action-card admin-quick-action-card-warning"
+          >
+            <div className="admin-quick-action-body">
+              <strong>Voir les candidatures</strong>
+              <span>Suivre les dossiers deposes par les etudiants.</span>
+            </div>
+          </Link>
+          <Link
+            to="/admin/documents"
+            className="admin-quick-action-card admin-quick-action-card-info"
+          >
+            <div className="admin-quick-action-body">
+              <strong>Voir les documents</strong>
+              <span>Consulter les pieces envoyees par les candidats.</span>
             </div>
           </Link>
         </div>
+      </section>
+
+      <section className="admin-card">
+        <div className="admin-card-header">
+          <div>
+            <span className="admin-page-context warning">A surveiller</span>
+            <h2>Points importants</h2>
+            <p>Les elements qui demandent une attention rapide.</p>
+          </div>
+        </div>
+
+        {!isLoading && admins.length === 0 && !platformStats.totalCandidatures ? (
+          <EmptyState
+            title="Aucune donnee disponible pour le moment."
+            description="Les informations apparaitront apres la creation des premiers comptes ou dossiers."
+            className="admin-empty-state"
+          />
+        ) : (
+          <div className="admin-quick-actions-grid">
+            {dashboardData.watchItems.map((item) => (
+              <div
+                key={item.label}
+                className={`admin-quick-action-card admin-quick-action-card-${item.tone}`}
+              >
+                <div className="admin-quick-action-body">
+                  <strong>
+                    {item.label} : {isLoading ? "..." : item.value}
+                  </strong>
+                  <span>{item.helper}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </AdminLayout>
   );
