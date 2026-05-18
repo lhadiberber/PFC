@@ -10,6 +10,7 @@ import applicationRoutes from "./routes/application.routes.js";
 import documentRoutes from "./routes/document.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
 import studentRoutes from "./routes/student.routes.js";
+import superAdminRoutes from "./routes/superAdmin.routes.js";
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.get("/", (_request, response) => {
     documents: "/api/documents",
     student: "/api/student",
     admin: "/api/admin",
+    superAdmin: "/api/super-admin",
   });
 });
 
@@ -84,6 +86,7 @@ app.use("/api/applications", applicationRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/super-admin", superAdminRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

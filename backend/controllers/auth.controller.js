@@ -141,6 +141,14 @@ export async function login(request, response, next) {
       return;
     }
 
+    if (user.is_active === 0 || user.is_active === false) {
+      response.status(403).json({
+        success: false,
+        message: "Votre compte est desactive. Veuillez contacter l'administrateur.",
+      });
+      return;
+    }
+
     const token = signAuthToken(user);
 
     response.json({
