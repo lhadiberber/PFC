@@ -1,7 +1,18 @@
 import { pool } from "../config/db.js";
 
-const PUBLIC_USER_FIELDS = "id, nom, prenom, email, role, created_at";
-const ALLOWED_ROLES = new Set(["student", "admin"]);
+const PUBLIC_USER_FIELDS = "id, nom, prenom, email, role, is_active, created_at";
+const ALLOWED_ROLES = new Set(["student", "admin", "super_admin"]);
+const USER_ROLE_SQL = "ENUM('student', 'admin', 'super_admin')";
+
+async function ensureUserTableShape() {
+  await pool.execute(`ALTER TABLE users MODIFY role ${USER_ROLE_SQL} NOT NULL DEFAULT 'student'`);
+
+  const [columns] = await pool.execute("SHOW COLUMNS FROM users LIKE 'is_active'");
+
+  if (columns.length === 0) {
+    await pool.execute("ALTER TABLE users ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1 AFTER role");
+  }
+}
 
 export async function ensureUsersTable() {
   await pool.execute(`
@@ -11,12 +22,15 @@ export async function ensureUsersTable() {
       prenom VARCHAR(100) NOT NULL,
       email VARCHAR(190) NOT NULL,
       password_hash VARCHAR(255) NOT NULL,
-      role ENUM('student', 'admin') NOT NULL DEFAULT 'student',
+      role ${USER_ROLE_SQL} NOT NULL DEFAULT 'student',
+      is_active TINYINT(1) NOT NULL DEFAULT 1,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
       UNIQUE KEY users_email_unique (email)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   `);
+
+  await ensureUserTableShape();
 }
 
 export function normalizeEmail(email) {
