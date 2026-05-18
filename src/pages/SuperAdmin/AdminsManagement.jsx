@@ -8,6 +8,7 @@ import { clearAuthSession } from "../../services/authService";
 import {
   createManagedAdmin,
   listManagedAdmins,
+  updateManagedAdmin,
   updateManagedAdminStatus,
 } from "../../services/superAdminService";
 import { formatAdminDate } from "../../utils/adminApplications";
@@ -18,7 +19,18 @@ const emptyForm = {
   prenom: "",
   email: "",
   password: "",
+  confirmPassword: "",
 };
+
+const emptyEditForm = {
+  nom: "",
+  prenom: "",
+  email: "",
+};
+
+function isValidEmail(email) {
+  return /\S+@\S+\.\S+/.test(email);
+}
 
 export default function AdminsManagement() {
   const navigate = useNavigate();
@@ -27,6 +39,9 @@ export default function AdminsManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [updatingAdminId, setUpdatingAdminId] = useState(null);
+  const [editingAdminId, setEditingAdminId] = useState(null);
+  const [editForm, setEditForm] = useState(emptyEditForm);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -79,6 +94,46 @@ export default function AdminsManagement() {
     };
   }, [navigate]);
 
+  const validateCreateForm = () => {
+    const nom = formData.nom.trim();
+    const prenom = formData.prenom.trim();
+    const email = formData.email.trim();
+
+    if (!nom || !prenom || !email || !formData.password || !formData.confirmPassword) {
+      return "Tous les champs sont obligatoires.";
+    }
+
+    if (!isValidEmail(email)) {
+      return "Email invalide.";
+    }
+
+    if (formData.password.length < 8) {
+      return "Le mot de passe doit contenir au moins 8 caracteres.";
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      return "Les mots de passe ne correspondent pas.";
+    }
+
+    return "";
+  };
+
+  const validateEditForm = () => {
+    const nom = editForm.nom.trim();
+    const prenom = editForm.prenom.trim();
+    const email = editForm.email.trim();
+
+    if (!nom || !prenom || !email) {
+      return "Nom, prenom et email sont obligatoires.";
+    }
+
+    if (!isValidEmail(email)) {
+      return "Email invalide.";
+    }
+
+    return "";
+  };
+
   const handleFieldChange = (event) => {
     const { name, value } = event.target;
 
@@ -92,12 +147,25 @@ export default function AdminsManagement() {
 
   const handleCreateAdmin = async (event) => {
     event.preventDefault();
+    const validationMessage = validateCreateForm();
+
+    if (validationMessage) {
+      setError(validationMessage);
+      setSuccessMessage("");
+      return;
+    }
+
     setIsCreating(true);
     setError("");
     setSuccessMessage("");
 
     try {
-      const createdAdmin = await createManagedAdmin(formData);
+      const createdAdmin = await createManagedAdmin({
+        nom: formData.nom.trim(),
+        prenom: formData.prenom.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+      });
       if (createdAdmin) {
         setAdmins((current) => [createdAdmin, ...current]);
       }
@@ -107,6 +175,69 @@ export default function AdminsManagement() {
       setError(createError.message || "Impossible de creer l'administrateur.");
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleEditFieldChange = (event) => {
+    const { name, value } = event.target;
+
+    setEditForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
+    setError("");
+    setSuccessMessage("");
+  };
+
+  const handleStartEdit = (admin) => {
+    setEditingAdminId(admin.id);
+    setEditForm({
+      nom: admin.nom || "",
+      prenom: admin.prenom || "",
+      email: admin.email || "",
+    });
+    setError("");
+    setSuccessMessage("");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingAdminId(null);
+    setEditForm(emptyEditForm);
+  };
+
+  const handleSaveEdit = async (adminId) => {
+    const validationMessage = validateEditForm();
+
+    if (validationMessage) {
+      setError(validationMessage);
+      setSuccessMessage("");
+      return;
+    }
+
+    setIsSavingEdit(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      const updatedAdmin = await updateManagedAdmin(adminId, {
+        nom: editForm.nom.trim(),
+        prenom: editForm.prenom.trim(),
+        email: editForm.email.trim(),
+      });
+
+      if (updatedAdmin) {
+        setAdmins((current) =>
+          current.map((adminRow) => (adminRow.id === adminId ? updatedAdmin : adminRow))
+        );
+      }
+
+      setEditingAdminId(null);
+      setEditForm(emptyEditForm);
+      setSuccessMessage("Modification enregistree.");
+    } catch (editError) {
+      setError(editError.message || "Impossible de modifier l'administrateur.");
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -218,6 +349,15 @@ export default function AdminsManagement() {
             className="admin-search-input"
             disabled={isCreating}
           />
+          <input
+            type="password"
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleFieldChange}
+            placeholder="Confirmer le mot de passe"
+            className="admin-search-input"
+            disabled={isCreating}
+          />
           <Button type="submit" className="admin-table-action-button" disabled={isCreating}>
             {isCreating ? "Creation..." : "Creer"}
           </Button>
@@ -245,6 +385,7 @@ export default function AdminsManagement() {
               <thead>
                 <tr>
                   <th>Nom</th>
+                  <th>Prenom</th>
                   <th>Email</th>
                   <th>Role</th>
                   <th>Statut</th>
@@ -255,7 +396,7 @@ export default function AdminsManagement() {
               <tbody>
                 {admins.length === 0 ? (
                   <tr>
-                    <td colSpan="6">
+                    <td colSpan="7">
                       <EmptyState
                         title="Aucun administrateur pour le moment."
                         description="Creez le premier compte admin depuis le formulaire."
@@ -264,37 +405,104 @@ export default function AdminsManagement() {
                     </td>
                   </tr>
                 ) : (
-                  admins.map((admin) => (
-                    <tr key={admin.id}>
-                      <td data-label="Nom">
-                        <div className="admin-table-meta">
-                          <span className="admin-table-meta-text">
-                            {[admin.prenom, admin.nom].filter(Boolean).join(" ")}
-                          </span>
-                          <span className="admin-table-meta-subtext">ID {admin.id}</span>
-                        </div>
-                      </td>
-                      <td data-label="Email">{admin.email}</td>
-                      <td data-label="Role">{admin.role}</td>
-                      <td data-label="Statut">
-                        <StatusBadge status={admin.is_active ? "Actif" : "Inactif"} />
-                      </td>
-                      <td data-label="Date creation">{formatAdminDate(admin.created_at)}</td>
-                      <td data-label="Action">
-                        <Button
-                          className="admin-table-action-button"
-                          onClick={() => handleToggleStatus(admin)}
-                          disabled={updatingAdminId === admin.id}
-                        >
-                          {updatingAdminId === admin.id
-                            ? "Mise a jour..."
-                            : admin.is_active
-                              ? "Desactiver"
-                              : "Activer"}
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
+                  admins.map((admin) => {
+                    const isEditing = editingAdminId === admin.id;
+
+                    return (
+                      <tr key={admin.id}>
+                        <td data-label="Nom">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              name="nom"
+                              value={editForm.nom}
+                              onChange={handleEditFieldChange}
+                              className="admin-search-input"
+                              disabled={isSavingEdit}
+                            />
+                          ) : (
+                            <div className="admin-table-meta">
+                              <span className="admin-table-meta-text">{admin.nom}</span>
+                              <span className="admin-table-meta-subtext">ID {admin.id}</span>
+                            </div>
+                          )}
+                        </td>
+                        <td data-label="Prenom">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              name="prenom"
+                              value={editForm.prenom}
+                              onChange={handleEditFieldChange}
+                              className="admin-search-input"
+                              disabled={isSavingEdit}
+                            />
+                          ) : (
+                            admin.prenom
+                          )}
+                        </td>
+                        <td data-label="Email">
+                          {isEditing ? (
+                            <input
+                              type="email"
+                              name="email"
+                              value={editForm.email}
+                              onChange={handleEditFieldChange}
+                              className="admin-search-input"
+                              disabled={isSavingEdit}
+                            />
+                          ) : (
+                            admin.email
+                          )}
+                        </td>
+                        <td data-label="Role">{admin.role}</td>
+                        <td data-label="Statut">
+                          <StatusBadge status={admin.is_active ? "Actif" : "Inactif"} />
+                        </td>
+                        <td data-label="Date creation">{formatAdminDate(admin.created_at)}</td>
+                        <td data-label="Action">
+                          {isEditing ? (
+                            <>
+                              <Button
+                                className="admin-table-action-button"
+                                onClick={() => handleSaveEdit(admin.id)}
+                                disabled={isSavingEdit}
+                              >
+                                {isSavingEdit ? "Enregistrement..." : "Enregistrer"}
+                              </Button>
+                              <Button
+                                className="admin-table-action-button"
+                                onClick={handleCancelEdit}
+                                disabled={isSavingEdit}
+                              >
+                                Annuler
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button
+                                className="admin-table-action-button"
+                                onClick={() => handleStartEdit(admin)}
+                              >
+                                Modifier
+                              </Button>
+                              <Button
+                                className="admin-table-action-button"
+                                onClick={() => handleToggleStatus(admin)}
+                                disabled={updatingAdminId === admin.id}
+                              >
+                                {updatingAdminId === admin.id
+                                  ? "Mise a jour..."
+                                  : admin.is_active
+                                    ? "Desactiver"
+                                    : "Activer"}
+                              </Button>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 
 const STATUS_CLASS_MAP = {
   Actif: "statut-actif",
+  Inactif: "statut-rejetee",
   "En attente": "statut-attente",
   Acceptée: "statut-acceptee",
   Acceptee: "statut-acceptee",

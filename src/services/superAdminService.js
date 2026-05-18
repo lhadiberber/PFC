@@ -22,3 +22,16 @@ export async function updateManagedAdminStatus(id, isActive) {
 
   return response.admin || null;
 }
+
+export async function updateManagedAdmin(id, payload) {
+  const response = await apiRequest(`/super-admin/admins/${id}`, {
+    method: "PATCH",
+    body: {
+      nom: payload.nom,
+      prenom: payload.prenom,
+      email: payload.email,
+    },
+  });
+
+  return response.admin || null;
+}
