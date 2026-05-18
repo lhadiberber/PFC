@@ -318,7 +318,7 @@ export default function DetailEtudiantAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Informations personnelles</h3>
-                  <p>Coordonnees et identite du profil etudiant</p>
+                  <p>Informations personnelles de l'etudiant</p>
                 </div>
               </div>
 

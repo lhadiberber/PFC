@@ -206,7 +206,7 @@ export default function StudentRecapitulatif() {
         buildBackendNumeroDossier(backendApplication) || createdApplication.numeroDossier;
 
       showLoading(false);
-      showToast("Candidature soumise avec succes.", "success");
+      showToast("Candidature envoyee avec succes.", "success");
       navigate(`/success?numeroDossier=${numeroDossier}`);
     } catch (error) {
       const message = error.message || "Impossible de soumettre la candidature.";
@@ -395,7 +395,7 @@ export default function StudentRecapitulatif() {
             <div>
               <h2>Confirmation de la soumission</h2>
               <p>
-                En validant votre candidature, vous activez votre dossier sur la plateforme.
+                En validant, votre dossier sera transmis au service des admissions.
                 Vous pourrez ensuite suivre son evolution depuis votre espace etudiant.
               </p>
             </div>

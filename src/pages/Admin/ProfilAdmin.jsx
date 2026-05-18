@@ -406,7 +406,7 @@ export default function ProfilAdmin() {
                     onChange={handleProfileChange}
                     disabled={!isEditing}
                   />
-                  <span>Notifications admin activees</span>
+                  <span>Notifications administrateur activees</span>
                 </label>
 
                 <label className="admin-preference-card">

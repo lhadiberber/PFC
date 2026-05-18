@@ -303,7 +303,7 @@ export default function DocumentsAdmin() {
       id: "refused",
       label: "Documents refuses",
       value: stats.refuses,
-      detail: "Pieces necessitant une relance ou un nouveau depot",
+      detail: "Pieces a verifier ou a redemander",
       tone: "refusee",
       icon: "refused",
     },

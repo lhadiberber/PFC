@@ -1044,7 +1044,7 @@ export default function DashboardAdmin() {
           <div className="campus-section-header">
             <div>
               <h2>Chargement du dashboard</h2>
-              <p>Recuperation des statistiques admin depuis le backend...</p>
+              <p>Chargement des statistiques...</p>
             </div>
           </div>
           <div className="student-profile-feedback">Chargement en cours...</div>
@@ -1061,7 +1061,7 @@ export default function DashboardAdmin() {
       >
         <section className="campus-section-container">
           <EmptyState
-            title="Dashboard admin indisponible"
+            title="Tableau de bord indisponible"
             description={adminDashboardError}
             className="admin-empty-state"
           />
@@ -1108,7 +1108,7 @@ export default function DashboardAdmin() {
                 {activeFilterCount} filtre(s) actif(s)
               </span>
             ) : (
-              <span className="admin-page-context positive">Perimetre global de campagne</span>
+              <span className="admin-page-context positive">Campagne complete</span>
             )}
           </div>
 
@@ -1158,7 +1158,7 @@ export default function DashboardAdmin() {
                   </span>
                 ))
               ) : (
-                <span className="admin-queue-pill neutral">Perimetre global de campagne</span>
+                <span className="admin-queue-pill neutral">Campagne complete</span>
               )}
             </div>
           </div>
@@ -1405,7 +1405,7 @@ export default function DashboardAdmin() {
             <div className="campus-section-header">
               <div>
                 <h2>Actions rapides</h2>
-                <p>Accedez directement aux espaces les plus utiles sans passer par plusieurs ecrans</p>
+                <p>Retrouvez les raccourcis utiles pour gerer les dossiers.</p>
               </div>
             </div>
 
@@ -1636,7 +1636,7 @@ export default function DashboardAdmin() {
           <section className="campus-section-container">
             <div className="campus-section-header">
               <div>
-                <h2>Vue globale</h2>
+                <h2>Repartition des dossiers</h2>
                 <p>Une lecture simple de la repartition des candidatures par universite</p>
               </div>
             </div>
@@ -1677,7 +1677,7 @@ export default function DashboardAdmin() {
           <section className="campus-section-container">
             <div className="campus-section-header">
               <h2>Activite recente</h2>
-              <p>Les derniers mouvements qui rendent la plateforme vivante et active</p>
+              <p>Les derniers changements enregistres sur les dossiers.</p>
             </div>
 
             <div className="admin-activity-list">
@@ -1724,7 +1724,7 @@ export default function DashboardAdmin() {
       <section className="campus-section-container">
         <div className="campus-section-header">
           <h2>Pilotage interne des dossiers</h2>
-          <p>Affectation, priorisation manuelle et discipline de suivi sur le portefeuille filtre</p>
+          <p>Suivi interne des dossiers affiches.</p>
         </div>
 
         {!dashboardHasResults ? (
@@ -1952,7 +1952,7 @@ export default function DashboardAdmin() {
       <section className="campus-section-container">
         <div className="campus-section-header">
           <h2>Repartition des statuts</h2>
-          <p>Distribution globale des candidatures par decision</p>
+          <p>Repartition des candidatures par decision.</p>
         </div>
 
         <div className="campus-universities-grid">
@@ -2010,7 +2010,7 @@ export default function DashboardAdmin() {
       <section className="campus-section-container">
         <div className="campus-section-header">
           <h2>File de traitement prioritaire</h2>
-          <p>Reperez les urgences operationnelles et ouvrez directement la bonne vue de travail</p>
+          <p>Ouvrez rapidement les dossiers a traiter en priorite.</p>
         </div>
 
         <div className="admin-queue-grid">
@@ -2337,7 +2337,7 @@ export default function DashboardAdmin() {
 
         {!dashboardHasResults ? (
           <EmptyState
-            title="Aucune donnee exploitable"
+            title="Aucune donnee pour le moment"
             description="Les analyses graphiques reapparaitront des qu'un portefeuille correspondra aux filtres globaux."
             className="admin-empty-state"
           />

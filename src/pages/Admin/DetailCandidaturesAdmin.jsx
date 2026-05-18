@@ -538,7 +538,7 @@ export default function DetailCandidaturesAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Informations personnelles</h3>
-                  <p>Coordonnees et identite du candidat</p>
+                  <p>Informations principales du candidat</p>
                 </div>
               </div>
 

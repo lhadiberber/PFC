@@ -355,7 +355,7 @@ function getStatusPresentation(latestApplication, missingDocumentsCount) {
   return {
     label: "En attente",
     description:
-      "Votre candidature a ete transmise et se trouve actuellement dans la file de traitement administrative.",
+      "Votre candidature a ete transmise. Elle est maintenant en cours d'etude.",
     helper: "Vous serez informe des evolutions majeures directement depuis cet espace.",
   };
 }
@@ -866,7 +866,7 @@ export default function StudentDashboard() {
             <span className="student-dashboard-kicker">Espace etudiant</span>
             <h1>Chargement du tableau de bord</h1>
             <p className="student-dashboard-subtitle">
-              Recuperation de vos donnees depuis le backend...
+              Chargement de votre tableau de bord...
             </p>
           </div>
         </section>
@@ -892,7 +892,7 @@ export default function StudentDashboard() {
         <section className="campus-section-container student-dashboard-panel">
           <EmptyState
             title="Impossible de charger vos donnees"
-            description="Verifiez que le backend est lance, puis reessayez."
+            description="Verifiez que le serveur est lance, puis reessayez."
             actionLabel="Retour au profil"
             actionTo="/profil"
             className="admin-empty-state"
@@ -1225,7 +1225,7 @@ export default function StudentDashboard() {
         <div className="campus-section-header student-dashboard-section-head">
           <div>
             <h2>Actions rapides</h2>
-            <p>Accedez directement aux ecrans les plus utiles pour poursuivre votre candidature.</p>
+            <p>Retrouvez les raccourcis utiles pour avancer dans votre dossier.</p>
           </div>
         </div>
 
