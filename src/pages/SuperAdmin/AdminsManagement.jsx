@@ -6,10 +6,10 @@ import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { clearAuthSession } from "../../services/authService";
 import {
-  createManagedAdmin,
-  listManagedAdmins,
-  updateManagedAdmin,
-  updateManagedAdminStatus,
+  createAdmin,
+  getAdmins,
+  updateAdmin,
+  updateAdminStatus,
 } from "../../services/superAdminService";
 import { formatAdminDate } from "../../utils/adminApplications";
 import "../../index.css";
@@ -63,7 +63,7 @@ export default function AdminsManagement() {
       setError("");
 
       try {
-        const adminRows = await listManagedAdmins();
+        const adminRows = await getAdmins();
         if (isActive) {
           setAdmins(adminRows);
         }
@@ -160,7 +160,7 @@ export default function AdminsManagement() {
     setSuccessMessage("");
 
     try {
-      const createdAdmin = await createManagedAdmin({
+      const createdAdmin = await createAdmin({
         nom: formData.nom.trim(),
         prenom: formData.prenom.trim(),
         email: formData.email.trim(),
@@ -219,7 +219,7 @@ export default function AdminsManagement() {
     setSuccessMessage("");
 
     try {
-      const updatedAdmin = await updateManagedAdmin(adminId, {
+      const updatedAdmin = await updateAdmin(adminId, {
         nom: editForm.nom.trim(),
         prenom: editForm.prenom.trim(),
         email: editForm.email.trim(),
@@ -254,7 +254,7 @@ export default function AdminsManagement() {
     setSuccessMessage("");
 
     try {
-      const updatedAdmin = await updateManagedAdminStatus(admin.id, nextStatus);
+      const updatedAdmin = await updateAdminStatus(admin.id, nextStatus);
       if (updatedAdmin) {
         setAdmins((current) =>
           current.map((adminRow) => (adminRow.id === admin.id ? updatedAdmin : adminRow))

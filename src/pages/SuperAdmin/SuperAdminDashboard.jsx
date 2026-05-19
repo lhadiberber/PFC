@@ -3,8 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/admin/AdminLayout";
 import EmptyState from "../../components/ui/EmptyState";
 import { clearAuthSession } from "../../services/authService";
-import { getAdminDashboard } from "../../services/adminService";
-import { listManagedAdmins } from "../../services/superAdminService";
+import { getSuperAdminDashboard } from "../../services/superAdminService";
 import "../../index.css";
 
 export default function SuperAdminDashboard() {
@@ -85,14 +84,11 @@ export default function SuperAdminDashboard() {
       setError("");
 
       try {
-        const [adminRows, adminDashboard] = await Promise.all([
-          listManagedAdmins(),
-          getAdminDashboard(),
-        ]);
+        const dashboard = await getSuperAdminDashboard();
 
         if (isActive) {
-          setAdmins(adminRows);
-          setPlatformStats(adminDashboard.stats || {});
+          setAdmins(dashboard.admins);
+          setPlatformStats(dashboard.stats);
         }
       } catch (loadError) {
         if (isActive) {

@@ -1,20 +1,38 @@
 import { apiRequest } from "./authService";
 
-export async function listManagedAdmins() {
+export async function getAdmins() {
   const response = await apiRequest("/super-admin/admins");
   return response.admins || [];
 }
 
-export async function createManagedAdmin(payload) {
+export async function createAdmin(adminData) {
   const response = await apiRequest("/super-admin/admins", {
     method: "POST",
-    body: payload,
+    body: {
+      nom: adminData.nom,
+      prenom: adminData.prenom,
+      email: adminData.email,
+      password: adminData.password,
+    },
   });
 
   return response.admin || null;
 }
 
-export async function updateManagedAdminStatus(id, isActive) {
+export async function updateAdmin(id, adminData) {
+  const response = await apiRequest(`/super-admin/admins/${id}`, {
+    method: "PATCH",
+    body: {
+      nom: adminData.nom,
+      prenom: adminData.prenom,
+      email: adminData.email,
+    },
+  });
+
+  return response.admin || null;
+}
+
+export async function updateAdminStatus(id, isActive) {
   const response = await apiRequest(`/super-admin/admins/${id}/status`, {
     method: "PATCH",
     body: { is_active: isActive },
@@ -23,15 +41,19 @@ export async function updateManagedAdminStatus(id, isActive) {
   return response.admin || null;
 }
 
-export async function updateManagedAdmin(id, payload) {
-  const response = await apiRequest(`/super-admin/admins/${id}`, {
-    method: "PATCH",
-    body: {
-      nom: payload.nom,
-      prenom: payload.prenom,
-      email: payload.email,
-    },
-  });
+export async function getSuperAdminDashboard() {
+  const [admins, dashboard] = await Promise.all([
+    getAdmins(),
+    apiRequest("/admin/dashboard"),
+  ]);
 
-  return response.admin || null;
+  return {
+    admins,
+    stats: dashboard.stats || {},
+  };
 }
+
+export const listManagedAdmins = getAdmins;
+export const createManagedAdmin = createAdmin;
+export const updateManagedAdmin = updateAdmin;
+export const updateManagedAdminStatus = updateAdminStatus;
