@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 .env
+backend/.env
+backend/uploads/*
+!backend/uploads/.gitkeep
 *.local
 
 # Editor directories and files

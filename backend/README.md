@@ -7,7 +7,7 @@ Backend Node.js/Express pour l'API PFC Admissions.
 - Node.js
 - Express.js
 - MySQL via `mysql2`
-- Connexion MySQL via `mysql2`
+- JWT et bcrypt pour l'authentification
 
 ## Installation
 
@@ -22,13 +22,19 @@ Variables minimales:
 ```env
 DB_HOST=localhost
 DB_PORT=3306
-DB_USER=pfc_user
-DB_PASSWORD=
+DB_USER=root
+DB_PASSWORD=your_password
 DB_NAME=pfc_admissions
 JWT_SECRET=change_this_secret_before_production
 JWT_EXPIRES_IN=1d
 CLIENT_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:5173
 PORT=5000
+
+SUPER_ADMIN_NOM=Super
+SUPER_ADMIN_PRENOM=Admin
+SUPER_ADMIN_EMAIL=superadmin@example.com
+SUPER_ADMIN_PASSWORD=change_this_password
 ```
 
 Au demarrage, le backend tente de creer automatiquement la base
@@ -64,12 +70,14 @@ backend/
     application.routes.js
     document.routes.js
     admin.routes.js
+    superAdmin.routes.js
   controllers/
     auth.controller.js
     profile.controller.js
     application.controller.js
     document.controller.js
     admin.controller.js
+    superAdmin.controller.js
   middlewares/
     auth.middleware.js
     role.middleware.js
@@ -79,6 +87,9 @@ backend/
     profile.model.js
     application.model.js
     document.model.js
+    superAdmin.model.js
+  scripts/
+    createSuperAdmin.js
   uploads/
 ```
 
@@ -87,6 +98,12 @@ backend/
 - `GET /` : message API
 - `GET /api/health` : statut API
 - `GET /api/health/db` : test explicite de connexion MySQL
+
+## Roles
+
+- `student` : depose une candidature, complete son profil et suit son dossier.
+- `admin` : traite les candidatures, consulte les etudiants et verifie les documents.
+- `super_admin` : gere les administrateurs et garde l'acces a l'espace admin.
 
 ## Authentification
 
@@ -99,7 +116,8 @@ CREATE TABLE IF NOT EXISTS users (
   prenom VARCHAR(100) NOT NULL,
   email VARCHAR(190) NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
-  role ENUM('student', 'admin') NOT NULL DEFAULT 'student',
+  role ENUM('student', 'admin', 'super_admin') NOT NULL DEFAULT 'student',
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY users_email_unique (email)
@@ -221,6 +239,54 @@ Route protegee par JWT:
 
 ## Dashboard admin
 
-Route protegee par JWT avec role `admin`:
+Routes protegees par JWT avec role `admin` ou `super_admin`:
 
 - `GET /api/admin/dashboard` : statistiques globales, candidatures recentes, repartition des statuts, documents a verifier et activite recente
+- `GET /api/admin/applications` : liste des candidatures
+- `GET /api/admin/students` : liste des etudiants
+- `GET /api/admin/documents` : liste des documents
+
+## Super administrateur
+
+Routes reservees au role `super_admin`:
+
+- `GET /api/super-admin/admins` : lister les administrateurs classiques
+- `POST /api/super-admin/admins` : creer un compte admin
+- `PATCH /api/super-admin/admins/:id` : modifier nom, prenom et email d'un admin
+- `PATCH /api/super-admin/admins/:id/status` : activer ou desactiver un admin
+
+Le backend force toujours le role `admin` lors de la creation d'un administrateur.
+Le frontend ne choisit jamais le role du compte cree.
+Le champ `password_hash` n'est jamais renvoye dans les reponses publiques.
+
+## Creer le premier super administrateur
+
+Ajouter dans `backend/.env`:
+
+```env
+SUPER_ADMIN_NOM=Super
+SUPER_ADMIN_PRENOM=Admin
+SUPER_ADMIN_EMAIL=superadmin@example.com
+SUPER_ADMIN_PASSWORD=change_this_password
+```
+
+Puis lancer:
+
+```bash
+cd backend
+npm run create-super-admin
+```
+
+Utilisez uniquement des valeurs d'exemple dans la documentation.
+Les vrais identifiants restent dans le fichier `.env`, qui ne doit pas etre commit.
+
+## Test rapide Super Admin
+
+1. Creer le super administrateur avec le script.
+2. Se connecter avec ce compte depuis le frontend.
+3. Ouvrir `/super-admin`.
+4. Ouvrir la gestion des administrateurs.
+5. Creer un admin.
+6. Desactiver puis reactiver cet admin.
+7. Verifier qu'un admin desactive ne peut plus se connecter.
+8. Verifier qu'un admin normal recoit un refus sur `/api/super-admin/admins`.

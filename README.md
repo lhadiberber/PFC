@@ -1,57 +1,92 @@
 # PFC Admissions
 
-Frontend React/Vite pour une plateforme de candidature universitaire.
+Plateforme universitaire d'admission avec un espace etudiant, un espace administrateur et un espace super administrateur.
 
 ## Stack
 
-- React 19
-- Vite 7
-- React Router 7
-- CSS custom
+- Frontend : React, Vite, JavaScript
+- Backend : Node.js, Express.js
+- Base de donnees : MySQL
+- Authentification : JWT et bcrypt
+- Upload documents : multer
 
 ## Lancer le projet
+
+Frontend :
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Scripts
+Backend :
 
-- `npm run dev` : serveur de developpement
-- `npm run build` : build de production
-- `npm run preview` : preview du build
-- `npm run lint` : lint du projet
+```bash
+cd backend
+npm install
+npm run dev
+```
 
-## Fonctionnalites frontend actuelles
+## Roles disponibles
 
-- page d'accueil publique
-- inscription et connexion
-- espace etudiant
-- formulaire de candidature en plusieurs etapes
-- dashboard etudiant
-- dashboard administrateur
+- `student` : complete son profil, depose une candidature, ajoute des documents et suit son dossier.
+- `admin` : consulte les candidatures, traite les dossiers, consulte les etudiants et verifie les documents.
+- `super_admin` : gere les comptes administrateurs et conserve l'acces a l'espace admin.
 
-## Stockage actuel
+## Super administrateur
 
-Le projet est encore en phase frontend.
+Le super administrateur est le compte qui gere les administrateurs de la plateforme.
 
-- l'authentification est simulee
-- une partie des donnees est stockee dans `localStorage`
-- plusieurs vues utilisent encore des donnees mockees
+Il peut :
 
-## Compte admin de demonstration
+- creer un compte admin ;
+- activer ou desactiver un admin ;
+- acceder a l'espace admin classique ;
+- ouvrir la page de gestion des administrateurs.
 
-- email : `lhadiberber@gmail.com`
-- mot de passe : `123`
+Un admin classique ne peut pas acceder a l'espace super administrateur.
+
+## Creer le premier super administrateur
+
+Dans `backend/.env`, ajouter des valeurs d'exemple adaptees a votre machine :
+
+```env
+SUPER_ADMIN_NOM=Super
+SUPER_ADMIN_PRENOM=Admin
+SUPER_ADMIN_EMAIL=superadmin@example.com
+SUPER_ADMIN_PASSWORD=change_this_password
+```
+
+Puis lancer :
+
+```bash
+cd backend
+npm run create-super-admin
+```
+
+Ensuite, se connecter depuis l'interface avec ce compte.
+
+Ne mettez jamais de vrais identifiants sensibles dans le README.
+
+## Test rapide Super Admin
+
+1. Creer le super administrateur avec le script.
+2. Se connecter avec ce compte.
+3. Ouvrir `/super-admin`.
+4. Ouvrir `Gestion des administrateurs`.
+5. Creer un admin.
+6. Desactiver puis reactiver un admin.
+7. Verifier qu'un admin desactive ne peut plus se connecter.
+8. Verifier qu'un admin normal ne peut pas ouvrir `/super-admin`.
 
 ## Structure utile
 
-- `src/App.jsx` : routes et etat global
-- `src/pages/Auth/` : connexion, inscription et confirmation
-- `src/pages/Student/` : parcours etudiant
-- `src/pages/Admin/` : espace admin
-- `src/legacy/` : anciens ecrans conserves hors du parcours actif
-- `archives/` : anciens fichiers sortis de `src`
-- `src/components/` : composants partages
-- `src/utils/` : helpers frontend
+- `src/App.jsx` : routes et protection frontend par role.
+- `src/pages/Auth/` : connexion, inscription et confirmation.
+- `src/pages/Student/` : parcours etudiant.
+- `src/pages/Admin/` : espace administrateur.
+- `src/pages/SuperAdmin/` : espace super administrateur.
+- `src/services/` : appels API frontend.
+- `backend/routes/` : routes Express.
+- `backend/controllers/` : logique des routes.
+- `backend/models/` : acces MySQL.

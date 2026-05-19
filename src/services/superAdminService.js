@@ -52,8 +52,3 @@ export async function getSuperAdminDashboard() {
     stats: dashboard.stats || {},
   };
 }
-
-export const listManagedAdmins = getAdmins;
-export const createManagedAdmin = createAdmin;
-export const updateManagedAdmin = updateAdmin;
-export const updateManagedAdminStatus = updateAdminStatus;
