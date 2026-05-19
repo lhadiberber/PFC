@@ -215,6 +215,16 @@ function getMenuItems(t, role) {
     return adminMenu;
   }
 
+  const adminAccessMenu = [
+    {
+      ...adminMenu[0].items[0],
+      label: "Acces espace admin",
+    },
+    ...adminMenu[0].items.filter((item) =>
+      ["candidatures", "etudiants", "documents"].includes(item.id)
+    ),
+  ];
+
   return [
     {
       section: "Super admin",
@@ -235,7 +245,7 @@ function getMenuItems(t, role) {
     },
     {
       section: "Espace admin",
-      items: adminMenu[0].items,
+      items: adminAccessMenu,
     },
   ];
 }

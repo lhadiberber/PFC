@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import LanguageSelector from "./LanguageSelector";
 import { useLanguage } from "../context/LanguageContext";
-import { clearAuthSession } from "../services/authService";
+import { clearAuthSession, getAuthSession } from "../services/authService";
 import "../index.css";
 
 function getStoredSidebarCollapsed() {
@@ -105,6 +105,8 @@ export default function Navbar() {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
+  const session = getAuthSession();
+  const userRole = session?.role;
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => getStoredSidebarCollapsed());
   const [profileData, setProfileData] = useState({
     prenom: "",
@@ -124,7 +126,15 @@ export default function Navbar() {
           nom: parsedProfile?.nom || "",
           email: parsedProfile?.email || "",
         });
+        return;
       }
+
+      const sessionUser = getAuthSession()?.user;
+      setProfileData({
+        prenom: sessionUser?.prenom || "",
+        nom: sessionUser?.nom || "",
+        email: sessionUser?.email || "",
+      });
     } catch (_error) {
       setProfileData({ prenom: "", nom: "", email: "" });
     }
@@ -147,7 +157,7 @@ export default function Navbar() {
     navigate("/login", { replace: true });
   };
 
-  if (hideNavbar) {
+  if (hideNavbar || userRole !== "student") {
     return null;
   }
 
