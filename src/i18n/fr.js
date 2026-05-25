@@ -12,117 +12,142 @@ const fr = {
   home: {
     nav: {
       home: "Accueil",
-      universities: "Universites",
+      universities: "Universités",
       programs: "Formations",
       help: "Aide",
     },
     loginButton: "Connexion",
     loginMenu: {
       submit: "Se connecter",
-      createAccount: "Creer un compte",
-      invalidCredentials: "Email ou mot de passe incorrect",
+      createAccount: "Créer un compte",
+      invalidCredentials: "Email ou mot de passe incorrect.",
     },
     hero: {
-      badge: "Plateforme nationale d'admission",
-      title: "Votre parcours vers l'enseignement superieur commence ici",
+      badge: "Plateforme universitaire d'admission",
+      title: "Préparez votre admission universitaire en ligne",
       subtitle:
-        "Deposez votre candidature dans les meilleures universites et suivez son evolution en temps reel.",
-      createAccount: "Creer mon compte",
-      existingAccount: "J'ai deja un compte",
+        "Créez votre dossier, choisissez vos formations et suivez l'avancement de votre candidature depuis un seul espace.",
+      createAccount: "Créer mon compte",
+      existingAccount: "J'ai déjà un compte",
       stats: {
-        students: "Etudiants",
-        universities: "Universites",
+        students: "Étudiants",
+        universities: "Universités",
         applications: "Candidatures",
       },
     },
     steps: {
-      title: "Comment deposer ma candidature ?",
-      subtitle: "4 etapes simples pour soumettre votre dossier",
+      title: "Comment déposer votre candidature ?",
+      subtitle: "Un parcours simple pour préparer et envoyer votre dossier.",
       items: [
         {
           number: "01",
-          title: "Creer mon compte",
+          title: "Créer un compte",
           description:
-            "Inscrivez-vous en quelques clics avec vos informations personnelles.",
+            "Inscrivez-vous avec vos informations personnelles et gardez l'accès à votre dossier.",
         },
         {
           number: "02",
-          title: "Remplir mon dossier",
+          title: "Compléter le dossier",
           description:
-            "Completez vos informations academiques et telechargez vos documents.",
+            "Ajoutez vos informations académiques et les documents demandés.",
         },
         {
           number: "03",
-          title: "Choisir mes formations",
-          description: "Selectionnez jusqu'a 3 universites et formations ciblees.",
+          title: "Choisir les formations",
+          description:
+            "Sélectionnez les universités et formations qui correspondent à votre projet.",
         },
         {
           number: "04",
-          title: "Suivre ma candidature",
+          title: "Suivre la candidature",
           description:
-            "Consultez l'etat d'avancement de votre dossier en temps reel.",
+            "Consultez l'état de votre dossier et les décisions depuis votre espace étudiant.",
         },
       ],
     },
     universities: {
-      title: "Universites partenaires",
-      subtitle: "Decouvrez les etablissements d'enseignement superieur",
+      title: "Universités partenaires",
+      subtitle: "Quelques établissements disponibles sur la plateforme.",
       items: [
         {
           badge: "Public",
-          title: "Universite d'Alger",
+          title: "Université d'Alger",
           description:
-            "La plus grande universite du pays avec plus de 100 000 etudiants.",
+            "Un grand établissement public avec une offre large de formations.",
           stats: ["150+ formations", "Alger"],
         },
         {
           badge: "Public",
-          title: "Universite d'Oran",
-          description: "Excellence en sciences, techniques et medecine.",
+          title: "Université d'Oran",
+          description: "Un pôle reconnu en sciences, technologies et médecine.",
           stats: ["120+ formations", "Oran"],
         },
         {
           badge: "Public",
-          title: "Universite Constantine 3",
-          description: "Tradition academique reconnue depuis 1975.",
+          title: "Université Constantine 3",
+          description: "Un établissement orienté vers les parcours spécialisés.",
           stats: ["90+ formations", "Constantine"],
         },
         {
           badge: "Public",
-          title: "Universite Annaba",
+          title: "Université d'Annaba",
           description:
-            "Universite moderne et innovante en sciences de l'ingenieur.",
+            "Une université active dans les sciences appliquées et l'ingénierie.",
           stats: ["80+ formations", "Annaba"],
+        },
+      ],
+    },
+    programs: {
+      title: "Formations proposées",
+      subtitle: "Choisissez une formation adaptée à votre niveau et à votre projet.",
+      items: [
+        {
+          level: "Licence",
+          title: "Sciences et technologies",
+          description:
+            "Parcours en informatique, mathématiques, physique et sciences de l'ingénieur.",
+        },
+        {
+          level: "Licence / Master",
+          title: "Économie et gestion",
+          description:
+            "Formations en économie, management, finance et commerce.",
+        },
+        {
+          level: "Master",
+          title: "Santé et sciences de la vie",
+          description:
+            "Parcours liés à la biologie, à la santé publique et aux sciences médicales.",
         },
       ],
     },
     calendar: {
       title: "Calendrier d'admission",
-      subtitle: "Les dates cles de la campagne d'admission 2026",
+      subtitle: "Les dates clés de la campagne d'admission 2026.",
       phases: [
         {
           markerClass: "phase-jan",
-          date: "15 Janvier 2026",
+          date: "15 janvier 2026",
           title: "Ouverture des inscriptions",
-          description: "Debut de la campagne de candidature",
+          description: "Début de la campagne de candidature.",
         },
         {
           markerClass: "phase-mar",
-          date: "30 Mars 2026",
+          date: "30 mars 2026",
           title: "Date limite",
-          description: "Cloture des inscriptions",
+          description: "Clôture du dépôt des dossiers.",
         },
         {
           markerClass: "phase-avril",
-          date: "Avril - Mai 2026",
-          title: "Traitement",
-          description: "Analyse des dossiers par les universites",
+          date: "Avril - mai 2026",
+          title: "Étude des dossiers",
+          description: "Analyse des candidatures par les universités.",
         },
         {
           markerClass: "phase-juin",
-          date: "10 Juin 2026",
-          title: "Resultats",
-          description: "Publication des admissions",
+          date: "10 juin 2026",
+          title: "Résultats",
+          description: "Publication des décisions d'admission.",
         },
       ],
     },
@@ -130,70 +155,70 @@ const fr = {
       items: [
         {
           title: "Simple et rapide",
-          description: "Deposez votre dossier en 15 minutes depuis chez vous.",
+          description: "Déposez votre dossier depuis un espace clair et guidé.",
         },
         {
-          title: "Securise",
-          description: "Vos donnees personnelles sont cryptees et protegees.",
+          title: "Sécurisé",
+          description: "Vos informations restent associées à votre compte personnel.",
         },
         {
-          title: "Temps reel",
-          description: "Suivez l'evolution de votre candidature 24h/24.",
+          title: "Suivi en ligne",
+          description: "Consultez l'évolution de votre candidature à tout moment.",
         },
         {
           title: "Assistance",
-          description: "Une equipe disponible pour repondre a vos questions.",
+          description: "Retrouvez les réponses utiles dans la rubrique d'aide.",
         },
       ],
     },
     faq: {
-      title: "Questions frequentes",
-      subtitle: "Tout ce que vous devez savoir",
+      title: "Aide et questions fréquentes",
+      subtitle: "Les réponses utiles avant de commencer votre dossier.",
       items: [
         {
-          question: "Comment creer un compte ?",
+          question: "Comment créer un compte ?",
           answer:
-            "Cliquez sur 'Creer mon compte' et remplissez le formulaire avec vos informations personnelles.",
+            "Cliquez sur 'Créer mon compte', puis remplissez le formulaire d'inscription.",
         },
         {
           question: "Quels documents dois-je fournir ?",
           answer:
-            "Vous aurez besoin de votre piece d'identite, de votre diplome le plus eleve, de vos releves de notes et d'une photo d'identite recente.",
+            "Préparez votre pièce d'identité, votre diplôme, vos relevés de notes et une photo récente.",
         },
         {
           question: "Combien de formations puis-je choisir ?",
           answer:
-            "Vous pouvez selectionner jusqu'a 3 formations dans des universites differentes ou identiques.",
+            "Vous pouvez choisir plusieurs formations selon les règles définies par la plateforme.",
         },
         {
           question: "Comment suivre ma candidature ?",
           answer:
-            "Connectez-vous a votre espace personnel pour voir le statut de votre dossier en temps reel.",
+            "Connectez-vous à votre espace étudiant pour consulter le statut de votre dossier.",
         },
       ],
     },
     cta: {
-      title: "Pret a commencer votre parcours ?",
-      subtitle: "Creez votre compte des maintenant et deposez votre candidature.",
-      button: "Creer mon compte",
+      title: "Prêt à préparer votre dossier ?",
+      subtitle: "Créez votre compte et commencez votre candidature en ligne.",
+      button: "Créer mon compte",
     },
     footer: {
-      description: "La plateforme nationale d'admission a l'enseignement superieur.",
+      description: "La plateforme universitaire d'admission à l'enseignement supérieur.",
       columns: [
         {
           title: "Plateforme",
-          links: ["Accueil", "Universites", "Formations"],
+          links: ["Accueil", "Universités", "Formations"],
         },
         {
           title: "Aide",
           links: ["FAQ", "Contact", "Support"],
         },
         {
-          title: "Legal",
-          links: ["Mentions legales", "Confidentialite", "CGU"],
+          title: "Légal",
+          links: ["Mentions légales", "Confidentialité", "CGU"],
         },
       ],
-      copyright: "© 2026 PFC Admissions - Tous droits reserves",
+      copyright: "© 2026 PFC Admissions - Tous droits réservés",
     },
   },
   auth: {

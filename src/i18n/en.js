@@ -93,6 +93,29 @@ const en = {
         },
       ],
     },
+    programs: {
+      title: "Available programs",
+      subtitle: "Choose a program based on your level and study plans.",
+      items: [
+        {
+          level: "Bachelor",
+          title: "Science and technology",
+          description:
+            "Programs in computer science, mathematics, physics and engineering sciences.",
+        },
+        {
+          level: "Bachelor / Master",
+          title: "Economics and management",
+          description: "Programs in economics, management, finance and business.",
+        },
+        {
+          level: "Master",
+          title: "Health and life sciences",
+          description:
+            "Programs related to biology, public health and medical sciences.",
+        },
+      ],
+    },
     calendar: {
       title: "Admissions calendar",
       subtitle: "Key dates for the 2026 admissions campaign",

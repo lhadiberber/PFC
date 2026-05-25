@@ -33,10 +33,10 @@ export default function Home() {
 
   const navItems = useMemo(
     () => [
-      home.nav.home,
-      home.nav.universities,
-      home.nav.programs,
-      home.nav.help,
+      { label: home.nav.home, target: "accueil" },
+      { label: home.nav.universities, target: "universites" },
+      { label: home.nav.programs, target: "formations" },
+      { label: home.nav.help, target: "aide" },
     ],
     [home.nav.help, home.nav.home, home.nav.programs, home.nav.universities]
   );
@@ -68,6 +68,13 @@ export default function Home() {
     setLoginError(t("home.loginMenu.invalidCredentials"));
   };
 
+  const scrollToSection = (event, targetId) => {
+    event.preventDefault();
+    document
+      .getElementById(targetId)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <div className="campus-landing">
       <header className="campus-header">
@@ -81,13 +88,14 @@ export default function Home() {
 
           <nav className="campus-nav">
             {navItems.map((item, index) => (
-              <Link
-                key={item}
-                to="/"
+              <a
+                key={item.target}
+                href={`#${item.target}`}
+                onClick={(event) => scrollToSection(event, item.target)}
                 className={`campus-nav-link ${index === 0 ? "active" : ""}`.trim()}
               >
-                {item}
-              </Link>
+                {item.label}
+              </a>
             ))}
           </nav>
 
@@ -165,7 +173,7 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="campus-hero">
+      <section id="accueil" className="campus-hero">
         <div className="campus-hero-bg"></div>
         <div className="campus-hero-container">
           <div className="campus-hero-content">
@@ -231,7 +239,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="campus-universities">
+      <section id="universites" className="campus-universities">
         <div className="campus-section-container">
           <div className="campus-section-header">
             <h2>{home.universities.title}</h2>
@@ -251,6 +259,25 @@ export default function Home() {
                     <span key={stat}>{stat}</span>
                   ))}
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="formations" className="campus-programs">
+        <div className="campus-section-container">
+          <div className="campus-section-header">
+            <h2>{home.programs.title}</h2>
+            <p>{home.programs.subtitle}</p>
+          </div>
+
+          <div className="campus-programs-grid">
+            {home.programs.items.map((item) => (
+              <div key={item.title} className="campus-program-card">
+                <span className="program-level">{item.level}</span>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
               </div>
             ))}
           </div>
@@ -298,7 +325,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="campus-faq">
+      <section id="aide" className="campus-faq">
         <div className="campus-section-container">
           <div className="campus-section-header">
             <h2>{home.faq.title}</h2>
