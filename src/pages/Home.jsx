@@ -21,6 +21,12 @@ const featureIcons = [
   </svg>,
 ];
 
+const footerLinkTargets = [
+  ["accueil", "universites", "formations", "aide"],
+  ["contact", "aide"],
+  ["mentions-legales", "confidentialite", "cgu"],
+];
+
 export default function Home() {
   const { messages, t } = useLanguage();
   const home = messages.home;
@@ -353,6 +359,23 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="campus-footer-info">
+        <div className="campus-section-container">
+          <div className="campus-footer-info-grid">
+            {home.footer.infoSections.map((item) => (
+              <article
+                key={item.id}
+                id={item.id}
+                className="campus-footer-info-card"
+              >
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <footer className="campus-footer">
         <div className="campus-footer-container">
           <div className="campus-footer-top">
@@ -365,14 +388,23 @@ export default function Home() {
             </div>
 
             <div className="campus-footer-links">
-              {home.footer.columns.map((column) => (
+              {home.footer.columns.map((column, columnIndex) => (
                 <div key={column.title} className="footer-column">
                   <h4>{column.title}</h4>
-                  {column.links.map((link) => (
-                    <a key={link} href="/">
-                      {link}
-                    </a>
-                  ))}
+                  {column.links.map((link, linkIndex) => {
+                    const targetId =
+                      footerLinkTargets[columnIndex]?.[linkIndex] ?? "accueil";
+
+                    return (
+                      <a
+                        key={link}
+                        href={`#${targetId}`}
+                        onClick={(event) => scrollToSection(event, targetId)}
+                      >
+                        {link}
+                      </a>
+                    );
+                  })}
                 </div>
               ))}
             </div>

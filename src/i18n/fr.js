@@ -207,15 +207,41 @@ const fr = {
       columns: [
         {
           title: "Plateforme",
-          links: ["Accueil", "Universités", "Formations"],
+          links: ["Accueil", "Universités", "Formations", "Aide"],
         },
         {
-          title: "Aide",
-          links: ["FAQ", "Contact", "Support"],
+          title: "FAQ",
+          links: ["Contact", "Support"],
         },
         {
           title: "Légal",
           links: ["Mentions légales", "Confidentialité", "CGU"],
+        },
+      ],
+      infoSections: [
+        {
+          id: "contact",
+          title: "Contact",
+          description:
+            "Pour toute question concernant votre dossier, vous pouvez contacter le service des admissions de votre établissement.",
+        },
+        {
+          id: "mentions-legales",
+          title: "Mentions légales",
+          description:
+            "Cette plateforme est réalisée dans le cadre d'un projet de fin d'études. Elle vise à faciliter la gestion des admissions universitaires.",
+        },
+        {
+          id: "confidentialite",
+          title: "Confidentialité",
+          description:
+            "Les informations saisies sont utilisées uniquement pour le suivi des candidatures et la gestion des dossiers.",
+        },
+        {
+          id: "cgu",
+          title: "CGU",
+          description:
+            "L'utilisation de la plateforme implique le respect des informations fournies et des procédures d'admission définies par l'établissement.",
         },
       ],
       copyright: "© 2026 PFC Admissions - Tous droits réservés",

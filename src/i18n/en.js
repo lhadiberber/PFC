@@ -202,15 +202,41 @@ const en = {
       columns: [
         {
           title: "Platform",
-          links: ["Home", "Universities", "Programs"],
+          links: ["Home", "Universities", "Programs", "Help"],
         },
         {
-          title: "Help",
-          links: ["FAQ", "Contact", "Support"],
+          title: "FAQ",
+          links: ["Contact", "Support"],
         },
         {
           title: "Legal",
           links: ["Legal notice", "Privacy", "Terms"],
+        },
+      ],
+      infoSections: [
+        {
+          id: "contact",
+          title: "Contact",
+          description:
+            "For any question about your file, please contact the admissions office of your institution.",
+        },
+        {
+          id: "mentions-legales",
+          title: "Legal notice",
+          description:
+            "This platform was created as part of a final-year project. Its purpose is to support university admissions management.",
+        },
+        {
+          id: "confidentialite",
+          title: "Privacy",
+          description:
+            "The information entered is used only to track applications and manage admission files.",
+        },
+        {
+          id: "cgu",
+          title: "Terms of use",
+          description:
+            "Using the platform requires respecting the information provided and the admission procedures defined by the institution.",
         },
       ],
       copyright: "© 2026 PFC Admissions - All rights reserved",

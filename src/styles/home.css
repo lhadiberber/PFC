@@ -20,7 +20,8 @@
 .campus-programs,
 .campus-calendar,
 .campus-features,
-.campus-faq {
+.campus-faq,
+.campus-footer-info-card {
   scroll-margin-top: 80px
 }
 
@@ -879,6 +880,40 @@
   font-size: 16px
 }
 
+/* Informations du footer */
+
+.campus-footer-info {
+  background: var(--bg-light)
+}
+
+.campus-footer-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px
+}
+
+.campus-footer-info-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 15px #0000000d
+}
+
+.campus-footer-info-card h3 {
+  color: var(--primary-color);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 10px
+}
+
+.campus-footer-info-card p {
+  color: var(--text-gray);
+  font-size: .9rem;
+  line-height: 1.6;
+  margin: 0
+}
+
 /* Pied de page */
 
 .campus-footer {
@@ -976,6 +1011,7 @@
   .campus-steps-grid,
   .campus-universities-grid,
   .campus-programs-grid,
+  .campus-footer-info-grid,
   .campus-features-grid {
     grid-template-columns: repeat(2, 1fr)
   }
@@ -1021,6 +1057,7 @@
   .campus-steps-grid,
   .campus-universities-grid,
   .campus-programs-grid,
+  .campus-footer-info-grid,
   .campus-features-grid,
   .campus-faq-grid {
     grid-template-columns: 1fr
