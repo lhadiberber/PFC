@@ -2,10 +2,14 @@ import bcrypt from "bcrypt";
 import {
   createAdmin,
   findAdmins,
+  findUsers,
   findUserByEmailForAdminManagement,
   findUserForAdminManagement,
+  getSuperAdminStats,
   updateAdminInfo,
   updateAdminStatus,
+  updateUserRole,
+  updateUserStatus,
 } from "../models/superAdmin.model.js";
 import { normalizeEmail } from "../models/user.model.js";
 
@@ -28,6 +32,23 @@ function isManagedAdmin(user) {
   return user && user.role === "admin";
 }
 
+function isManagedAccount(user) {
+  return user && user.role !== "super_admin";
+}
+
+export async function getSuperAdminDashboard(_request, response, next) {
+  try {
+    const stats = await getSuperAdminStats();
+
+    response.json({
+      success: true,
+      stats,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function listAdmins(_request, response, next) {
   try {
     const admins = await findAdmins();
@@ -35,6 +56,19 @@ export async function listAdmins(_request, response, next) {
     response.json({
       success: true,
       admins,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listUsers(_request, response, next) {
+  try {
+    const users = await findUsers();
+
+    response.json({
+      success: true,
+      users,
     });
   } catch (error) {
     next(error);
@@ -198,6 +232,85 @@ export async function updateAdminController(request, response, next) {
       return;
     }
 
+    next(error);
+  }
+}
+
+export async function updateUserRoleController(request, response, next) {
+  try {
+    if (Number(request.params.id) === Number(request.user.id)) {
+      response.status(403).json({
+        success: false,
+        message: "Vous ne pouvez pas modifier votre propre role.",
+      });
+      return;
+    }
+
+    const nextRole = String(request.body.role || "").trim();
+    if (!["student", "admin"].includes(nextRole)) {
+      response.status(400).json({
+        success: false,
+        message: "Role invalide.",
+      });
+      return;
+    }
+
+    const user = await findUserForAdminManagement(request.params.id);
+    if (!isManagedAccount(user)) {
+      response.status(404).json({
+        success: false,
+        message: "Utilisateur introuvable.",
+      });
+      return;
+    }
+
+    const updatedUser = await updateUserRole(request.params.id, nextRole);
+
+    response.json({
+      success: true,
+      message: "Modification enregistree.",
+      user: updatedUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateUserStatusController(request, response, next) {
+  try {
+    if (Number(request.params.id) === Number(request.user.id)) {
+      response.status(403).json({
+        success: false,
+        message: "Vous ne pouvez pas desactiver votre propre compte.",
+      });
+      return;
+    }
+
+    if (typeof request.body.is_active !== "boolean") {
+      response.status(400).json({
+        success: false,
+        message: "Statut invalide.",
+      });
+      return;
+    }
+
+    const user = await findUserForAdminManagement(request.params.id);
+    if (!isManagedAccount(user)) {
+      response.status(404).json({
+        success: false,
+        message: "Utilisateur introuvable.",
+      });
+      return;
+    }
+
+    const updatedUser = await updateUserStatus(request.params.id, request.body.is_active);
+
+    response.json({
+      success: true,
+      message: "Modification enregistree.",
+      user: updatedUser,
+    });
+  } catch (error) {
     next(error);
   }
 }

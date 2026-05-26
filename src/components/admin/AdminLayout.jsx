@@ -27,6 +27,8 @@ function getStoredSidebarCollapsed() {
 
 function getActiveMenu(pathname) {
   if (pathname.startsWith("/super-admin/admins")) return "super-admin-admins";
+  if (pathname.startsWith("/super-admin/users")) return "super-admin-users";
+  if (pathname.startsWith("/super-admin/profil")) return "super-admin-profile";
   if (pathname.startsWith("/super-admin")) return "super-admin-dashboard";
   if (pathname.startsWith("/admin/candidatures")) return "candidatures";
   if (pathname.startsWith("/admin/etudiants")) return "etudiants";
@@ -218,7 +220,7 @@ function getMenuItems(t, role) {
   const adminAccessMenu = [
     {
       ...adminMenu[0].items[0],
-      label: "Acces espace admin",
+      label: "Accès espace admin",
     },
     ...adminMenu[0].items.filter((item) =>
       ["candidatures", "etudiants", "documents"].includes(item.id)
@@ -240,6 +242,18 @@ function getMenuItems(t, role) {
           label: "Gestion des administrateurs",
           icon: "students",
           path: "/super-admin/admins",
+        },
+        {
+          id: "super-admin-users",
+          label: "Utilisateurs",
+          icon: "students",
+          path: "/super-admin/users",
+        },
+        {
+          id: "super-admin-profile",
+          label: "Profil",
+          icon: "profile",
+          path: "/super-admin/profil",
         },
       ],
     },
@@ -276,12 +290,16 @@ export default function AdminLayout({
     documentsManquants: 0,
   });
 
-  const userRole = getAuthSession()?.role || "";
+  const session = getAuthSession();
+  const sessionUser = session?.user || {};
+  const sessionName = `${sessionUser.prenom || ""} ${sessionUser.nom || ""}`.trim();
+  const userRole = session?.role || "";
   const menuItems = useMemo(() => getMenuItems(t, userRole), [t, userRole]);
   const activeMenu = getActiveMenu(location.pathname);
 
-  const operatorName = adminProfile?.fullName || t("adminLayout.defaultOperator");
-  const operatorRole = adminProfile?.role || t("adminLayout.defaultRole");
+  const operatorName = adminProfile?.fullName || sessionName || t("adminLayout.defaultOperator");
+  const operatorRole =
+    userRole === "super_admin" ? "Super administrateur" : adminProfile?.role || t("adminLayout.defaultRole");
   const operatorInitials = buildInitials(operatorName);
   const formattedDate = currentTime.toLocaleDateString(locale, {
     year: "numeric",

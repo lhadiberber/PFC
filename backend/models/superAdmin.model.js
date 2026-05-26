@@ -2,6 +2,7 @@ import { pool } from "../config/db.js";
 import { normalizeEmail } from "./user.model.js";
 
 const ADMIN_FIELDS = "id, nom, prenom, email, role, is_active, created_at";
+const USER_FIELDS = "id, nom, prenom, email, role, is_active, created_at";
 
 function normalizeAdmin(row) {
   if (!row) {
@@ -19,6 +20,54 @@ function normalizeAdmin(row) {
   };
 }
 
+function normalizeUser(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    nom: row.nom || "",
+    prenom: row.prenom || "",
+    email: row.email || "",
+    role: row.role || "student",
+    is_active: Boolean(row.is_active),
+    created_at: row.created_at,
+  };
+}
+
+async function countQuery(sql, params = []) {
+  const [rows] = await pool.execute(sql, params);
+  return Number(rows[0]?.total || 0);
+}
+
+export async function getSuperAdminStats() {
+  const [
+    totalAdmins,
+    adminsActifs,
+    adminsDesactives,
+    totalUtilisateurs,
+    totalEtudiants,
+    totalCandidatures,
+  ] = await Promise.all([
+    countQuery("SELECT COUNT(*) AS total FROM users WHERE role = 'admin'"),
+    countQuery("SELECT COUNT(*) AS total FROM users WHERE role = 'admin' AND is_active = 1"),
+    countQuery("SELECT COUNT(*) AS total FROM users WHERE role = 'admin' AND is_active = 0"),
+    countQuery("SELECT COUNT(*) AS total FROM users"),
+    countQuery("SELECT COUNT(*) AS total FROM users WHERE role = 'student'"),
+    countQuery("SELECT COUNT(*) AS total FROM applications"),
+  ]);
+
+  return {
+    totalAdmins,
+    adminsActifs,
+    adminsDesactives,
+    totalUtilisateurs,
+    totalEtudiants,
+    totalCandidatures,
+  };
+}
+
 export async function findAdmins() {
   const [rows] = await pool.execute(
     `SELECT ${ADMIN_FIELDS}
@@ -28,6 +77,16 @@ export async function findAdmins() {
   );
 
   return rows.map(normalizeAdmin);
+}
+
+export async function findUsers() {
+  const [rows] = await pool.execute(
+    `SELECT ${USER_FIELDS}
+     FROM users
+     ORDER BY created_at DESC, id DESC`
+  );
+
+  return rows.map(normalizeUser);
 }
 
 export async function findUserForAdminManagement(id) {
@@ -93,6 +152,32 @@ export async function updateAdminInfo(id, { nom, prenom, email }) {
       normalizeEmail(email),
       id,
     ]
+  );
+
+  if (updateResult.affectedRows === 0) {
+    return null;
+  }
+
+  return findUserForAdminManagement(id);
+}
+
+export async function updateUserRole(id, role) {
+  const [updateResult] = await pool.execute(
+    "UPDATE users SET role = ? WHERE id = ? AND role <> 'super_admin'",
+    [role, id]
+  );
+
+  if (updateResult.affectedRows === 0) {
+    return null;
+  }
+
+  return findUserForAdminManagement(id);
+}
+
+export async function updateUserStatus(id, isActive) {
+  const [updateResult] = await pool.execute(
+    "UPDATE users SET is_active = ? WHERE id = ? AND role <> 'super_admin'",
+    [isActive ? 1 : 0, id]
   );
 
   if (updateResult.affectedRows === 0) {

@@ -25,6 +25,8 @@ import MesCandidatures from "./pages/Student/MesCandidatures";
 import Profil from "./pages/Student/Profil";
 import SuperAdminDashboard from "./pages/SuperAdmin/SuperAdminDashboard.jsx";
 import AdminsManagement from "./pages/SuperAdmin/AdminsManagement.jsx";
+import UsersManagement from "./pages/SuperAdmin/UsersManagement.jsx";
+import SuperAdminProfile from "./pages/SuperAdmin/SuperAdminProfile.jsx";
 import Navbar from "./components/Navbar";
 import ToastContainer from "./components/Toast";
 import { useAdmissions } from "./context/AdmissionsContext";
@@ -141,6 +143,8 @@ function AppContent() {
           <Route path="/admin/profil" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><ProfilAdmin /></ProtectedRoute>} />
           <Route path="/super-admin" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminDashboard /></ProtectedRoute>} />
           <Route path="/super-admin/admins" element={<ProtectedRoute allowedRoles={["super_admin"]}><AdminsManagement /></ProtectedRoute>} />
+          <Route path="/super-admin/users" element={<ProtectedRoute allowedRoles={["super_admin"]}><UsersManagement /></ProtectedRoute>} />
+          <Route path="/super-admin/profil" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminProfile /></ProtectedRoute>} />
 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

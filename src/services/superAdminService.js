@@ -5,6 +5,11 @@ export async function getAdmins() {
   return response.admins || [];
 }
 
+export async function getUsers() {
+  const response = await apiRequest("/super-admin/users");
+  return response.users || [];
+}
+
 export async function createAdmin(adminData) {
   const response = await apiRequest("/super-admin/admins", {
     method: "POST",
@@ -41,14 +46,25 @@ export async function updateAdminStatus(id, isActive) {
   return response.admin || null;
 }
 
-export async function getSuperAdminDashboard() {
-  const [admins, dashboard] = await Promise.all([
-    getAdmins(),
-    apiRequest("/admin/dashboard"),
-  ]);
+export async function updateUserRole(id, role) {
+  const response = await apiRequest(`/super-admin/users/${id}/role`, {
+    method: "PATCH",
+    body: { role },
+  });
 
-  return {
-    admins,
-    stats: dashboard.stats || {},
-  };
+  return response.user || null;
+}
+
+export async function updateUserStatus(id, isActive) {
+  const response = await apiRequest(`/super-admin/users/${id}/status`, {
+    method: "PATCH",
+    body: { is_active: isActive },
+  });
+
+  return response.user || null;
+}
+
+export async function getSuperAdminDashboard() {
+  const response = await apiRequest("/super-admin/dashboard");
+  return response.stats || {};
 }

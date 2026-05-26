@@ -8,73 +8,79 @@ import "../../index.css";
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
-  const [admins, setAdmins] = useState([]);
   const [platformStats, setPlatformStats] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   const dashboardData = useMemo(() => {
-    const active = admins.filter((admin) => admin.is_active).length;
+    const totalAdmins = Number(platformStats.totalAdmins || 0);
+    const active = Number(platformStats.adminsActifs || 0);
+    const inactive = Number(platformStats.adminsDesactives || 0);
+    const totalUsers = Number(platformStats.totalUtilisateurs || 0);
     const totalStudents = Number(platformStats.totalEtudiants || 0);
     const totalApplications = Number(platformStats.totalCandidatures || 0);
-    const pendingApplications = Number(platformStats.enAttente || 0);
-    const pendingDocuments = Number(platformStats.documentsEnAttente || 0);
 
     return {
       cards: [
         {
           label: "Administrateurs",
-          value: admins.length,
-          helper: "Comptes admin crees",
+          value: totalAdmins,
+          helper: "Comptes admin créés",
           tone: "info",
         },
         {
           label: "Admins actifs",
           value: active,
-          helper: "Acces autorise",
+          helper: "Accès autorisé",
           tone: "positive",
         },
         {
-          label: "Admins desactives",
-          value: admins.length - active,
-          helper: "Connexion bloquee",
+          label: "Admins désactivés",
+          value: inactive,
+          helper: "Connexion bloquée",
           tone: "warning",
         },
         {
-          label: "Etudiants",
+          label: "Utilisateurs",
+          value: totalUsers,
+          helper: "Comptes inscrits",
+          tone: "neutral",
+        },
+        {
+          label: "Étudiants",
           value: totalStudents,
-          helper: "Comptes etudiants",
+          helper: "Comptes étudiants",
           tone: "neutral",
         },
         {
           label: "Candidatures",
           value: totalApplications,
-          helper: "Dossiers deposes",
+          helper: "Dossiers déposés",
           tone: "info",
         },
       ],
       watchItems: [
         {
-          label: "Admins desactives",
-          value: admins.length - active,
-          helper: "A reactiver si besoin",
-          tone: admins.length - active > 0 ? "warning" : "positive",
+          label: "Admins désactivés",
+          value: inactive,
+          helper: "À réactiver si besoin",
+          tone: inactive > 0 ? "warning" : "positive",
         },
         {
-          label: "Candidatures en attente",
-          value: pendingApplications,
-          helper: "A traiter dans l'espace admin",
-          tone: pendingApplications > 0 ? "warning" : "positive",
+          label: "Utilisateurs inscrits",
+          value: totalUsers,
+          helper: "À suivre depuis la gestion des comptes",
+          tone: "info",
         },
         {
-          label: "Documents en attente",
-          value: pendingDocuments,
-          helper: "A verifier par l'administration",
-          tone: pendingDocuments > 0 ? "warning" : "positive",
+          label: "Candidatures déposées",
+          value: totalApplications,
+          helper: "À traiter dans l'espace admin",
+          tone: totalApplications > 0 ? "warning" : "positive",
         },
       ],
     };
-  }, [admins, platformStats]);
+  }, [platformStats]);
 
   useEffect(() => {
     let isActive = true;
@@ -87,8 +93,7 @@ export default function SuperAdminDashboard() {
         const dashboard = await getSuperAdminDashboard();
 
         if (isActive) {
-          setAdmins(dashboard.admins);
-          setPlatformStats(dashboard.stats);
+          setPlatformStats(dashboard);
         }
       } catch (loadError) {
         if (isActive) {
@@ -96,12 +101,12 @@ export default function SuperAdminDashboard() {
             clearAuthSession();
             navigate("/login", {
               replace: true,
-              state: { message: "Session expiree. Veuillez vous reconnecter." },
+              state: { message: "Session expirée. Veuillez vous reconnecter." },
             });
             return;
           }
 
-          setError(loadError.message || "Impossible de charger les donnees du tableau de bord.");
+          setError(loadError.message || "Impossible de charger les données du tableau de bord.");
         }
       } finally {
         if (isActive) {
@@ -120,7 +125,7 @@ export default function SuperAdminDashboard() {
   return (
     <AdminLayout
       title="Espace super administrateur"
-      subtitle="Gerez les administrateurs et suivez l'activite globale de la plateforme."
+      subtitle="Gérez les administrateurs, les comptes et l'activité globale de la plateforme."
       showSearch={false}
     >
       {error ? (
@@ -145,7 +150,7 @@ export default function SuperAdminDashboard() {
       <section className="admin-card">
         <div className="admin-card-header">
           <div>
-            <span className="admin-page-context info">Acces reserve</span>
+            <span className="admin-page-context info">Accès réservé</span>
             <h2>Super administrateur</h2>
             <p>Retrouvez les raccourcis utiles pour piloter la plateforme.</p>
           </div>
@@ -154,7 +159,7 @@ export default function SuperAdminDashboard() {
         {isLoading ? (
           <EmptyState
             title="Chargement du tableau de bord..."
-            description="Les donnees seront disponibles dans un instant."
+            description="Les données seront disponibles dans un instant."
             className="admin-empty-state"
           />
         ) : null}
@@ -166,12 +171,21 @@ export default function SuperAdminDashboard() {
           >
             <div className="admin-quick-action-body">
               <strong>Gestion des administrateurs</strong>
-              <span>Creer, activer ou desactiver un compte admin.</span>
+              <span>Créer, activer ou désactiver un compte admin.</span>
+            </div>
+          </Link>
+          <Link
+            to="/super-admin/users"
+            className="admin-quick-action-card admin-quick-action-card-positive"
+          >
+            <div className="admin-quick-action-body">
+              <strong>Utilisateurs inscrits</strong>
+              <span>Promouvoir un étudiant ou gérer un compte.</span>
             </div>
           </Link>
           <Link to="/admin" className="admin-quick-action-card admin-quick-action-card-info">
             <div className="admin-quick-action-body">
-              <strong>Acces espace admin</strong>
+              <strong>Accès espace admin</strong>
               <span>Ouvrir le tableau de bord administrateur.</span>
             </div>
           </Link>
@@ -181,7 +195,7 @@ export default function SuperAdminDashboard() {
           >
             <div className="admin-quick-action-body">
               <strong>Voir les candidatures</strong>
-              <span>Suivre les dossiers deposes par les etudiants.</span>
+              <span>Suivre les dossiers déposés par les étudiants.</span>
             </div>
           </Link>
           <Link
@@ -190,7 +204,7 @@ export default function SuperAdminDashboard() {
           >
             <div className="admin-quick-action-body">
               <strong>Voir les documents</strong>
-              <span>Consulter les pieces envoyees par les candidats.</span>
+              <span>Consulter les pièces envoyées par les candidats.</span>
             </div>
           </Link>
         </div>
@@ -199,16 +213,16 @@ export default function SuperAdminDashboard() {
       <section className="admin-card">
         <div className="admin-card-header">
           <div>
-            <span className="admin-page-context warning">A surveiller</span>
+            <span className="admin-page-context warning">À surveiller</span>
             <h2>Points importants</h2>
-            <p>Les elements qui demandent une attention rapide.</p>
+            <p>Les éléments qui demandent une attention rapide.</p>
           </div>
         </div>
 
-        {!isLoading && admins.length === 0 && !platformStats.totalCandidatures ? (
+        {!isLoading && !platformStats.totalUtilisateurs && !platformStats.totalCandidatures ? (
           <EmptyState
-            title="Aucune donnee disponible pour le moment."
-            description="Les informations apparaitront apres la creation des premiers comptes ou dossiers."
+            title="Aucune donnée disponible pour le moment."
+            description="Les informations apparaîtront après la création des premiers comptes ou dossiers."
             className="admin-empty-state"
           />
         ) : (
