@@ -251,14 +251,16 @@
 
 .auth-register-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px 16px
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 20px 18px;
+  align-items: start
 }
 
 .auth-register-field {
   display: flex;
   flex-direction: column;
-  gap: 8px
+  gap: 8px;
+  min-width: 0
 }
 
 .auth-register-field-full {
@@ -273,6 +275,7 @@
 }
 
 .auth-register-field input {
+  box-sizing: border-box;
   width: 100%;
   min-height: 54px;
   padding: 0 16px;
