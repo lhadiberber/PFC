@@ -222,7 +222,31 @@
 .auth-register-form {
   display: flex;
   flex-direction: column;
-  gap: 20px
+  gap: 22px
+}
+
+.auth-register-helper {
+  margin: 0;
+  color: #64748b;
+  font-size: .9rem;
+  line-height: 1.5
+}
+
+.auth-register-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(26, 54, 93, .08);
+  border-radius: 20px;
+  background: #f8fafc
+}
+
+.auth-register-section h3 {
+  margin: 0;
+  color: #163a63;
+  font-size: 1rem;
+  font-weight: 800
 }
 
 .auth-register-grid {

@@ -33,6 +33,38 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+async function isRecaptchaValid(token, ip) {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+
+  if (!secret) {
+    return true;
+  }
+
+  if (!token) {
+    return false;
+  }
+
+  const params = new URLSearchParams({
+    secret,
+    response: token,
+  });
+
+  if (ip) {
+    params.append("remoteip", ip);
+  }
+
+  const verifyResponse = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: params,
+  });
+  const result = await verifyResponse.json();
+
+  return result.success === true;
+}
+
 function buildPublicUser(user) {
   return {
     id: user.id,
@@ -47,7 +79,7 @@ function buildPublicUser(user) {
 
 export async function register(request, response, next) {
   try {
-    const { nom, prenom, email, password } = request.body;
+    const { nom, prenom, email, password, recaptchaToken } = request.body;
     const nomValue = String(nom || "").trim();
     const prenomValue = String(prenom || "").trim();
     const passwordValue = String(password || "");
@@ -56,7 +88,7 @@ export async function register(request, response, next) {
     if (!nomValue || !prenomValue || !normalizedEmail || !passwordValue) {
       response.status(400).json({
         success: false,
-        message: "Nom, prenom, email et mot de passe sont obligatoires.",
+        message: "Nom, prénom, email et mot de passe sont obligatoires.",
       });
       return;
     }
@@ -72,7 +104,16 @@ export async function register(request, response, next) {
     if (passwordValue.length < 8) {
       response.status(400).json({
         success: false,
-        message: "Le mot de passe doit contenir au moins 8 caracteres.",
+        message: "Le mot de passe doit contenir au moins 8 caractères.",
+      });
+      return;
+    }
+
+    const recaptchaIsValid = await isRecaptchaValid(recaptchaToken, request.ip);
+    if (!recaptchaIsValid) {
+      response.status(400).json({
+        success: false,
+        message: "Vérification anti-robot invalide.",
       });
       return;
     }
@@ -81,7 +122,7 @@ export async function register(request, response, next) {
     if (existingUser) {
       response.status(409).json({
         success: false,
-        message: "Un compte existe deja avec cet email.",
+        message: "Cet email est déjà utilisé.",
       });
       return;
     }
@@ -98,7 +139,7 @@ export async function register(request, response, next) {
 
     response.status(201).json({
       success: true,
-      message: "Compte etudiant cree avec succes.",
+      message: "Compte étudiant créé avec succès.",
       token,
       user: buildPublicUser(user),
     });
@@ -106,7 +147,7 @@ export async function register(request, response, next) {
     if (error.code === "ER_DUP_ENTRY") {
       response.status(409).json({
         success: false,
-        message: "Un compte existe deja avec cet email.",
+        message: "Cet email est déjà utilisé.",
       });
       return;
     }

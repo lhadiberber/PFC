@@ -98,11 +98,19 @@ export default function Register() {
 
       navigate("/login", {
         state: {
-          message: "Compte cree avec succes. Vous pouvez maintenant vous connecter.",
+          message: copy.successMessage,
         },
       });
     } catch (error) {
-      setFormError(error.message || "Impossible de creer le compte pour le moment.");
+      if (error.status === 409) {
+        setFormError(copy.errors.emailUsed);
+      } else if (error.status === 429) {
+        setFormError(copy.errors.tooManyAttempts);
+      } else if (!error.status) {
+        setFormError(copy.errors.backendUnavailable);
+      } else {
+        setFormError(error.message || copy.errors.createFailed);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -149,92 +157,102 @@ export default function Register() {
                 </div>
               ) : null}
 
-              <div className="auth-register-grid">
-                <label className="auth-register-field">
-                  <span>{copy.fields.nom}</span>
-                  <input
-                    type="text"
-                    name="nom"
-                    placeholder={copy.placeholders.nom}
-                    value={formData.nom}
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                  />
-                  {errors.nom ? <small className="error-message">{errors.nom}</small> : null}
-                </label>
+              <p className="auth-register-helper">{copy.helper}</p>
 
-                <label className="auth-register-field">
-                  <span>{copy.fields.prenom}</span>
-                  <input
-                    type="text"
-                    name="prenom"
-                    placeholder={copy.placeholders.prenom}
-                    value={formData.prenom}
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                  />
-                  {errors.prenom ? (
-                    <small className="error-message">{errors.prenom}</small>
-                  ) : null}
-                </label>
+              <div className="auth-register-section">
+                <h3>{copy.sections.personal}</h3>
+                <div className="auth-register-grid">
+                  <label className="auth-register-field">
+                    <span>{copy.fields.nom}</span>
+                    <input
+                      type="text"
+                      name="nom"
+                      placeholder={copy.placeholders.nom}
+                      value={formData.nom}
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                    />
+                    {errors.nom ? <small className="error-message">{errors.nom}</small> : null}
+                  </label>
 
-                <label className="auth-register-field auth-register-field-full">
-                  <span>{copy.fields.email}</span>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder={copy.placeholders.email}
-                    value={formData.email}
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                  />
-                  {errors.email ? <small className="error-message">{errors.email}</small> : null}
-                </label>
+                  <label className="auth-register-field">
+                    <span>{copy.fields.prenom}</span>
+                    <input
+                      type="text"
+                      name="prenom"
+                      placeholder={copy.placeholders.prenom}
+                      value={formData.prenom}
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                    />
+                    {errors.prenom ? (
+                      <small className="error-message">{errors.prenom}</small>
+                    ) : null}
+                  </label>
 
-                <label className="auth-register-field auth-register-field-full">
-                  <span>{copy.fields.telephone}</span>
-                  <input
-                    type="tel"
-                    name="telephone"
-                    placeholder={copy.placeholders.telephone}
-                    value={formData.telephone}
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                  />
-                  {errors.telephone ? (
-                    <small className="error-message">{errors.telephone}</small>
-                  ) : null}
-                </label>
+                  <label className="auth-register-field auth-register-field-full">
+                    <span>{copy.fields.telephone}</span>
+                    <input
+                      type="tel"
+                      name="telephone"
+                      placeholder={copy.placeholders.telephone}
+                      value={formData.telephone}
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                    />
+                    {errors.telephone ? (
+                      <small className="error-message">{errors.telephone}</small>
+                    ) : null}
+                  </label>
+                </div>
+              </div>
 
-                <label className="auth-register-field">
-                  <span>{copy.fields.password}</span>
-                  <input
-                    type="password"
-                    name="password"
-                    placeholder={copy.placeholders.password}
-                    value={formData.password}
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                  />
-                  {errors.password ? (
-                    <small className="error-message">{errors.password}</small>
-                  ) : null}
-                </label>
+              <div className="auth-register-section">
+                <h3>{copy.sections.login}</h3>
+                <div className="auth-register-grid">
+                  <label className="auth-register-field auth-register-field-full">
+                    <span>{copy.fields.email}</span>
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder={copy.placeholders.email}
+                      value={formData.email}
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                    />
+                    {errors.email ? <small className="error-message">{errors.email}</small> : null}
+                  </label>
 
-                <label className="auth-register-field">
-                  <span>{copy.fields.confirmPassword}</span>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    placeholder={copy.placeholders.confirmPassword}
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                  />
-                  {errors.confirmPassword ? (
-                    <small className="error-message">{errors.confirmPassword}</small>
-                  ) : null}
-                </label>
+                  <label className="auth-register-field">
+                    <span>{copy.fields.password}</span>
+                    <input
+                      type="password"
+                      name="password"
+                      placeholder={copy.placeholders.password}
+                      value={formData.password}
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                    />
+                    {errors.password ? (
+                      <small className="error-message">{errors.password}</small>
+                    ) : null}
+                  </label>
+
+                  <label className="auth-register-field">
+                    <span>{copy.fields.confirmPassword}</span>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      placeholder={copy.placeholders.confirmPassword}
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                    />
+                    {errors.confirmPassword ? (
+                      <small className="error-message">{errors.confirmPassword}</small>
+                    ) : null}
+                  </label>
+                </div>
               </div>
 
               <label className="auth-register-legal">
@@ -246,20 +264,20 @@ export default function Register() {
                 />
                 <span>
                   {copy.legal.beforeTerms}
-                  <a href="#conditions" onClick={(event) => event.preventDefault()}>
+                  <Link to="/#cgu">
                     {copy.legal.terms}
-                  </a>
+                  </Link>
                   {copy.legal.between}
-                  <a href="#confidentialite" onClick={(event) => event.preventDefault()}>
+                  <Link to="/#confidentialite">
                     {copy.legal.privacy}
-                  </a>
+                  </Link>
                   {copy.legal.afterPrivacy}
                 </span>
               </label>
               {errors.legal ? <small className="error-message">{errors.legal}</small> : null}
 
               <button type="submit" className="auth-register-submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creation..." : copy.submit}
+                {isSubmitting ? copy.submitting : copy.submit}
               </button>
             </form>
 
