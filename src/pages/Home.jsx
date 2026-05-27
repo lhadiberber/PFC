@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import LanguageSelector from "../components/LanguageSelector";
 import { useLanguage } from "../context/LanguageContext";
 import campusImage from "../assets/Workshop preps first-year college students, parents for freshman year.jpg";
-import { isValidAdminCredentials, registerAdminLogin } from "../utils/adminAccount";
+import { loginUser, saveAuthSession } from "../services/authService";
 import "../index.css";
 
 const featureIcons = [
@@ -27,6 +27,12 @@ const footerLinkTargets = [
   ["mentions-legales", "confidentialite", "cgu"],
 ];
 
+function getHomePath(role) {
+  if (role === "super_admin") return "/super-admin";
+  if (role === "admin") return "/admin";
+  return "/dashboard";
+}
+
 export default function Home() {
   const { messages, t } = useLanguage();
   const home = messages.home;
@@ -34,6 +40,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
@@ -58,20 +65,25 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogin = (event) => {
+  const handleLogin = async (event) => {
     event.preventDefault();
     setLoginError("");
+    setIsLoginSubmitting(true);
 
-    if (isValidAdminCredentials(email, password)) {
+    try {
+      const session = await loginUser({
+        email: email.trim(),
+        password,
+      });
+
+      saveAuthSession(session);
       setShowLoginMenu(false);
-      localStorage.setItem("userRole", "admin");
-      localStorage.setItem("userEmail", email);
-      registerAdminLogin(email);
-      navigate("/admin");
-      return;
+      navigate(getHomePath(session.user.role));
+    } catch (error) {
+      setLoginError(error.message || t("home.loginMenu.invalidCredentials"));
+    } finally {
+      setIsLoginSubmitting(false);
     }
-
-    setLoginError(t("home.loginMenu.invalidCredentials"));
   };
 
   const scrollToSection = (event, targetId) => {
@@ -138,6 +150,7 @@ export default function Home() {
                         type="email"
                         placeholder={messages.auth.login.emailPlaceholder}
                         value={email}
+                        disabled={isLoginSubmitting}
                         onChange={(event) => {
                           setEmail(event.target.value);
                           setLoginError("");
@@ -151,6 +164,7 @@ export default function Home() {
                         type="password"
                         placeholder="********"
                         value={password}
+                        disabled={isLoginSubmitting}
                         onChange={(event) => {
                           setPassword(event.target.value);
                           setLoginError("");
@@ -163,8 +177,8 @@ export default function Home() {
                         {loginError}
                       </p>
                     ) : null}
-                    <button type="submit" className="campus-btn-submit">
-                      {home.loginMenu.submit}
+                    <button type="submit" className="campus-btn-submit" disabled={isLoginSubmitting}>
+                      {isLoginSubmitting ? "Connexion..." : home.loginMenu.submit}
                     </button>
                   </form>
                   <div className="campus-dropdown-footer">
