@@ -124,6 +124,8 @@ export default function Home() {
               <button
                 type="button"
                 className="campus-btn-login"
+                aria-expanded={showLoginMenu}
+                aria-controls="campus-login-dropdown"
                 onClick={() => {
                   setLoginError("");
                   setShowLoginMenu((current) => !current);
@@ -142,15 +144,21 @@ export default function Home() {
               </button>
 
               {showLoginMenu ? (
-                <div className="campus-dropdown">
-                  <form onSubmit={handleLogin}>
+                <div className="campus-dropdown" id="campus-login-dropdown">
+                  <form onSubmit={handleLogin} aria-label="Connexion à la plateforme">
+                    <p className="campus-dropdown-helper">
+                      Connectez-vous avec votre compte étudiant ou administrateur.
+                    </p>
                     <div className="campus-form-group">
-                      <label>{t("common.email")}</label>
+                      <label htmlFor="home-login-email">{t("common.email")}</label>
                       <input
+                        id="home-login-email"
+                        name="email"
                         type="email"
                         placeholder={messages.auth.login.emailPlaceholder}
                         value={email}
                         disabled={isLoginSubmitting}
+                        autoComplete="email"
                         onChange={(event) => {
                           setEmail(event.target.value);
                           setLoginError("");
@@ -159,12 +167,15 @@ export default function Home() {
                       />
                     </div>
                     <div className="campus-form-group">
-                      <label>{t("common.password")}</label>
+                      <label htmlFor="home-login-password">{t("common.password")}</label>
                       <input
+                        id="home-login-password"
+                        name="password"
                         type="password"
                         placeholder="********"
                         value={password}
                         disabled={isLoginSubmitting}
+                        autoComplete="current-password"
                         onChange={(event) => {
                           setPassword(event.target.value);
                           setLoginError("");
@@ -177,7 +188,12 @@ export default function Home() {
                         {loginError}
                       </p>
                     ) : null}
-                    <button type="submit" className="campus-btn-submit" disabled={isLoginSubmitting}>
+                    <button
+                      type="submit"
+                      className="campus-btn-submit"
+                      disabled={isLoginSubmitting}
+                      aria-busy={isLoginSubmitting}
+                    >
                       {isLoginSubmitting ? "Connexion..." : home.loginMenu.submit}
                     </button>
                   </form>

@@ -112,6 +112,18 @@
   background: var(--secondary-color)
 }
 
+.campus-btn-login[aria-expanded="true"] {
+  background: var(--secondary-color);
+  box-shadow: 0 10px 24px rgba(22, 58, 99, .18)
+}
+
+.campus-btn-login:focus-visible,
+.campus-btn-submit:focus-visible,
+.campus-nav-link:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, .2);
+  outline-offset: 3px
+}
+
 .dropdown-icon {
   width: 16px;
   height: 16px
@@ -123,14 +135,23 @@
   right: 0;
   background: var(--color-white);
   border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, .24);
   box-shadow: 0 10px 40px #00000026;
-  padding: 25px;
-  width: 320px;
+  padding: 20px;
+  width: min(320px, calc(100vw - 32px));
+  z-index: 1050;
   animation: slideDown .2s ease
 }
 
+.campus-dropdown-helper {
+  margin: 0 0 16px;
+  color: #64748b;
+  font-size: .88rem;
+  line-height: 1.5
+}
+
 .campus-form-group {
-  margin-bottom: 15px
+  margin-bottom: 14px
 }
 
 .campus-form-group label {
@@ -143,6 +164,7 @@
 
 .campus-form-group input {
   width: 100%;
+  min-height: 46px;
   padding: 12px 15px;
   border: 2px solid var(--color-border-soft);
   border-radius: 8px;
@@ -153,7 +175,14 @@
 
 .campus-form-group input:focus {
   outline: none;
-  border-color: var(--primary-color)
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, .12)
+}
+
+.campus-form-group input:disabled {
+  cursor: not-allowed;
+  background: #f8fafc;
+  color: #64748b
 }
 
 .campus-dropdown-error {
@@ -184,6 +213,11 @@
 
 .campus-btn-submit:hover {
   background: var(--secondary-color)
+}
+
+.campus-btn-submit:disabled {
+  cursor: not-allowed;
+  opacity: .7
 }
 
 .campus-dropdown-footer {

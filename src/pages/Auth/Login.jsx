@@ -169,28 +169,34 @@ export default function Login() {
               ) : null}
 
               <div className="auth-register-grid">
-                <label className="auth-register-field auth-register-field-full">
+                <label className="auth-register-field auth-register-field-full" htmlFor="login-email">
                   <span>{messages.common.email}</span>
                   <input
+                    id="login-email"
                     type="email"
                     name="email"
                     placeholder={copy.emailPlaceholder}
                     value={formData.email}
                     onChange={handleChange}
                     disabled={isSubmitting}
+                    autoComplete="email"
+                    aria-invalid={Boolean(errors.email)}
                   />
                   {errors.email ? <small className="error-message">{errors.email}</small> : null}
                 </label>
 
-                <label className="auth-register-field auth-register-field-full">
+                <label className="auth-register-field auth-register-field-full" htmlFor="login-password">
                   <span>{messages.common.password}</span>
                   <input
+                    id="login-password"
                     type="password"
                     name="password"
                     placeholder={copy.passwordPlaceholder}
                     value={formData.password}
                     onChange={handleChange}
                     disabled={isSubmitting}
+                    autoComplete="current-password"
+                    aria-invalid={Boolean(errors.password)}
                   />
                   {errors.password ? (
                     <small className="error-message">{errors.password}</small>
@@ -198,7 +204,12 @@ export default function Login() {
                 </label>
               </div>
 
-              <button type="submit" className="auth-register-submit" disabled={isSubmitting}>
+              <button
+                type="submit"
+                className="auth-register-submit"
+                disabled={isSubmitting}
+                aria-busy={isSubmitting}
+              >
                 {isSubmitting ? "Connexion..." : copy.submit}
               </button>
             </form>

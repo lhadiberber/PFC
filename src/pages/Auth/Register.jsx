@@ -162,43 +162,52 @@ export default function Register() {
               <div className="auth-register-section">
                 <h3>{copy.sections.personal}</h3>
                 <div className="auth-register-grid">
-                  <label className="auth-register-field">
+                  <label className="auth-register-field" htmlFor="register-nom">
                     <span>{copy.fields.nom}</span>
                     <input
+                      id="register-nom"
                       type="text"
                       name="nom"
                       placeholder={copy.placeholders.nom}
                       value={formData.nom}
                       onChange={handleChange}
                       disabled={isSubmitting}
+                      autoComplete="family-name"
+                      aria-invalid={Boolean(errors.nom)}
                     />
                     {errors.nom ? <small className="error-message">{errors.nom}</small> : null}
                   </label>
 
-                  <label className="auth-register-field">
+                  <label className="auth-register-field" htmlFor="register-prenom">
                     <span>{copy.fields.prenom}</span>
                     <input
+                      id="register-prenom"
                       type="text"
                       name="prenom"
                       placeholder={copy.placeholders.prenom}
                       value={formData.prenom}
                       onChange={handleChange}
                       disabled={isSubmitting}
+                      autoComplete="given-name"
+                      aria-invalid={Boolean(errors.prenom)}
                     />
                     {errors.prenom ? (
                       <small className="error-message">{errors.prenom}</small>
                     ) : null}
                   </label>
 
-                  <label className="auth-register-field auth-register-field-full">
+                  <label className="auth-register-field auth-register-field-full" htmlFor="register-telephone">
                     <span>{copy.fields.telephone}</span>
                     <input
+                      id="register-telephone"
                       type="tel"
                       name="telephone"
                       placeholder={copy.placeholders.telephone}
                       value={formData.telephone}
                       onChange={handleChange}
                       disabled={isSubmitting}
+                      autoComplete="tel"
+                      aria-invalid={Boolean(errors.telephone)}
                     />
                     {errors.telephone ? (
                       <small className="error-message">{errors.telephone}</small>
@@ -210,43 +219,52 @@ export default function Register() {
               <div className="auth-register-section">
                 <h3>{copy.sections.login}</h3>
                 <div className="auth-register-grid">
-                  <label className="auth-register-field auth-register-field-full">
+                  <label className="auth-register-field auth-register-field-full" htmlFor="register-email">
                     <span>{copy.fields.email}</span>
                     <input
+                      id="register-email"
                       type="email"
                       name="email"
                       placeholder={copy.placeholders.email}
                       value={formData.email}
                       onChange={handleChange}
                       disabled={isSubmitting}
+                      autoComplete="email"
+                      aria-invalid={Boolean(errors.email)}
                     />
                     {errors.email ? <small className="error-message">{errors.email}</small> : null}
                   </label>
 
-                  <label className="auth-register-field">
+                  <label className="auth-register-field" htmlFor="register-password">
                     <span>{copy.fields.password}</span>
                     <input
+                      id="register-password"
                       type="password"
                       name="password"
                       placeholder={copy.placeholders.password}
                       value={formData.password}
                       onChange={handleChange}
                       disabled={isSubmitting}
+                      autoComplete="new-password"
+                      aria-invalid={Boolean(errors.password)}
                     />
                     {errors.password ? (
                       <small className="error-message">{errors.password}</small>
                     ) : null}
                   </label>
 
-                  <label className="auth-register-field">
+                  <label className="auth-register-field" htmlFor="register-confirm-password">
                     <span>{copy.fields.confirmPassword}</span>
                     <input
+                      id="register-confirm-password"
                       type="password"
                       name="confirmPassword"
                       placeholder={copy.placeholders.confirmPassword}
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       disabled={isSubmitting}
+                      autoComplete="new-password"
+                      aria-invalid={Boolean(errors.confirmPassword)}
                     />
                     {errors.confirmPassword ? (
                       <small className="error-message">{errors.confirmPassword}</small>
@@ -276,7 +294,12 @@ export default function Register() {
               </label>
               {errors.legal ? <small className="error-message">{errors.legal}</small> : null}
 
-              <button type="submit" className="auth-register-submit" disabled={isSubmitting}>
+              <button
+                type="submit"
+                className="auth-register-submit"
+                disabled={isSubmitting}
+                aria-busy={isSubmitting}
+              >
                 {isSubmitting ? copy.submitting : copy.submit}
               </button>
             </form>
