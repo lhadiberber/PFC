@@ -108,6 +108,29 @@
   transition: all .2s
 }
 
+.campus-btn-header-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid rgba(22, 58, 99, .16);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--primary-color);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
+  transition: background .2s, border-color .2s, transform .2s
+}
+
+.campus-btn-header-cta:hover {
+  background: #f8fafc;
+  border-color: rgba(22, 58, 99, .28);
+  transform: translateY(-1px)
+}
+
 .campus-btn-login:hover {
   background: var(--secondary-color)
 }
@@ -148,6 +171,14 @@
   color: #64748b;
   font-size: .88rem;
   line-height: 1.5
+}
+
+.campus-dropdown-title {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--primary-color);
+  font-size: 1rem;
+  font-weight: 800
 }
 
 .campus-form-group {
@@ -1068,6 +1099,9 @@
   .campus-header-actions {
     width: 100%;
     justify-content: space-between
+  }
+  .campus-btn-header-cta {
+    display: none
   }
   .campus-hero-title {
     font-size: 2.2rem

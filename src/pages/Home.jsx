@@ -120,6 +120,10 @@ export default function Home() {
           <div className="campus-header-actions">
             <LanguageSelector compact />
 
+            <Link to="/register" className="campus-btn-header-cta">
+              {home.hero.createAccount}
+            </Link>
+
             <div className="campus-auth" ref={menuRef}>
               <button
                 type="button"
@@ -146,6 +150,7 @@ export default function Home() {
               {showLoginMenu ? (
                 <div className="campus-dropdown" id="campus-login-dropdown">
                   <form onSubmit={handleLogin} aria-label="Connexion à la plateforme">
+                    <strong className="campus-dropdown-title">{home.loginMenu.submit}</strong>
                     <p className="campus-dropdown-helper">
                       Connectez-vous avec votre compte étudiant ou administrateur.
                     </p>
