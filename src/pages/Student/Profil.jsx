@@ -28,17 +28,19 @@ const emptyProfile = {
   nationalite: "",
   email: "",
   telephone: "",
-  pays: "",
   adresse: "",
+  wilaya: "",
+  commune: "",
 };
 
 const emptyAcademicInfo = {
-  diplomeActuel: "",
-  etablissementActuel: "",
-  pays: "",
-  specialiteActuelle: "",
   anneeBac: "",
+  serieBac: "",
   moyenneBac: "",
+  mentionBac: "",
+  numeroInscriptionBac: "",
+  lyceeOrigine: "",
+  wilayaLycee: "",
 };
 
 const PERSONAL_FIELDS = [
@@ -48,22 +50,32 @@ const PERSONAL_FIELDS = [
   "lieuNaiss",
   "sexe",
   "nationalite",
-  "email",
-  "telephone",
-  "pays",
-  "adresse",
 ];
 
-const ACADEMIC_FIELDS = [
-  "diplomeActuel",
-  "etablissementActuel",
-  "pays",
-  "specialiteActuelle",
+const CONTACT_FIELDS = ["email", "telephone", "adresse", "wilaya", "commune"];
+
+const BAC_FIELDS = [
   "anneeBac",
+  "serieBac",
   "moyenneBac",
+  "mentionBac",
+  "numeroInscriptionBac",
+  "lyceeOrigine",
+  "wilayaLycee",
 ];
 
 const DOCUMENT_FIELDS = ["copieBac", "releveNotes", "carteIdentite", "photo", "residence", "cv"];
+
+const BAC_SERIES = [
+  "Sciences expérimentales",
+  "Mathématiques",
+  "Techniques mathématiques",
+  "Gestion et économie",
+  "Lettres et philosophie",
+  "Langues étrangères",
+];
+
+const BAC_MENTIONS = ["Passable", "Assez bien", "Bien", "Très bien", "Excellent"];
 
 function hasValue(value) {
   return String(value || "").trim() !== "";
@@ -93,7 +105,7 @@ function buildInitials(nom, prenom, email) {
 
 function formatDate(value) {
   if (!value) {
-    return "Non renseignee";
+    return "Non renseignée";
   }
 
   const parsedDate = new Date(value);
@@ -110,7 +122,7 @@ function formatDate(value) {
 
 function formatDateTime(value) {
   if (!value) {
-    return "Non renseignee";
+    return "Non renseignée";
   }
 
   const parsedDate = new Date(value);
@@ -133,6 +145,29 @@ function sortApplications(applications) {
     const secondDate = new Date(second.submittedAt || second.dateDepot || 0);
     return secondDate - firstDate;
   });
+}
+
+function buildAcademicForm(source = {}) {
+  return {
+    ...emptyAcademicInfo,
+    ...source,
+    anneeBac: source.anneeBac || "",
+    serieBac: source.serieBac || source.typeBac || source.diplomeActuel || "",
+    moyenneBac: source.moyenneBac || "",
+    mentionBac: source.mentionBac || source.mention || "",
+    numeroInscriptionBac: source.numeroInscriptionBac || "",
+    lyceeOrigine: source.lyceeOrigine || source.etablissementActuel || "",
+    wilayaLycee: source.wilayaLycee || "",
+  };
+}
+
+function buildPersonalForm(source = {}) {
+  return {
+    ...emptyProfile,
+    ...source,
+    wilaya: source.wilaya || "",
+    commune: source.commune || "",
+  };
 }
 
 function updateStoredUserProfile(profile) {
@@ -169,11 +204,10 @@ export default function Profil() {
     applications,
   } = useAdmissions();
 
-  const [personalForm, setPersonalForm] = useState(profile || emptyProfile);
-  const [academicForm, setAcademicForm] = useState(() => ({
-    ...emptyAcademicInfo,
-    ...applicationDraft.academicInfo,
-  }));
+  const [personalForm, setPersonalForm] = useState(() => buildPersonalForm(profile));
+  const [academicForm, setAcademicForm] = useState(() =>
+    buildAcademicForm(applicationDraft.academicInfo)
+  );
   const [errors, setErrors] = useState({});
   const [isEditing, setIsEditing] = useState(!hasSavedProfile);
   const [accountInfo, setAccountInfo] = useState(() => readStoredStudentAccount());
@@ -187,14 +221,11 @@ export default function Profil() {
   });
 
   useEffect(() => {
-    setPersonalForm(profile || emptyProfile);
+    setPersonalForm(buildPersonalForm(profile));
   }, [profile]);
 
   useEffect(() => {
-    setAcademicForm({
-      ...emptyAcademicInfo,
-      ...applicationDraft.academicInfo,
-    });
+    setAcademicForm(buildAcademicForm(applicationDraft.academicInfo));
   }, [applicationDraft.academicInfo]);
 
   useEffect(() => {
@@ -210,7 +241,7 @@ export default function Profil() {
       const token = getAuthToken();
 
       if (!token) {
-        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        const message = "Votre session a expiré. Veuillez vous reconnecter.";
         setProfileError(message);
         setIsInitialLoading(false);
         navigate("/login", { replace: true, state: { message } });
@@ -229,11 +260,8 @@ export default function Profil() {
           return;
         }
 
-        setPersonalForm(mappedProfile.personal);
-        setAcademicForm({
-          ...emptyAcademicInfo,
-          ...mappedProfile.academic,
-        });
+        setPersonalForm(buildPersonalForm(mappedProfile.personal));
+        setAcademicForm(buildAcademicForm(mappedProfile.academic));
         saveProfile(mappedProfile.personal);
         updateAcademicInfo({
           ...applicationDraft.academicInfo,
@@ -242,12 +270,13 @@ export default function Profil() {
         updateStoredUserProfile(remoteProfile);
         setAccountInfo(syncStudentAccountProfile(mappedProfile.personal));
         setIsEditing(
-          countCompleted(mappedProfile.personal, PERSONAL_FIELDS) < PERSONAL_FIELDS.length
+          countCompleted(mappedProfile.personal, [...PERSONAL_FIELDS, ...CONTACT_FIELDS]) <
+            PERSONAL_FIELDS.length + CONTACT_FIELDS.length
         );
         setProfileError("");
       } catch (error) {
         if (isMounted) {
-          setProfileError(error.message || "Impossible de charger le profil etudiant.");
+          setProfileError(error.message || "Impossible de charger le profil étudiant.");
         }
       } finally {
         if (isMounted) {
@@ -301,11 +330,15 @@ export default function Profil() {
   );
 
   const personalCompletion = useMemo(
-    () => toPercent(countCompleted(personalForm, PERSONAL_FIELDS), PERSONAL_FIELDS.length),
+    () =>
+      toPercent(
+        countCompleted(personalForm, [...PERSONAL_FIELDS, ...CONTACT_FIELDS]),
+        PERSONAL_FIELDS.length + CONTACT_FIELDS.length
+      ),
     [personalForm]
   );
   const academicCompletion = useMemo(
-    () => toPercent(countCompleted(academicForm, ACADEMIC_FIELDS), ACADEMIC_FIELDS.length),
+    () => toPercent(countCompleted(academicForm, BAC_FIELDS), BAC_FIELDS.length),
     [academicForm]
   );
   const documentsCompletion = useMemo(
@@ -330,7 +363,7 @@ export default function Profil() {
     ? `Derniere candidature ${latestApplication.numeroDossier || ""}`.trim()
     : "Aucune candidature soumise pour le moment";
   const completionTone =
-    overallCompletion >= 90 ? "Complet" : overallCompletion >= 60 ? "En progression" : "A completer";
+    overallCompletion >= 90 ? "Complet" : overallCompletion >= 60 ? "En progression" : "À compléter";
 
   const handlePersonalChange = (event) => {
     const { name, value } = event.target;
@@ -369,27 +402,44 @@ export default function Profil() {
   const validate = () => {
     const nextErrors = {};
 
-    if (!personalForm.nom.trim()) nextErrors.nom = "Le nom est requis.";
-    if (!personalForm.prenom.trim()) nextErrors.prenom = "Le prenom est requis.";
-    if (!personalForm.dateNaiss) nextErrors.dateNaiss = "La date de naissance est requise.";
-    if (!personalForm.sexe) nextErrors.sexe = "Le sexe est requis.";
-    if (!personalForm.nationalite.trim()) nextErrors.nationalite = "La nationalite est requise.";
-    if (!personalForm.lieuNaiss.trim()) nextErrors.lieuNaiss = "Le lieu de naissance est requis.";
-    if (!personalForm.email.trim()) nextErrors.email = "L'email est requis.";
+    if (!personalForm.nom.trim()) nextErrors.nom = "Veuillez renseigner votre nom.";
+    if (!personalForm.prenom.trim()) nextErrors.prenom = "Veuillez renseigner votre prénom.";
+    if (!personalForm.dateNaiss) nextErrors.dateNaiss = "Veuillez renseigner votre date de naissance.";
+    if (!personalForm.sexe) nextErrors.sexe = "Veuillez sélectionner votre sexe.";
+    if (!personalForm.nationalite.trim()) nextErrors.nationalite = "Veuillez renseigner votre nationalité.";
+    if (!personalForm.lieuNaiss.trim()) nextErrors.lieuNaiss = "Veuillez renseigner votre lieu de naissance.";
+    if (!personalForm.email.trim()) nextErrors.email = "Veuillez renseigner votre email.";
     else if (!/\S+@\S+\.\S+/.test(personalForm.email)) nextErrors.email = "Email invalide.";
-    if (!personalForm.telephone.trim()) nextErrors.telephone = "Le telephone est requis.";
-    if (!personalForm.pays.trim()) nextErrors.pays = "Le pays est requis.";
-    if (!personalForm.adresse.trim()) nextErrors.adresse = "L'adresse complete est requise.";
+    if (!personalForm.telephone.trim()) nextErrors.telephone = "Veuillez renseigner votre téléphone.";
+    if (!personalForm.adresse.trim()) nextErrors.adresse = "Veuillez renseigner votre adresse.";
+    if (!personalForm.wilaya.trim()) nextErrors.wilaya = "Veuillez renseigner votre wilaya.";
+    if (!personalForm.commune.trim()) nextErrors.commune = "Veuillez renseigner votre commune.";
 
-    if (academicForm.anneeBac && !/^\d{4}$/.test(String(academicForm.anneeBac))) {
-      nextErrors.anneeBac = "Veuillez saisir une annee sur 4 chiffres.";
+    const currentYear = new Date().getFullYear();
+    const bacYear = Number(academicForm.anneeBac);
+
+    if (!academicForm.anneeBac) {
+      nextErrors.anneeBac = "Veuillez renseigner l'année du bac.";
+    } else if (
+      !/^\d{4}$/.test(String(academicForm.anneeBac)) ||
+      bacYear < 1980 ||
+      bacYear > currentYear + 1
+    ) {
+      nextErrors.anneeBac = "Veuillez saisir une année du bac valide.";
     }
 
-    if (
-      academicForm.moyenneBac &&
-      (Number(academicForm.moyenneBac) < 0 || Number(academicForm.moyenneBac) > 20)
-    ) {
-      nextErrors.moyenneBac = "La moyenne doit etre comprise entre 0 et 20.";
+    if (!academicForm.serieBac) {
+      nextErrors.serieBac = "Veuillez sélectionner votre série du bac.";
+    }
+
+    if (!academicForm.moyenneBac) {
+      nextErrors.moyenneBac = "Veuillez renseigner votre moyenne générale.";
+    } else if (Number(academicForm.moyenneBac) < 0 || Number(academicForm.moyenneBac) > 20) {
+      nextErrors.moyenneBac = "La moyenne doit être comprise entre 0 et 20.";
+    }
+
+    if (!academicForm.numeroInscriptionBac.trim()) {
+      nextErrors.numeroInscriptionBac = "Veuillez renseigner votre numéro d'inscription au bac.";
     }
 
     return nextErrors;
@@ -412,14 +462,17 @@ export default function Profil() {
       const nextAcademicInfo = {
         ...applicationDraft.academicInfo,
         ...mappedProfile.academic,
-        typeBac: mappedProfile.academic.diplomeActuel || applicationDraft.academicInfo.typeBac,
+        typeBac: mappedProfile.academic.serieBac || applicationDraft.academicInfo.typeBac,
+        diplomeActuel: mappedProfile.academic.serieBac || applicationDraft.academicInfo.diplomeActuel,
+        etablissementActuel:
+          mappedProfile.academic.lyceeOrigine || applicationDraft.academicInfo.etablissementActuel,
+        specialiteActuelle:
+          mappedProfile.academic.serieBac || applicationDraft.academicInfo.specialiteActuelle,
+        mention: mappedProfile.academic.mentionBac || applicationDraft.academicInfo.mention,
       };
 
-      setPersonalForm(mappedProfile.personal);
-      setAcademicForm({
-        ...emptyAcademicInfo,
-        ...mappedProfile.academic,
-      });
+      setPersonalForm(buildPersonalForm(mappedProfile.personal));
+      setAcademicForm(buildAcademicForm(mappedProfile.academic));
       saveProfile(mappedProfile.personal);
       updateAcademicInfo(nextAcademicInfo);
       updateStoredUserProfile(savedRemoteProfile);
@@ -427,9 +480,9 @@ export default function Profil() {
 
       setErrors({});
       setIsEditing(false);
-      showToast("Profil etudiant mis a jour.", "success");
+      showToast("Profil mis à jour avec succès.", "success");
     } catch (error) {
-      const message = error.message || "Impossible d'enregistrer le profil etudiant.";
+      const message = error.message || "Une erreur est survenue. Veuillez réessayer.";
       setProfileError(message);
       showToast(message, "error");
     } finally {
@@ -438,11 +491,8 @@ export default function Profil() {
   };
 
   const handleCancel = () => {
-    setPersonalForm(profile || emptyProfile);
-    setAcademicForm({
-      ...emptyAcademicInfo,
-      ...applicationDraft.academicInfo,
-    });
+    setPersonalForm(buildPersonalForm(profile));
+    setAcademicForm(buildAcademicForm(applicationDraft.academicInfo));
     setErrors({});
     setProfileError("");
     setIsEditing(!hasSavedProfile);
@@ -505,11 +555,10 @@ export default function Profil() {
           <span className="student-dashboard-kicker">Espace candidat</span>
           <h1>Mon profil</h1>
           <p className="student-dashboard-subtitle">
-            Consultez et mettez a jour vos informations personnelles.
+            Complétez vos informations pour faciliter le traitement de votre dossier.
           </p>
           <p className="student-dashboard-welcome">
-            Verifiez les informations de votre compte pour garder un dossier a jour et
-            faciliter vos demarches d'admission.
+            Vérifiez votre identité, vos coordonnées et les informations de votre baccalauréat.
           </p>
         </div>
 
@@ -548,7 +597,7 @@ export default function Profil() {
 
       {isInitialLoading ? (
         <div className="student-profile-feedback student-profile-feedback-info" role="status">
-          Chargement du profil etudiant...
+          Chargement du profil étudiant...
         </div>
       ) : null}
 
@@ -565,9 +614,9 @@ export default function Profil() {
           </div>
 
           <div className="student-profile-identity-copy">
-            <span className="student-profile-kicker">Profil etudiant</span>
+            <span className="student-profile-kicker">Profil étudiant</span>
             <h2>{displayName}</h2>
-            <p>{personalForm.email || "Aucune adresse e-mail renseignee"}</p>
+            <p>{personalForm.email || "Aucune adresse e-mail renseignée"}</p>
 
             <div className="student-profile-badges">
               <StatusBadge status={profileStatus} />
@@ -582,11 +631,11 @@ export default function Profil() {
             <strong>{overallCompletion}%</strong>
           </div>
           <div className="student-profile-meta-item">
-            <span>Etat du dossier</span>
+            <span>État du dossier</span>
             <strong>{statusDescription}</strong>
           </div>
           <div className="student-profile-meta-item">
-            <span>Derniere connexion</span>
+            <span>Dernière connexion</span>
             <strong>{formatDateTime(accountInfo.lastLoginAt)}</strong>
           </div>
         </div>
@@ -597,7 +646,7 @@ export default function Profil() {
           <section className="student-dashboard-panel student-profile-section">
             <div className="student-dashboard-section-head">
               <h2>Informations personnelles</h2>
-              <p>Ces donnees sont utilisees pour l'identification de votre dossier de candidature.</p>
+              <p>Ces informations permettent d'identifier clairement votre dossier.</p>
             </div>
 
             <div className="student-profile-form-grid">
@@ -610,12 +659,13 @@ export default function Profil() {
                   onChange={handlePersonalChange}
                   readOnly={!isEditing}
                   className={isEditing ? "" : "is-readonly"}
+                  autoComplete="family-name"
                 />
                 {errors.nom ? <small className="error-message">{errors.nom}</small> : null}
               </label>
 
               <label className="student-profile-field">
-                <span>Prenom</span>
+                <span>Prénom</span>
                 <input
                   type="text"
                   name="prenom"
@@ -623,6 +673,7 @@ export default function Profil() {
                   onChange={handlePersonalChange}
                   readOnly={!isEditing}
                   className={isEditing ? "" : "is-readonly"}
+                  autoComplete="given-name"
                 />
                 {errors.prenom ? <small className="error-message">{errors.prenom}</small> : null}
               </label>
@@ -662,15 +713,15 @@ export default function Profil() {
                   disabled={!isEditing}
                   className={!isEditing ? "is-readonly" : ""}
                 >
-                  <option value="">Selectionner</option>
-                  <option value="Masculin">Masculin</option>
-                  <option value="Feminin">Feminin</option>
+                  <option value="">Sélectionner</option>
+                  <option value="Homme">Homme</option>
+                  <option value="Femme">Femme</option>
                 </select>
                 {errors.sexe ? <small className="error-message">{errors.sexe}</small> : null}
               </label>
 
               <label className="student-profile-field">
-                <span>Nationalite</span>
+                <span>Nationalité</span>
                 <select
                   name="nationalite"
                   value={personalForm.nationalite}
@@ -678,7 +729,7 @@ export default function Profil() {
                   disabled={!isEditing}
                   className={!isEditing ? "is-readonly" : ""}
                 >
-                  <option value="">Selectionner une nationalite</option>
+                  <option value="">Sélectionner une nationalité</option>
                   {nationalities.map((country) => (
                     <option key={country} value={country}>
                       {country}
@@ -690,21 +741,31 @@ export default function Profil() {
                 ) : null}
               </label>
 
+            </div>
+          </section>
+
+          <section className="student-dashboard-panel student-profile-section">
+            <div className="student-dashboard-section-head">
+              <h2>Coordonnées</h2>
+              <p>Indiquez les informations nécessaires pour vous contacter pendant le suivi du dossier.</p>
+            </div>
+
+            <div className="student-profile-form-grid">
               <label className="student-profile-field">
-                <span>Adresse e-mail</span>
+                <span>Email</span>
                 <input
                   type="email"
                   name="email"
                   value={personalForm.email}
-                  onChange={handlePersonalChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
+                  readOnly
+                  className="is-readonly"
+                  autoComplete="email"
                 />
                 {errors.email ? <small className="error-message">{errors.email}</small> : null}
               </label>
 
               <label className="student-profile-field">
-                <span>Telephone</span>
+                <span>Téléphone</span>
                 <input
                   type="tel"
                   name="telephone"
@@ -712,36 +773,18 @@ export default function Profil() {
                   onChange={handlePersonalChange}
                   readOnly={!isEditing}
                   className={isEditing ? "" : "is-readonly"}
+                  autoComplete="tel"
                 />
                 {errors.telephone ? (
                   <small className="error-message">{errors.telephone}</small>
                 ) : null}
               </label>
 
-              <label className="student-profile-field">
-                <span>Pays</span>
-                <select
-                  name="pays"
-                  value={personalForm.pays}
-                  onChange={handlePersonalChange}
-                  disabled={!isEditing}
-                  className={!isEditing ? "is-readonly" : ""}
-                >
-                  <option value="">Selectionner un pays</option>
-                  {nationalities.map((country) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  ))}
-                </select>
-                {errors.pays ? <small className="error-message">{errors.pays}</small> : null}
-              </label>
-
               <label className="student-profile-field student-profile-field-full">
-                <span>Adresse complete</span>
+                <span>Adresse</span>
                 <textarea
                   name="adresse"
-                  rows={4}
+                  rows={3}
                   value={personalForm.adresse}
                   onChange={handlePersonalChange}
                   readOnly={!isEditing}
@@ -749,92 +792,79 @@ export default function Profil() {
                 />
                 {errors.adresse ? <small className="error-message">{errors.adresse}</small> : null}
               </label>
+
+              <label className="student-profile-field">
+                <span>Wilaya</span>
+                <input
+                  type="text"
+                  name="wilaya"
+                  value={personalForm.wilaya}
+                  onChange={handlePersonalChange}
+                  readOnly={!isEditing}
+                  className={isEditing ? "" : "is-readonly"}
+                />
+                {errors.wilaya ? <small className="error-message">{errors.wilaya}</small> : null}
+              </label>
+
+              <label className="student-profile-field">
+                <span>Commune</span>
+                <input
+                  type="text"
+                  name="commune"
+                  value={personalForm.commune}
+                  onChange={handlePersonalChange}
+                  readOnly={!isEditing}
+                  className={isEditing ? "" : "is-readonly"}
+                />
+                {errors.commune ? <small className="error-message">{errors.commune}</small> : null}
+              </label>
             </div>
           </section>
 
           <section className="student-dashboard-panel student-profile-section">
             <div className="student-dashboard-section-head">
-              <h2>Informations academiques</h2>
-              <p>
-                Ces informations servent a pre-remplir vos prochaines candidatures et a evaluer
-                la completude de votre parcours.
-              </p>
+              <h2>Baccalauréat</h2>
+              <p>Renseignez les informations de votre bac pour préparer l'étude de votre candidature.</p>
             </div>
 
             <div className="student-profile-form-grid">
               <label className="student-profile-field">
-                <span>Diplome actuel</span>
-                <input
-                  type="text"
-                  name="diplomeActuel"
-                  value={academicForm.diplomeActuel}
-                  onChange={handleAcademicChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                  placeholder="Ex. Licence"
-                />
-              </label>
-
-              <label className="student-profile-field">
-                <span>Etablissement</span>
-                <input
-                  type="text"
-                  name="etablissementActuel"
-                  value={academicForm.etablissementActuel}
-                  onChange={handleAcademicChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                  placeholder="Ex. Universite d'Alger 1"
-                />
-              </label>
-
-              <label className="student-profile-field">
-                <span>Pays d'etudes</span>
-                <select
-                  name="pays"
-                  value={academicForm.pays}
-                  onChange={handleAcademicChange}
-                  disabled={!isEditing}
-                  className={!isEditing ? "is-readonly" : ""}
-                >
-                  <option value="">Selectionner un pays</option>
-                  {nationalities.map((country) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="student-profile-field">
-                <span>Specialite actuelle</span>
-                <input
-                  type="text"
-                  name="specialiteActuelle"
-                  value={academicForm.specialiteActuelle}
-                  onChange={handleAcademicChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                  placeholder="Ex. Informatique"
-                />
-              </label>
-
-              <label className="student-profile-field">
-                <span>Annee d'obtention</span>
+                <span>Année du bac</span>
                 <input
                   type="number"
+                  min="1980"
+                  max={new Date().getFullYear() + 1}
                   name="anneeBac"
                   value={academicForm.anneeBac}
                   onChange={handleAcademicChange}
                   readOnly={!isEditing}
                   className={isEditing ? "" : "is-readonly"}
-                  placeholder="Ex. 2025"
+                  placeholder="Ex. 2026"
                 />
                 {errors.anneeBac ? <small className="error-message">{errors.anneeBac}</small> : null}
               </label>
 
               <label className="student-profile-field">
-                <span>Moyenne</span>
+                <span>Série du bac</span>
+                <select
+                  name="serieBac"
+                  value={academicForm.serieBac}
+                  onChange={handleAcademicChange}
+                  disabled={!isEditing}
+                  className={!isEditing ? "is-readonly" : ""}
+                >
+                  <option value="">Sélectionner une série</option>
+                  {BAC_SERIES.map((serie) => (
+                    <option key={serie} value={serie}>
+                      {serie}
+                    </option>
+                  ))}
+                </select>
+                {errors.serieBac ? <small className="error-message">{errors.serieBac}</small> : null}
+              </label>
+
+              <label className="student-profile-field">
+                <span>Moyenne générale</span>
                 <input
                   type="number"
                   step="0.01"
@@ -851,21 +881,78 @@ export default function Profil() {
                   <small className="error-message">{errors.moyenneBac}</small>
                 ) : null}
               </label>
+
+              <label className="student-profile-field">
+                <span>Mention</span>
+                <select
+                  name="mentionBac"
+                  value={academicForm.mentionBac}
+                  onChange={handleAcademicChange}
+                  disabled={!isEditing}
+                  className={!isEditing ? "is-readonly" : ""}
+                >
+                  <option value="">Sélectionner une mention</option>
+                  {BAC_MENTIONS.map((mention) => (
+                    <option key={mention} value={mention}>
+                      {mention}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="student-profile-field">
+                <span>Numéro d'inscription au bac</span>
+                <input
+                  type="text"
+                  name="numeroInscriptionBac"
+                  value={academicForm.numeroInscriptionBac}
+                  onChange={handleAcademicChange}
+                  readOnly={!isEditing}
+                  className={isEditing ? "" : "is-readonly"}
+                />
+                {errors.numeroInscriptionBac ? (
+                  <small className="error-message">{errors.numeroInscriptionBac}</small>
+                ) : null}
+              </label>
+
+              <label className="student-profile-field">
+                <span>Lycée d'origine</span>
+                <input
+                  type="text"
+                  name="lyceeOrigine"
+                  value={academicForm.lyceeOrigine}
+                  onChange={handleAcademicChange}
+                  readOnly={!isEditing}
+                  className={isEditing ? "" : "is-readonly"}
+                />
+              </label>
+
+              <label className="student-profile-field">
+                <span>Wilaya du lycée</span>
+                <input
+                  type="text"
+                  name="wilayaLycee"
+                  value={academicForm.wilayaLycee}
+                  onChange={handleAcademicChange}
+                  readOnly={!isEditing}
+                  className={isEditing ? "" : "is-readonly"}
+                />
+              </label>
             </div>
           </section>
 
           <section className="student-dashboard-panel student-profile-section">
             <div className="student-dashboard-section-head">
-              <h2>Securite du compte</h2>
-              <p>Mettez a jour votre mot de passe pour garder un acces securise a votre espace.</p>
+              <h2>Sécurité du compte</h2>
+              <p>Mettez à jour votre mot de passe pour garder un accès sécurisé à votre espace.</p>
             </div>
 
             {!accountInfo.password ? (
               <div className="student-application-note student-profile-inline-note">
-                <strong>Securite a initialiser</strong>
+                <strong>Sécurité à initialiser</strong>
                 <p>
-                  Aucun mot de passe local n'est encore configure pour ce compte.
-                  Enregistrez-en un pour renforcer l'acces a votre espace etudiant.
+                  Aucun mot de passe local n'est encore configuré pour ce compte.
+                  Enregistrez-en un pour renforcer l'accès à votre espace étudiant.
                 </p>
               </div>
             ) : null}
@@ -878,7 +965,7 @@ export default function Profil() {
                   name="currentPassword"
                   value={passwordData.currentPassword}
                   onChange={handlePasswordChange}
-                  placeholder={accountInfo.password ? "Saisir le mot de passe actuel" : "Optionnel si aucun mot de passe n'est configure"}
+                  placeholder={accountInfo.password ? "Saisir le mot de passe actuel" : "Optionnel si aucun mot de passe n'est configuré"}
                 />
               </label>
 
@@ -889,7 +976,7 @@ export default function Profil() {
                   name="newPassword"
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
-                  placeholder="Minimum 6 caracteres"
+                  placeholder="Minimum 6 caractères"
                 />
               </label>
 
@@ -909,7 +996,7 @@ export default function Profil() {
                   type="submit"
                   className="student-application-button student-application-button-primary"
                 >
-                  Mettre a jour le mot de passe
+                  Mettre à jour le mot de passe
                 </button>
               </div>
             </form>
@@ -919,26 +1006,26 @@ export default function Profil() {
         <aside className="student-profile-side">
           <section className="student-dashboard-panel student-profile-side-card">
             <div className="student-dashboard-section-head">
-              <h2>Etat du profil</h2>
-              <p>Visualisez en un coup d'oeil ce qui est deja renseigne et ce qu'il reste a completer.</p>
+              <h2>État du profil</h2>
+              <p>Visualisez en un coup d'œil ce qui est déjà renseigné et ce qu'il reste à compléter.</p>
             </div>
 
             <div className="student-profile-progress-list">
               <div className="student-progress-row">
                 <div className="student-progress-head">
-                  <h3>Informations personnelles</h3>
+                  <h3>Profil candidat</h3>
                   <span>{personalCompletion}%</span>
                 </div>
-                <p>Identite, coordonnees et informations de contact.</p>
+                <p>Identité, coordonnées et informations de contact.</p>
                 <ProgressBar value={personalCompletion} color="#2563eb" label={`${personalCompletion}%`} />
               </div>
 
               <div className="student-progress-row">
                 <div className="student-progress-head">
-                  <h3>Informations academiques</h3>
+                  <h3>Baccalauréat</h3>
                   <span>{academicCompletion}%</span>
                 </div>
-                <p>Parcours d'etudes et donnees utiles a l'evaluation du dossier.</p>
+                <p>Série, moyenne et informations liées au bac.</p>
                 <ProgressBar value={academicCompletion} color="#0f766e" label={`${academicCompletion}%`} />
               </div>
 
@@ -947,14 +1034,14 @@ export default function Profil() {
                   <h3>Documents</h3>
                   <span>{documentsCompletion}%</span>
                 </div>
-                <p>Pieces deja deposees ou encore manquantes sur votre dossier.</p>
+                <p>Pièces déjà déposées ou encore manquantes sur votre dossier.</p>
                 <ProgressBar value={documentsCompletion} color="#d97706" label={`${documentsCompletion}%`} />
               </div>
             </div>
 
             <div className="student-dashboard-panel-actions">
               <Link to="/student-step1" className="student-dashboard-link">
-                Completer mon dossier
+                Compléter mon dossier
               </Link>
               <Link to="/mes-candidatures" className="student-dashboard-ghost-link">
                 Voir mes candidatures
@@ -965,7 +1052,7 @@ export default function Profil() {
           <section className="student-dashboard-panel student-profile-side-card">
             <div className="student-dashboard-section-head">
               <h2>Informations du compte</h2>
-              <p>Informations de connexion et etat general de votre compte etudiant.</p>
+              <p>Informations de connexion et état général de votre compte étudiant.</p>
             </div>
 
             <div className="student-profile-account-list">
@@ -974,23 +1061,23 @@ export default function Profil() {
                 <strong>{accountInfo.email || personalForm.email || "Non renseignee"}</strong>
               </div>
               <div className="student-profile-account-row">
-                <span>Date de creation du compte</span>
+                <span>Date de création du compte</span>
                 <strong>{formatDate(accountInfo.accountCreatedAt)}</strong>
               </div>
               <div className="student-profile-account-row">
-                <span>Derniere connexion</span>
+                <span>Dernière connexion</span>
                 <strong>{formatDateTime(accountInfo.lastLoginAt)}</strong>
               </div>
               <div className="student-profile-account-row">
-                <span>Navigateur utilise</span>
-                <strong>{accountInfo.lastLoginBrowser || "Non renseigne"}</strong>
+                <span>Navigateur utilisé</span>
+                <strong>{accountInfo.lastLoginBrowser || "Non renseigné"}</strong>
               </div>
               <div className="student-profile-account-row">
                 <span>Statut du compte</span>
                 <strong>{accountInfo.accountStatus || "Actif"}</strong>
               </div>
               <div className="student-profile-account-row">
-                <span>Derniere mise a jour du mot de passe</span>
+                <span>Dernière mise à jour du mot de passe</span>
                 <strong>{formatDateTime(accountInfo.lastPasswordUpdatedAt)}</strong>
               </div>
             </div>

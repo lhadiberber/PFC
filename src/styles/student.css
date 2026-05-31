@@ -2567,6 +2567,12 @@
   min-width: 0
 }
 
+.student-profile-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px
+}
+
 .student-profile-side {
   display: flex;
   flex-direction: column;
@@ -2581,7 +2587,7 @@
 .student-profile-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px
+  gap: 22px 24px
 }
 
 .student-profile-field {
@@ -2604,6 +2610,7 @@
 .student-profile-field input,
 .student-profile-field select,
 .student-profile-field textarea {
+  box-sizing: border-box;
   width: 100%;
   min-height: 52px;
   padding: 13px 15px;

@@ -9,13 +9,24 @@ const PROFILE_FIELDS = `
   sp.id AS profile_id,
   sp.telephone,
   sp.date_naissance,
+  sp.lieu_naissance,
+  sp.sexe,
   sp.nationalite,
   sp.adresse,
+  sp.wilaya,
+  sp.commune,
   sp.diplome_actuel,
   sp.etablissement,
   sp.specialite_actuelle,
   sp.annee_obtention,
-  sp.moyenne
+  sp.moyenne,
+  sp.annee_bac,
+  sp.serie_bac,
+  sp.moyenne_bac,
+  sp.mention_bac,
+  sp.numero_inscription_bac,
+  sp.lycee_origine,
+  sp.wilaya_lycee
 `;
 
 const APPLICATION_FIELDS = `
@@ -63,13 +74,24 @@ function normalizeStudent(row) {
     profile_id: row.profile_id || null,
     telephone: row.telephone || "",
     date_naissance: formatDateOnly(row.date_naissance),
+    lieu_naissance: row.lieu_naissance || "",
+    sexe: row.sexe || "",
     nationalite: row.nationalite || "",
     adresse: row.adresse || "",
+    wilaya: row.wilaya || "",
+    commune: row.commune || "",
     diplome_actuel: row.diplome_actuel || "",
     etablissement: row.etablissement || "",
     specialite_actuelle: row.specialite_actuelle || "",
     annee_obtention: row.annee_obtention || "",
     moyenne: row.moyenne ?? "",
+    annee_bac: row.annee_bac || row.annee_obtention || "",
+    serie_bac: row.serie_bac || row.diplome_actuel || "",
+    moyenne_bac: row.moyenne_bac ?? row.moyenne ?? "",
+    mention_bac: row.mention_bac || "",
+    numero_inscription_bac: row.numero_inscription_bac || "",
+    lycee_origine: row.lycee_origine || row.etablissement || "",
+    wilaya_lycee: row.wilaya_lycee || "",
   };
 }
 

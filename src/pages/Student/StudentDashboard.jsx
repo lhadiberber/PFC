@@ -18,8 +18,9 @@ const PROFILE_FIELDS = [
   "nationalite",
   "email",
   "telephone",
-  "pays",
   "adresse",
+  "wilaya",
+  "commune",
 ];
 
 const ACADEMIC_FIELDS = [

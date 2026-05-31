@@ -21,6 +21,8 @@ const PROFILE_FIELDS = [
   "telephone",
   "email",
   "adresse",
+  "wilaya",
+  "commune",
 ];
 
 const ACADEMIC_FIELDS = [
@@ -145,16 +147,23 @@ function mapApiProfileToDetails(profile = {}) {
     nom: profile.nom || "",
     prenom: profile.prenom || "",
     dateNaiss: profile.date_naissance || "",
+    lieuNaiss: profile.lieu_naissance || "",
+    sexe: profile.sexe || "",
     nationalite: profile.nationalite || "",
     telephone: profile.telephone || "",
     email: profile.email || "",
     adresse: profile.adresse || "",
-    diplomeActuel: profile.diplome_actuel || "",
-    typeBac: profile.diplome_actuel || "",
-    etablissementActuel: profile.etablissement || "",
-    anneeBac: profile.annee_obtention || "",
-    moyenneBac: profile.moyenne || "",
-    specialiteActuelle: profile.specialite_actuelle || "",
+    wilaya: profile.wilaya || "",
+    commune: profile.commune || "",
+    diplomeActuel: profile.serie_bac || profile.diplome_actuel || "",
+    typeBac: profile.serie_bac || profile.diplome_actuel || "",
+    etablissementActuel: profile.lycee_origine || profile.etablissement || "",
+    anneeBac: profile.annee_bac || profile.annee_obtention || "",
+    moyenneBac: profile.moyenne_bac || profile.moyenne || "",
+    mention: profile.mention_bac || "",
+    specialiteActuelle: profile.serie_bac || profile.specialite_actuelle || "",
+    numeroInscriptionBac: profile.numero_inscription_bac || "",
+    wilayaLycee: profile.wilaya_lycee || "",
   };
 }
 

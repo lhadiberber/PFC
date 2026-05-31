@@ -18,8 +18,9 @@ const defaultProfile = {
   nationalite: "",
   email: "",
   telephone: "",
-  pays: "",
   adresse: "",
+  wilaya: "",
+  commune: "",
 };
 
 const REQUIRED_PROFILE_FIELDS = [
@@ -31,8 +32,9 @@ const REQUIRED_PROFILE_FIELDS = [
   "nationalite",
   "email",
   "telephone",
-  "pays",
   "adresse",
+  "wilaya",
+  "commune",
 ];
 
 const defaultPersonalInfo = {
@@ -113,8 +115,9 @@ function normalizeProfile(profile = {}) {
     nationalite: normalizeText(profile.nationalite),
     email: normalizeText(profile.email),
     telephone: normalizeText(profile.telephone),
-    pays: normalizeText(profile.pays),
     adresse: normalizeText(profile.adresse),
+    wilaya: normalizeText(profile.wilaya),
+    commune: normalizeText(profile.commune),
   };
 }
 
@@ -319,6 +322,8 @@ function profileToPersonalInfo(profile) {
     telephone: normalizeText(profile.telephone),
     email: normalizeText(profile.email),
     adresse: normalizeText(profile.adresse),
+    wilaya: normalizeText(profile.wilaya),
+    commune: normalizeText(profile.commune),
   };
 }
 
