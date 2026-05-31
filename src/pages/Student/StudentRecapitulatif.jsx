@@ -4,6 +4,7 @@ import ApplicationStepLayout from "../../components/student/ApplicationStepLayou
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { useAdmissions } from "../../context/AdmissionsContext";
+import { NIVEAU_BACHELIER } from "../../data/formationsBachelier";
 import { createApplication } from "../../services/applicationService";
 import { clearAuthSession, getAuthToken } from "../../services/authService";
 import { showLoading, showToast } from "../../utils/toast";
@@ -11,45 +12,55 @@ import "../../index.css";
 
 const PERSONAL_ITEMS = [
   { key: "nom", label: "Nom" },
-  { key: "prenom", label: "Prenom" },
-  { key: "dateNaiss", label: "Date de naissance" },
-  { key: "lieuNaiss", label: "Lieu de naissance" },
-  { key: "sexe", label: "Sexe" },
-  { key: "nationalite", label: "Nationalite" },
-  { key: "telephone", label: "Telephone" },
-  { key: "email", label: "Adresse e-mail" },
-  { key: "adresse", label: "Adresse complete" },
+  { key: "prenom", label: "Prénom" },
+  { key: "dateNaiss", label: "Date de naissance", type: "date" },
+  { key: "telephone", label: "Téléphone" },
+  { key: "email", label: "Email" },
+  { key: "wilaya", label: "Wilaya" },
+  { key: "commune", label: "Commune" },
 ];
 
-const ACADEMIC_ITEMS = [
-  { key: "diplomeActuel", label: "Diplome actuel" },
-  { key: "etablissementActuel", label: "Etablissement actuel" },
-  { key: "pays", label: "Pays d'etudes" },
-  { key: "anneeBac", label: "Annee d'obtention" },
-  { key: "moyenneBac", label: "Moyenne generale" },
-  { key: "specialiteActuelle", label: "Specialite actuelle" },
+const BAC_ITEMS = [
+  { key: "anneeBac", label: "Année du bac" },
+  { key: "serieBac", label: "Série du bac" },
+  { key: "moyenneBac", label: "Moyenne générale", type: "average" },
+  { key: "mentionBac", label: "Mention" },
+  { key: "numeroInscriptionBac", label: "Numéro d'inscription au bac" },
+  { key: "lyceeOrigine", label: "Lycée d'origine" },
+  { key: "wilayaLycee", label: "Wilaya du lycée" },
 ];
 
-const TARGET_ITEMS = [
-  { key: "universite", label: "Universite choisie" },
-  { key: "specialite", label: "Formation demandee" },
-  { key: "niveauDemande", label: "Niveau demande" },
+const CHOICE_ITEMS = [
+  { key: "domaine", label: "Domaine d'études" },
+  { key: "filiere", label: "Filière souhaitée" },
+  { key: "etablissement", label: "Établissement choisi" },
+  { key: "faculteInstitut", label: "Faculté / Institut" },
+  { key: "wilayaEtablissement", label: "Wilaya de l'établissement" },
+  { key: "typeEtablissement", label: "Type d'établissement" },
+  { key: "anneeUniversitaire", label: "Année universitaire" },
+  { key: "niveauDemande", label: "Niveau" },
 ];
 
 const DOCUMENT_ITEMS = [
-  { key: "copieBac", label: "Diplome" },
-  { key: "releveNotes", label: "Releve de notes" },
-  { key: "carteIdentite", label: "Passeport / Carte d'identite" },
-  { key: "photo", label: "Lettre de motivation" },
-  { key: "residence", label: "Certificat de langue" },
-  { key: "cv", label: "CV" },
+  { key: "releveNotes", label: "Relevé de notes du baccalauréat", required: true },
+  { key: "attestationReussite", label: "Attestation de réussite au baccalauréat", required: true },
+  { key: "carteIdentite", label: "Pièce d'identité", required: true },
+  { key: "photo", label: "Photo d'identité", required: true },
+  { key: "residence", label: "Certificat de résidence", required: true },
+  { key: "justificatifParticulier", label: "Justificatif particulier", required: false },
 ];
+
+const REQUIRED_DOCUMENT_ITEMS = DOCUMENT_ITEMS.filter((document) => document.required);
 
 function hasValue(value) {
   return String(value || "").trim() !== "";
 }
 
 function countCompleted(source, items) {
+  return items.filter((item) => hasValue(source[item.key])).length;
+}
+
+function countFilled(source, items) {
   return items.filter((item) => hasValue(source[item.key])).length;
 }
 
@@ -63,7 +74,7 @@ function toPercent(completed, total) {
 
 function formatDate(value) {
   if (!value) {
-    return "Non renseigne";
+    return "Non renseigné";
   }
 
   const date = new Date(value);
@@ -78,20 +89,29 @@ function formatDate(value) {
   });
 }
 
-function buildDocumentStatus(fileName) {
-  return fileName ? "En attente" : "Manquant";
+function getAcademicValue(academicInfo, key) {
+  const aliases = {
+    serieBac: academicInfo.serieBac || academicInfo.typeBac || academicInfo.diplomeActuel,
+    mentionBac: academicInfo.mentionBac || academicInfo.mention,
+    lyceeOrigine: academicInfo.lyceeOrigine || academicInfo.etablissementActuel,
+    niveauDemande: academicInfo.niveauDemande || academicInfo.niveau || NIVEAU_BACHELIER,
+  };
+
+  return aliases[key] ?? academicInfo[key];
 }
 
-function getDisplayValue(source, key) {
-  if (key === "dateNaiss") {
-    return formatDate(source[key]);
+function getDisplayValue(source, item, academicInfo = source) {
+  const rawValue = item.source === "academic" ? getAcademicValue(academicInfo, item.key) : source[item.key];
+
+  if (item.type === "date") {
+    return formatDate(rawValue);
   }
 
-  if (key === "moyenneBac" && hasValue(source[key])) {
-    return `${source[key]} / 20`;
+  if (item.type === "average" && hasValue(rawValue)) {
+    return `${rawValue} / 20`;
   }
 
-  return source[key] || "Non renseigne";
+  return rawValue || "Non renseigné";
 }
 
 function buildBackendNumeroDossier(application) {
@@ -115,21 +135,28 @@ export default function StudentRecapitulatif() {
   const personalInfo = applicationDraft.personalInfo;
   const academicInfo = applicationDraft.academicInfo;
   const documents = applicationDraft.documents;
-
   const personalCompletion = useMemo(
-    () => toPercent(countCompleted(personalInfo, PERSONAL_ITEMS), PERSONAL_ITEMS.length),
+    () => toPercent(countFilled(personalInfo, PERSONAL_ITEMS), PERSONAL_ITEMS.length),
     [personalInfo]
   );
-  const academicCompletion = useMemo(
+  const bacCompletion = useMemo(
     () =>
       toPercent(
-        countCompleted(academicInfo, [...ACADEMIC_ITEMS, ...TARGET_ITEMS]),
-        [...ACADEMIC_ITEMS, ...TARGET_ITEMS].length
+        BAC_ITEMS.filter((item) => hasValue(getAcademicValue(academicInfo, item.key))).length,
+        BAC_ITEMS.length
+      ),
+    [academicInfo]
+  );
+  const choiceCompletion = useMemo(
+    () =>
+      toPercent(
+        CHOICE_ITEMS.filter((item) => hasValue(getAcademicValue(academicInfo, item.key))).length,
+        CHOICE_ITEMS.length
       ),
     [academicInfo]
   );
   const documentsCompletion = useMemo(
-    () => toPercent(countCompleted(documents, DOCUMENT_ITEMS), DOCUMENT_ITEMS.length),
+    () => toPercent(countCompleted(documents, REQUIRED_DOCUMENT_ITEMS), REQUIRED_DOCUMENT_ITEMS.length),
     [documents]
   );
 
@@ -142,17 +169,19 @@ export default function StudentRecapitulatif() {
       }
     });
 
-    [...ACADEMIC_ITEMS, ...TARGET_ITEMS].forEach((item) => {
-      if (!hasValue(academicInfo[item.key])) {
+    BAC_ITEMS.forEach((item) => {
+      if (!hasValue(getAcademicValue(academicInfo, item.key))) {
         missing.push(item.label);
       }
     });
 
-    if (!hasValue(academicInfo.motivation)) {
-      missing.push("Motivation courte");
-    }
+    CHOICE_ITEMS.forEach((item) => {
+      if (!hasValue(getAcademicValue(academicInfo, item.key))) {
+        missing.push(item.label);
+      }
+    });
 
-    DOCUMENT_ITEMS.forEach((item) => {
+    REQUIRED_DOCUMENT_ITEMS.forEach((item) => {
       if (!hasValue(documents[item.key])) {
         missing.push(item.label);
       }
@@ -163,7 +192,7 @@ export default function StudentRecapitulatif() {
 
   const handleValiderClick = () => {
     if (missingItems.length > 0) {
-      showToast("Le dossier est incomplet. Merci de verifier les etapes precedentes.", "error");
+      showToast("Veuillez compléter les informations obligatoires avant de valider.", "error");
       return;
     }
 
@@ -179,7 +208,7 @@ export default function StudentRecapitulatif() {
     const token = getAuthToken();
 
     if (!token) {
-      const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+      const message = "Session absente ou expirée. Veuillez vous reconnecter.";
       setSubmitError(message);
       setShowConfirm(false);
       showToast(message, "error");
@@ -195,10 +224,17 @@ export default function StudentRecapitulatif() {
 
     try {
       const backendApplication = await createApplication({
-        universite: academicInfo.universite,
-        formation: academicInfo.specialite,
-        niveau: academicInfo.niveauDemande,
-        motivation: academicInfo.motivation,
+        domaine: academicInfo.domaine,
+        filiere: academicInfo.filiere,
+        annee_universitaire: academicInfo.anneeUniversitaire,
+        niveau: NIVEAU_BACHELIER,
+        etablissement: academicInfo.etablissement,
+        faculte_institut: academicInfo.faculteInstitut,
+        wilaya_etablissement: academicInfo.wilayaEtablissement,
+        type_etablissement: academicInfo.typeEtablissement,
+        universite: academicInfo.etablissement,
+        formation: academicInfo.filiere,
+        motivation: academicInfo.commentaires || "Candidature en première année universitaire.",
       });
 
       const createdApplication = submitApplication();
@@ -206,7 +242,7 @@ export default function StudentRecapitulatif() {
         buildBackendNumeroDossier(backendApplication) || createdApplication.numeroDossier;
 
       showLoading(false);
-      showToast("Candidature envoyee avec succes.", "success");
+      showToast("Candidature envoyée avec succès.", "success");
       navigate(`/success?numeroDossier=${numeroDossier}`);
     } catch (error) {
       const message = error.message || "Impossible de soumettre la candidature.";
@@ -226,17 +262,14 @@ export default function StudentRecapitulatif() {
   const sidebar = (
     <>
       <div className="student-application-side-section">
-        <h3>Etat de preparation</h3>
-        <p>
-          Relisez chaque section avant de soumettre votre candidature. Une fois
-          validee, votre demande deviendra active dans votre espace candidat.
-        </p>
+        <h3>État du dossier</h3>
+        <p>Vérifiez attentivement les informations de votre dossier avant de valider votre candidature.</p>
       </div>
 
       <div className="student-application-side-metrics">
         <div className="student-application-side-metric">
           <div className="student-application-side-metric-head">
-            <strong>Informations personnelles</strong>
+            <strong>Profil</strong>
             <span>{personalCompletion}%</span>
           </div>
           <ProgressBar value={personalCompletion} color="#2563eb" label={`${personalCompletion}%`} compact />
@@ -244,10 +277,18 @@ export default function StudentRecapitulatif() {
 
         <div className="student-application-side-metric">
           <div className="student-application-side-metric-head">
-            <strong>Parcours academique</strong>
-            <span>{academicCompletion}%</span>
+            <strong>Baccalauréat</strong>
+            <span>{bacCompletion}%</span>
           </div>
-          <ProgressBar value={academicCompletion} color="#0f766e" label={`${academicCompletion}%`} compact />
+          <ProgressBar value={bacCompletion} color="#0f766e" label={`${bacCompletion}%`} compact />
+        </div>
+
+        <div className="student-application-side-metric">
+          <div className="student-application-side-metric-head">
+            <strong>Choix universitaire</strong>
+            <span>{choiceCompletion}%</span>
+          </div>
+          <ProgressBar value={choiceCompletion} color="#7c3aed" label={`${choiceCompletion}%`} compact />
         </div>
 
         <div className="student-application-side-metric">
@@ -260,11 +301,11 @@ export default function StudentRecapitulatif() {
       </div>
 
       <div className="student-application-note">
-        <strong>{missingItems.length === 0 ? "Dossier pret" : "Points a completer"}</strong>
+        <strong>{missingItems.length === 0 ? "Dossier prêt" : "Points à compléter"}</strong>
         <p>
           {missingItems.length === 0
-            ? "Votre dossier est complet. Vous pouvez maintenant confirmer la soumission."
-            : `${missingItems.length} element(s) doivent encore etre verifies ou completes.`}
+            ? "Votre dossier est complet. Vous pouvez valider votre candidature."
+            : `${missingItems.length} élément(s) doivent encore être vérifiés ou complétés.`}
         </p>
       </div>
     </>
@@ -273,24 +314,24 @@ export default function StudentRecapitulatif() {
   return (
     <ApplicationStepLayout
       step={4}
-      title="Deposer une candidature"
-      subtitle="Verifiez l'ensemble de vos informations avant de soumettre officiellement votre dossier."
-      helperText="Cette derniere etape vous permet de relire votre dossier complet et de confirmer la soumission de votre candidature."
-      introTitle="Validation finale"
-      introText="Prenez le temps de relire chaque section. Une fois la candidature soumise, elle apparaitra dans votre espace de suivi et sera transmise aux services d'admission."
+      title="Déposer une candidature"
+      subtitle="Vérifiez l'ensemble de vos informations avant de soumettre votre dossier."
+      helperText="Cette dernière étape vous permet de relire votre dossier complet avant la validation."
+      introTitle="Récapitulatif de votre candidature"
+      introText="Vérifiez attentivement les informations de votre dossier avant de valider votre candidature."
       sidebar={sidebar}
     >
       {showConfirm ? (
         <div className="confirm-overlay">
           <div className="confirm-dialog">
             <h3>Confirmation de soumission</h3>
-            <p>Voulez-vous vraiment activer et soumettre cette candidature ?</p>
+            <p>Voulez-vous vraiment valider cette candidature ?</p>
             <div className="confirm-buttons">
               <button className="retour-btn" onClick={() => setShowConfirm(false)}>
                 Annuler
               </button>
               <button className="valider-btn" onClick={confirmValider} disabled={isSubmitting}>
-                {isSubmitting ? "Envoi..." : "Oui, soumettre"}
+                {isSubmitting ? "Envoi..." : "Valider"}
               </button>
             </div>
           </div>
@@ -307,17 +348,17 @@ export default function StudentRecapitulatif() {
         <section className="student-dashboard-panel student-application-form-card">
           <div className="student-application-section-head">
             <div>
-              <h2>Resume du dossier</h2>
-              <p>Relisez chaque rubrique avant de finaliser votre candidature.</p>
+              <h2>Résumé du dossier</h2>
+              <p>Relisez les informations principales avant la validation finale.</p>
             </div>
-            <StatusBadge status={missingItems.length === 0 ? "Valide" : "En attente"} />
+            <StatusBadge status={missingItems.length === 0 ? "Validé" : "En attente"} />
           </div>
 
           <div className="student-application-recap-grid">
             <article className="student-application-recap-card">
               <div className="student-application-recap-head">
                 <h3>Informations personnelles</h3>
-                <button type="button" className="student-application-inline-link" onClick={() => navigate("/student-step1")}>
+                <button type="button" className="student-application-inline-link" onClick={() => navigate("/profil")}>
                   Modifier
                 </button>
               </div>
@@ -325,7 +366,7 @@ export default function StudentRecapitulatif() {
                 {PERSONAL_ITEMS.map((item) => (
                   <div key={item.key} className="student-application-detail-row">
                     <span>{item.label}</span>
-                    <strong>{getDisplayValue(personalInfo, item.key)}</strong>
+                    <strong>{getDisplayValue(personalInfo, item)}</strong>
                   </div>
                 ))}
               </div>
@@ -333,30 +374,35 @@ export default function StudentRecapitulatif() {
 
             <article className="student-application-recap-card">
               <div className="student-application-recap-head">
-                <h3>Parcours academique</h3>
-                <button type="button" className="student-application-inline-link" onClick={() => navigate("/student-step2")}>
+                <h3>Informations du bac</h3>
+                <button type="button" className="student-application-inline-link" onClick={() => navigate("/profil")}>
                   Modifier
                 </button>
               </div>
               <div className="student-application-detail-list">
-                {[...ACADEMIC_ITEMS, ...TARGET_ITEMS].map((item) => (
+                {BAC_ITEMS.map((item) => (
                   <div key={item.key} className="student-application-detail-row">
                     <span>{item.label}</span>
-                    <strong>{getDisplayValue(academicInfo, item.key)}</strong>
+                    <strong>{getDisplayValue(academicInfo, { ...item, source: "academic" }, academicInfo)}</strong>
                   </div>
                 ))}
-                {academicInfo.motivation ? (
-                  <div className="student-application-detail-block">
-                    <span>Motivation courte</span>
-                    <p>{academicInfo.motivation}</p>
+              </div>
+            </article>
+
+            <article className="student-application-recap-card">
+              <div className="student-application-recap-head">
+                <h3>Choix universitaire</h3>
+                <button type="button" className="student-application-inline-link" onClick={() => navigate("/student-step1")}>
+                  Modifier
+                </button>
+              </div>
+              <div className="student-application-detail-list">
+                {CHOICE_ITEMS.map((item) => (
+                  <div key={item.key} className="student-application-detail-row">
+                    <span>{item.label}</span>
+                    <strong>{getDisplayValue(academicInfo, { ...item, source: "academic" }, academicInfo)}</strong>
                   </div>
-                ) : null}
-                {academicInfo.commentaires ? (
-                  <div className="student-application-detail-block">
-                    <span>Commentaires</span>
-                    <p>{academicInfo.commentaires}</p>
-                  </div>
-                ) : null}
+                ))}
               </div>
             </article>
           </div>
@@ -365,8 +411,8 @@ export default function StudentRecapitulatif() {
         <section className="student-dashboard-panel student-application-form-card">
           <div className="student-application-section-head">
             <div>
-              <h2>Documents du dossier</h2>
-              <p>Verifiez que chaque document depose correspond bien a la piece demandee.</p>
+              <h2>Documents</h2>
+              <p>Vérifiez que les pièces obligatoires sont bien déposées.</p>
             </div>
             <button type="button" className="student-application-inline-link" onClick={() => navigate("/student-step3")}>
               Modifier les documents
@@ -375,13 +421,14 @@ export default function StudentRecapitulatif() {
 
           <div className="student-application-documents-review">
             {DOCUMENT_ITEMS.map((item) => {
-              const status = buildDocumentStatus(documents[item.key]);
+              const isSubmitted = hasValue(documents[item.key]);
+              const status = isSubmitted ? "Déposé" : item.required ? "Manquant" : "Non fourni";
 
               return (
                 <div key={item.key} className="student-application-document-review-row">
                   <div>
                     <h3>{item.label}</h3>
-                    <p>{documents[item.key] || "Aucun document depose pour cette piece."}</p>
+                    <p>{documents[item.key] || (item.required ? "Document obligatoire manquant." : "Document optionnel non fourni.")}</p>
                   </div>
                   <StatusBadge status={status} />
                 </div>
@@ -393,16 +440,16 @@ export default function StudentRecapitulatif() {
         <section className="student-dashboard-panel student-application-form-card">
           <div className="student-application-validation-card">
             <div>
-              <h2>Confirmation de la soumission</h2>
+              <h2>Validation de la candidature</h2>
               <p>
                 En validant, votre dossier sera transmis au service des admissions.
-                Vous pourrez ensuite suivre son evolution depuis votre espace etudiant.
+                Vous pourrez suivre son état depuis votre espace étudiant.
               </p>
             </div>
 
             {missingItems.length > 0 ? (
               <div className="student-application-validation-warning">
-                <strong>Elements encore a verifier</strong>
+                <strong>Éléments encore à vérifier</strong>
                 <ul>
                   {missingItems.map((item) => (
                     <li key={item}>{item}</li>
@@ -412,7 +459,7 @@ export default function StudentRecapitulatif() {
             ) : (
               <div className="student-application-note">
                 <strong>Dossier complet</strong>
-                <p>Votre candidature est prete a etre soumise.</p>
+                <p>Votre candidature est prête à être validée.</p>
               </div>
             )}
           </div>
@@ -429,11 +476,19 @@ export default function StudentRecapitulatif() {
 
           <button
             type="button"
+            className="student-application-button student-application-button-secondary"
+            onClick={() => navigate("/student-step1")}
+          >
+            Modifier
+          </button>
+
+          <button
+            type="button"
             className="student-application-button student-application-button-primary"
             onClick={handleValiderClick}
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Envoi en cours..." : "Soumettre la candidature"}
+            {isSubmitting ? "Envoi en cours..." : "Valider ma candidature"}
           </button>
         </div>
       </div>

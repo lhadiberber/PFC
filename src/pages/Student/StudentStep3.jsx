@@ -13,47 +13,59 @@ import { showToast } from "../../utils/toast";
 import "../../index.css";
 
 const documentConfig = {
-  copieBac: {
-    label: "Diplome",
-    accept: ".pdf,.jpg,.jpeg,.png",
-    maxSize: 5 * 1024 * 1024,
-    icon: "DIP",
-  },
   releveNotes: {
-    label: "Releve de notes",
+    label: "Relevé de notes du baccalauréat",
     accept: ".pdf,.jpg,.jpeg,.png",
     maxSize: 5 * 1024 * 1024,
-    icon: "NOTES",
+    icon: "BAC",
+    required: true,
+  },
+  attestationReussite: {
+    label: "Attestation de réussite au baccalauréat",
+    accept: ".pdf,.jpg,.jpeg,.png",
+    maxSize: 5 * 1024 * 1024,
+    icon: "ATT",
+    required: true,
   },
   carteIdentite: {
-    label: "Passeport / Carte d'identite",
+    label: "Pièce d'identité",
     accept: ".pdf,.jpg,.jpeg,.png",
     maxSize: 5 * 1024 * 1024,
     icon: "ID",
+    required: true,
   },
   photo: {
-    label: "Lettre de motivation",
+    label: "Photo d'identité",
     accept: ".pdf,.jpg,.jpeg,.png",
     maxSize: 5 * 1024 * 1024,
-    icon: "LM",
+    icon: "IMG",
+    required: true,
   },
   residence: {
-    label: "Certificat de langue",
+    label: "Certificat de résidence",
     accept: ".pdf,.jpg,.jpeg,.png",
     maxSize: 5 * 1024 * 1024,
-    icon: "LANG",
+    icon: "RES",
+    required: true,
   },
-  cv: {
-    label: "CV",
+  justificatifParticulier: {
+    label: "Justificatif particulier",
     accept: ".pdf,.jpg,.jpeg,.png",
     maxSize: 5 * 1024 * 1024,
-    icon: "CV",
+    icon: "OPT",
+    required: false,
+    help: "Ajoutez ce document uniquement si votre situation nécessite une pièce complémentaire.",
   },
 };
 
 const DOCUMENT_TYPE_BY_FIELD = Object.fromEntries(
   Object.entries(documentConfig).map(([fieldName, config]) => [fieldName, config.label])
 );
+
+const LEGACY_FIELD_BY_DOCUMENT_FIELD = {
+  attestationReussite: "copieBac",
+  justificatifParticulier: "cv",
+};
 
 const FIELD_BY_DOCUMENT_TYPE = Object.fromEntries(
   Object.entries(DOCUMENT_TYPE_BY_FIELD).map(([fieldName, documentType]) => [
@@ -62,6 +74,35 @@ const FIELD_BY_DOCUMENT_TYPE = Object.fromEntries(
   ])
 );
 
+function normalizeKey(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function resolveDocumentField(documentType) {
+  const directField = FIELD_BY_DOCUMENT_TYPE[documentType];
+  if (directField) {
+    return directField;
+  }
+
+  const normalizedType = normalizeKey(documentType);
+  const legacyMap = {
+    diplome: "attestationReussite",
+    "copie du bac ou diplome": "attestationReussite",
+    "releve de notes": "releveNotes",
+    "passeport / carte d'identite": "carteIdentite",
+    "carte d'identite ou passeport": "carteIdentite",
+    "lettre de motivation": "photo",
+    "certificat de langue": "residence",
+    cv: "justificatifParticulier",
+  };
+
+  return legacyMap[normalizedType] || null;
+}
+
 function isImageDocument(fieldName) {
   return [".jpg", ".jpeg", ".png"].some((extension) =>
     documentConfig[fieldName].accept.includes(extension)
@@ -69,30 +110,19 @@ function isImageDocument(fieldName) {
 }
 
 function formatMegabytes(size) {
-  return `${size / (1024 * 1024)} MB`;
+  return `${size / (1024 * 1024)} Mo`;
 }
 
 function normalizeDocumentStatus(status) {
   const cleanStatus = String(status || "").trim();
-  const normalizedStatus = cleanStatus
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+  const normalizedStatus = normalizeKey(cleanStatus);
 
-  if (
-    normalizedStatus.startsWith("valid") ||
-    cleanStatus.includes("ValidÃ") ||
-    cleanStatus.includes("ValidÃƒ")
-  ) {
-    return "Valide";
+  if (normalizedStatus.startsWith("valid")) {
+    return "Validé";
   }
 
-  if (
-    normalizedStatus.startsWith("refus") ||
-    cleanStatus.includes("RefusÃ") ||
-    cleanStatus.includes("RefusÃƒ")
-  ) {
-    return "Refuse";
+  if (normalizedStatus.startsWith("refus")) {
+    return "Refusé";
   }
 
   return "En attente";
@@ -101,7 +131,7 @@ function normalizeDocumentStatus(status) {
 function mapApiDocumentsToFields(documents) {
   return documents.reduce(
     (mappedDocuments, document) => {
-      const fieldName = FIELD_BY_DOCUMENT_TYPE[document.type_document];
+      const fieldName = resolveDocumentField(document.type_document);
 
       if (!fieldName || mappedDocuments.files[fieldName]) {
         return mappedDocuments;
@@ -124,19 +154,24 @@ function buildEmptyDocumentFiles() {
   }, {});
 }
 
+function buildInitialFiles(documents = {}) {
+  return {
+    ...buildEmptyDocumentFiles(),
+    releveNotes: documents.releveNotes || "",
+    attestationReussite: documents.attestationReussite || documents.copieBac || "",
+    carteIdentite: documents.carteIdentite || "",
+    photo: documents.photo || "",
+    residence: documents.residence || "",
+    justificatifParticulier: documents.justificatifParticulier || documents.cv || "",
+  };
+}
+
 export default function StudentStep3() {
   const navigate = useNavigate();
   const fileInputRefs = useRef({});
   const { applicationDraft, updateDocuments } = useAdmissions();
 
-  const [files, setFiles] = useState(() => ({
-    copieBac: applicationDraft.documents.copieBac || "",
-    releveNotes: applicationDraft.documents.releveNotes || "",
-    carteIdentite: applicationDraft.documents.carteIdentite || "",
-    photo: applicationDraft.documents.photo || "",
-    residence: applicationDraft.documents.residence || "",
-    cv: applicationDraft.documents.cv || "",
-  }));
+  const [files, setFiles] = useState(() => buildInitialFiles(applicationDraft.documents));
   const [previews, setPreviews] = useState({});
   const [errors, setErrors] = useState({});
   const [dragStates, setDragStates] = useState({});
@@ -146,10 +181,20 @@ export default function StudentStep3() {
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
   const [pageError, setPageError] = useState("");
 
-  const uploadedCount = useMemo(() => Object.values(files).filter(Boolean).length, [files]);
+  const requiredDocumentKeys = useMemo(
+    () =>
+      Object.entries(documentConfig)
+        .filter(([, config]) => config.required)
+        .map(([key]) => key),
+    []
+  );
+  const uploadedRequiredCount = useMemo(
+    () => requiredDocumentKeys.filter((key) => files[key]).length,
+    [files, requiredDocumentKeys]
+  );
   const uploadProgress = useMemo(
-    () => Math.round((uploadedCount / Object.keys(documentConfig).length) * 100),
-    [uploadedCount]
+    () => Math.round((uploadedRequiredCount / requiredDocumentKeys.length) * 100),
+    [requiredDocumentKeys.length, uploadedRequiredCount]
   );
 
   useEffect(() => {
@@ -159,7 +204,7 @@ export default function StudentStep3() {
       const token = getAuthToken();
 
       if (!token) {
-        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        const message = "Session absente ou expirée. Veuillez vous reconnecter.";
         clearAuthSession();
         navigate("/login", { state: { message } });
         return;
@@ -176,7 +221,6 @@ export default function StudentStep3() {
         }
 
         const mappedDocuments = mapApiDocumentsToFields(documents);
-
         const nextFiles = {
           ...buildEmptyDocumentFiles(),
           ...mappedDocuments.files,
@@ -191,7 +235,7 @@ export default function StudentStep3() {
           return;
         }
 
-        const message = error.message || "Impossible de charger les documents deja deposes.";
+        const message = error.message || "Impossible de charger les documents déjà déposés.";
 
         if (error.status === 401) {
           clearAuthSession();
@@ -249,7 +293,7 @@ export default function StudentStep3() {
     if (!allowedTypes.includes(fileExtension)) {
       setErrors((currentErrors) => ({
         ...currentErrors,
-        [fieldName]: `Type de fichier non autorise. Formats acceptes : ${config.accept}`,
+        [fieldName]: `Type de fichier non autorisé. Formats acceptés : ${config.accept}`,
       }));
       return;
     }
@@ -277,7 +321,7 @@ export default function StudentStep3() {
         try {
           await deleteStudentDocument(previousDocumentId);
         } catch (_error) {
-          // On garde l'ancien document si la suppression echoue.
+          // L'ancien fichier reste disponible si sa suppression échoue.
         }
       }
 
@@ -292,9 +336,11 @@ export default function StudentStep3() {
         };
       });
 
+      const fileName = document.nom_fichier || file.name;
+
       setFiles((currentFiles) => ({
         ...currentFiles,
-        [fieldName]: document.nom_fichier || file.name,
+        [fieldName]: fileName,
       }));
       setDocumentIds((currentDocumentIds) => ({
         ...currentDocumentIds,
@@ -304,10 +350,13 @@ export default function StudentStep3() {
         ...currentStatuses,
         [fieldName]: normalizeDocumentStatus(document.statut),
       }));
-      updateDocuments({ [fieldName]: document.nom_fichier || file.name });
-      showToast(`${config.label} depose avec succes.`, "success");
+      updateDocuments({
+        [fieldName]: fileName,
+        [LEGACY_FIELD_BY_DOCUMENT_FIELD[fieldName] || fieldName]: fileName,
+      });
+      showToast(`${config.label} déposé avec succès.`, "success");
     } catch (error) {
-      const message = error.message || "Impossible de deposer ce document.";
+      const message = error.message || "Impossible de déposer ce document.";
 
       if (error.status === 401) {
         clearAuthSession();
@@ -366,9 +415,12 @@ export default function StudentStep3() {
         delete nextStatuses[fieldName];
         return nextStatuses;
       });
-      updateDocuments({ [fieldName]: "" });
+      updateDocuments({
+        [fieldName]: "",
+        [LEGACY_FIELD_BY_DOCUMENT_FIELD[fieldName] || fieldName]: "",
+      });
       clearFieldError(fieldName);
-      showToast(`${documentConfig[fieldName].label} retire avec succes.`, "success");
+      showToast(`${documentConfig[fieldName].label} retiré avec succès.`, "success");
 
       if (fileInputRefs.current[fieldName]) {
         fileInputRefs.current[fieldName].value = "";
@@ -421,7 +473,7 @@ export default function StudentStep3() {
       return;
     }
 
-    Object.keys(documentConfig).forEach((key) => {
+    requiredDocumentKeys.forEach((key) => {
       if (!files[key]) {
         nextErrors[key] = "Ce document est requis.";
       }
@@ -447,17 +499,17 @@ export default function StudentStep3() {
       <div className="student-application-side-section">
         <h3>Documents requis</h3>
         <p>
-          Deposez des fichiers lisibles et conformes. Chaque document doit etre
-          complet pour permettre l'instruction de votre dossier.
+          Déposez des fichiers lisibles et conformes. Le justificatif particulier
+          reste optionnel.
         </p>
       </div>
 
       <div className="student-application-side-metrics">
         <div className="student-application-side-metric">
           <div className="student-application-side-metric-head">
-            <strong>Pieces deposees</strong>
+            <strong>Pièces obligatoires</strong>
             <span>
-              {uploadedCount}/{Object.keys(documentConfig).length}
+              {uploadedRequiredCount}/{requiredDocumentKeys.length}
             </span>
           </div>
           <ProgressBar value={uploadProgress} color="#2563eb" label={`${uploadProgress}%`} compact />
@@ -469,7 +521,7 @@ export default function StudentStep3() {
           <li key={key}>
             <div>
               <strong>{config.label}</strong>
-              <span>{isLoadingDocuments ? "Chargement..." : files[key] || "Document non depose"}</span>
+              <span>{isLoadingDocuments ? "Chargement..." : files[key] || "Document non déposé"}</span>
             </div>
             <span
               className={`student-application-doc-status ${files[key] ? "is-ready" : "is-missing"}`.trim()}
@@ -477,8 +529,10 @@ export default function StudentStep3() {
               {uploadingFields[key]
                 ? "Envoi..."
                 : files[key]
-                  ? documentStatuses[key] || "Depose"
-                  : "Manquant"}
+                  ? documentStatuses[key] || "Déposé"
+                  : config.required
+                    ? "Manquant"
+                    : "Optionnel"}
             </span>
           </li>
         ))}
@@ -489,22 +543,22 @@ export default function StudentStep3() {
   return (
     <ApplicationStepLayout
       step={3}
-      title="Deposer une candidature"
-      subtitle="Ajoutez les pieces justificatives necessaires a la verification de votre dossier."
-      helperText="Les documents televerses ici seront controles par l'administration. Verifiez leur lisibilite avant de continuer."
+      title="Déposer une candidature"
+      subtitle="Ajoutez les pièces justificatives nécessaires à la vérification de votre dossier."
+      helperText="Les documents téléversés ici seront contrôlés par l'administration. Vérifiez leur lisibilité avant de continuer."
       introTitle="Documents justificatifs"
-      introText="Tous les documents demandes sont requis pour finaliser la candidature. Les formats acceptes et tailles maximales sont indiques pour chaque piece."
+      introText="Les documents obligatoires permettent de vérifier votre baccalauréat, votre identité et votre résidence. Le justificatif particulier est optionnel."
       sidebar={sidebar}
     >
       <div className="student-application-form-stack">
         <section className="student-dashboard-panel student-application-form-card">
           <div className="student-application-section-head">
             <div>
-              <h2>Pieces a fournir</h2>
-              <p>Glissez vos fichiers dans la zone correspondante ou cliquez pour les selectionner.</p>
+              <h2>Pièces à fournir</h2>
+              <p>Glissez vos fichiers dans la zone correspondante ou cliquez pour les sélectionner.</p>
             </div>
             <span className="student-application-required-pill">
-              {uploadedCount}/{Object.keys(documentConfig).length} depose(s)
+              {uploadedRequiredCount}/{requiredDocumentKeys.length} obligatoire(s)
             </span>
           </div>
 
@@ -515,13 +569,13 @@ export default function StudentStep3() {
           ) : null}
 
           {isLoadingDocuments ? (
-            <div className="student-profile-feedback">Chargement des documents deja deposes...</div>
+            <div className="student-profile-feedback">Chargement des documents déjà déposés...</div>
           ) : null}
 
           <div className="student-application-progress-banner">
             <div>
-              <strong>Progression du depot</strong>
-              <p>Completez l'ensemble des pieces demandees pour acceder a la validation finale.</p>
+              <strong>Progression du dépôt</strong>
+              <p>Ajoutez les pièces obligatoires pour accéder à la validation finale.</p>
             </div>
             <ProgressBar value={uploadProgress} color="#2563eb" label={`${uploadProgress}%`} />
           </div>
@@ -533,10 +587,13 @@ export default function StudentStep3() {
                   <div>
                     <h3>{config.label}</h3>
                     <p>
-                      Formats acceptes : {config.accept.replace(/,/g, ", ")}. Taille max : {formatMegabytes(config.maxSize)}.
+                      Formats acceptés : {config.accept.replace(/,/g, ", ")}. Taille max : {formatMegabytes(config.maxSize)}.
                     </p>
+                    {config.help ? <p>{config.help}</p> : null}
                   </div>
-                  <span className="student-application-upload-tag">Obligatoire</span>
+                  <span className="student-application-upload-tag">
+                    {config.required ? "Obligatoire" : "Optionnel"}
+                  </span>
                 </div>
 
                 <div
@@ -572,7 +629,7 @@ export default function StudentStep3() {
                     <div className="uploaded-file">
                       <div className="file-icon">
                         {previews[fieldName] ? (
-                          <img src={previews[fieldName]} alt="Preview" className="file-preview" />
+                          <img src={previews[fieldName]} alt="Aperçu du document" className="file-preview" />
                         ) : (
                           <span className="file-emoji">{config.icon}</span>
                         )}
@@ -621,9 +678,9 @@ export default function StudentStep3() {
 
         <section className="student-dashboard-panel student-application-form-card">
           <div className="student-application-note">
-            <strong>Verification finale</strong>
+            <strong>Vérification finale</strong>
             <p>
-              Avant de passer au recapitulatif, assurez-vous que chaque document depose
+              Avant de passer au récapitulatif, assurez-vous que chaque document déposé
               correspond bien au fichier attendu et qu'il est lisible.
             </p>
           </div>
@@ -646,7 +703,7 @@ export default function StudentStep3() {
           >
             {Object.values(uploadingFields).some(Boolean)
               ? "Envoi des documents..."
-              : "Acceder au recapitulatif"}
+              : "Accéder au récapitulatif"}
           </button>
         </div>
       </div>

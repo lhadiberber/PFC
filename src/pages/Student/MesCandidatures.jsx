@@ -26,35 +26,38 @@ const PROFILE_FIELDS = [
 ];
 
 const ACADEMIC_FIELDS = [
-  "diplomeActuel",
-  "etablissementActuel",
-  "pays",
   "anneeBac",
   "moyenneBac",
-  "specialiteActuelle",
-  "specialite",
-  "universite",
+  "serieBac",
+  "filiere",
+  "etablissement",
   "niveauDemande",
 ];
 
 const DOCUMENT_FIELDS = [
-  { key: "copieBac", label: "Copie du bac ou diplome" },
-  { key: "releveNotes", label: "Releve de notes" },
-  { key: "carteIdentite", label: "Carte d'identite ou passeport" },
-  { key: "photo", label: "Photo d'identite" },
-  { key: "residence", label: "Justificatif de residence" },
-  { key: "cv", label: "CV" },
+  { key: "releveNotes", label: "Relevé de notes du baccalauréat", required: true },
+  { key: "attestationReussite", label: "Attestation de réussite au baccalauréat", required: true },
+  { key: "carteIdentite", label: "Pièce d'identité", required: true },
+  { key: "photo", label: "Photo d'identité", required: true },
+  { key: "residence", label: "Certificat de résidence", required: true },
+  { key: "justificatifParticulier", label: "Justificatif particulier", required: false },
 ];
 
 const DOCUMENT_FIELD_BY_TYPE = {
-  diplome: "copieBac",
-  "copie du bac ou diplome": "copieBac",
+  diplome: "attestationReussite",
+  "attestation de reussite au baccalaureat": "attestationReussite",
+  "copie du bac ou diplome": "attestationReussite",
   "releve de notes": "releveNotes",
+  "releve de notes du baccalaureat": "releveNotes",
   "passeport / carte d'identite": "carteIdentite",
   "carte d'identite ou passeport": "carteIdentite",
+  "piece d'identite": "carteIdentite",
+  "photo d'identite": "photo",
   "lettre de motivation": "photo",
+  "certificat de residence": "residence",
   "certificat de langue": "residence",
-  cv: "cv",
+  cv: "justificatifParticulier",
+  "justificatif particulier": "justificatifParticulier",
 };
 
 function hasValue(value) {
@@ -162,7 +165,9 @@ function mapApiProfileToDetails(profile = {}) {
     moyenneBac: profile.moyenne_bac || profile.moyenne || "",
     mention: profile.mention_bac || "",
     specialiteActuelle: profile.serie_bac || profile.specialite_actuelle || "",
+    serieBac: profile.serie_bac || profile.diplome_actuel || "",
     numeroInscriptionBac: profile.numero_inscription_bac || "",
+    lyceeOrigine: profile.lycee_origine || profile.etablissement || "",
     wilayaLycee: profile.wilaya_lycee || "",
   };
 }
@@ -188,11 +193,19 @@ function mapApiDocumentsToDetails(documents = [], applicationId) {
 
 function mapApiApplication(application, profileDetails = {}, documentDetails = {}) {
   const statut = normalizeStatus(application.statut);
+  const etablissement = application.etablissement || application.universite || "";
+  const filiere = application.filiere || application.formation || "";
 
   return {
     id: application.id,
-    universite: application.universite || "",
-    specialite: application.formation || "",
+    universite: etablissement,
+    etablissement,
+    specialite: filiere,
+    filiere,
+    domaine: application.domaine || "",
+    faculteInstitut: application.faculte_institut || "",
+    wilayaEtablissement: application.wilaya_etablissement || "",
+    typeEtablissement: application.type_etablissement || "",
     niveauDemande: application.niveau || "",
     motivation: application.motivation || "",
     statut,
@@ -203,8 +216,14 @@ function mapApiApplication(application, profileDetails = {}, documentDetails = {
     details: {
       ...profileDetails,
       ...documentDetails,
-      universite: application.universite || "",
-      specialite: application.formation || "",
+      universite: etablissement,
+      etablissement,
+      specialite: filiere,
+      filiere,
+      domaine: application.domaine || "",
+      faculteInstitut: application.faculte_institut || "",
+      wilayaEtablissement: application.wilaya_etablissement || "",
+      typeEtablissement: application.type_etablissement || "",
       niveauDemande: application.niveau || "",
       motivation: application.motivation || "",
     },
@@ -253,11 +272,12 @@ function buildApplicationMetrics(application) {
     countCompleted(details, ACADEMIC_FIELDS),
     ACADEMIC_FIELDS.length
   );
-  const documentsCount = countCompleted(
+  const requiredDocuments = DOCUMENT_FIELDS.filter((document) => document.required);
+  const requiredDocumentsCount = countCompleted(
     details,
-    DOCUMENT_FIELDS.map((document) => document.key)
+    requiredDocuments.map((document) => document.key)
   );
-  const documentsCompletion = toPercent(documentsCount, DOCUMENT_FIELDS.length);
+  const documentsCompletion = toPercent(requiredDocumentsCount, requiredDocuments.length);
 
   let finalCompletion = 45;
   if (application.statut === "Acceptee" || application.statut === "Rejetee") {
@@ -276,7 +296,7 @@ function buildApplicationMetrics(application) {
     profileCompletion,
     academicCompletion,
     documentsCompletion,
-    documentsCount,
+    documentsCount: requiredDocumentsCount,
     finalCompletion,
     overallCompletion,
     readinessLabel: getCompletionLabel(overallCompletion),
@@ -755,7 +775,7 @@ export default function MesCandidatures() {
                         <span>Completude globale</span>
                         <strong>{application.metrics.overallCompletion}%</strong>
                         <small>
-                          {application.metrics.documentsCount}/{DOCUMENT_FIELDS.length} document(s) deposes
+                          {application.metrics.documentsCount}/{DOCUMENT_FIELDS.filter((document) => document.required).length} document(s) déposés
                         </small>
                       </div>
 
@@ -790,13 +810,13 @@ export default function MesCandidatures() {
                           <section className="student-candidature-detail-card">
                             <h4>Informations academiques</h4>
                             <div className="student-candidature-detail-list">
-                              <div><span>Type du bac</span><strong>{application.details.typeBac || "Non renseigne"}</strong></div>
+                              <div><span>Série du bac</span><strong>{application.details.serieBac || application.details.typeBac || "Non renseignée"}</strong></div>
                               <div><span>Annee du bac</span><strong>{application.details.anneeBac || "Non renseignee"}</strong></div>
                               <div><span>Moyenne generale</span><strong>{application.details.moyenneBac || "Non renseignee"}</strong></div>
                               <div><span>Mention</span><strong>{application.details.mention || "Non precisee"}</strong></div>
-                              <div><span>Formation</span><strong>{application.specialite || "Non renseignee"}</strong></div>
-                              <div><span>Universite</span><strong>{application.universite || "Non renseignee"}</strong></div>
-                              <div><span>Niveau demande</span><strong>{application.niveauDemande || "Non renseigne"}</strong></div>
+                              <div><span>Filière</span><strong>{application.filiere || application.specialite || "Non renseignée"}</strong></div>
+                              <div><span>Établissement</span><strong>{application.etablissement || application.universite || "Non renseigné"}</strong></div>
+                              <div><span>Niveau</span><strong>{application.niveauDemande || "Non renseigné"}</strong></div>
                             </div>
                           </section>
                         </div>
@@ -812,7 +832,7 @@ export default function MesCandidatures() {
                           <div className="student-candidature-documents-head">
                             <h4>Documents du dossier</h4>
                             <span className={`admin-page-context ${application.metrics.documentsCompletion === 100 ? "positive" : "warning"}`}>
-                              {application.metrics.documentsCount}/{DOCUMENT_FIELDS.length} pieces
+                              {application.metrics.documentsCount}/{DOCUMENT_FIELDS.filter((document) => document.required).length} pièces obligatoires
                             </span>
                           </div>
 

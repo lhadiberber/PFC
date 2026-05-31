@@ -58,20 +58,35 @@ const defaultAcademicInfo = {
   anneeBac: "",
   moyenneBac: "",
   mention: "",
+  mentionBac: "",
+  serieBac: "",
+  numeroInscriptionBac: "",
+  lyceeOrigine: "",
+  wilayaLycee: "",
   specialiteActuelle: "",
+  domaine: "",
+  filiere: "",
+  anneeUniversitaire: "",
+  niveau: "Première année universitaire",
+  etablissement: "",
+  faculteInstitut: "",
+  wilayaEtablissement: "",
+  typeEtablissement: "",
   specialite: "",
   universite: "",
-  niveauDemande: "",
+  niveauDemande: "Première année universitaire",
   motivation: "",
   commentaires: "",
 };
 
 const defaultDocuments = {
   copieBac: "",
+  attestationReussite: "",
   releveNotes: "",
   carteIdentite: "",
   photo: "",
   residence: "",
+  justificatifParticulier: "",
   cv: "",
 };
 
@@ -148,6 +163,16 @@ function normalizePersonalInfo(personalInfo = {}) {
 }
 
 function normalizeAcademicInfo(academicInfo = {}) {
+  const filiere = normalizeText(
+    academicInfo.filiere || academicInfo.specialite || academicInfo.formation
+  );
+  const etablissement = normalizeText(
+    academicInfo.etablissement || academicInfo.universite
+  );
+  const niveau =
+    normalizeText(academicInfo.niveau || academicInfo.niveauDemande) ||
+    defaultAcademicInfo.niveau;
+
   return {
     ...defaultAcademicInfo,
     diplomeActuel: normalizeText(academicInfo.diplomeActuel || academicInfo.typeBac),
@@ -156,11 +181,32 @@ function normalizeAcademicInfo(academicInfo = {}) {
     pays: normalizeText(academicInfo.pays || academicInfo.paysEtude),
     anneeBac: normalizeText(academicInfo.anneeBac),
     moyenneBac: normalizeText(academicInfo.moyenneBac),
-    mention: normalizeText(academicInfo.mention),
+    mention: normalizeText(academicInfo.mention || academicInfo.mentionBac),
+    mentionBac: normalizeText(academicInfo.mentionBac || academicInfo.mention),
+    serieBac: normalizeText(academicInfo.serieBac || academicInfo.typeBac || academicInfo.diplomeActuel),
+    numeroInscriptionBac: normalizeText(academicInfo.numeroInscriptionBac),
+    lyceeOrigine: normalizeText(academicInfo.lyceeOrigine || academicInfo.etablissementActuel),
+    wilayaLycee: normalizeText(academicInfo.wilayaLycee),
     specialiteActuelle: normalizeText(academicInfo.specialiteActuelle),
-    specialite: normalizeText(academicInfo.specialite),
-    universite: normalizeText(academicInfo.universite),
-    niveauDemande: normalizeText(academicInfo.niveauDemande || academicInfo.niveau),
+    domaine: normalizeText(academicInfo.domaine),
+    filiere,
+    anneeUniversitaire: normalizeText(
+      academicInfo.anneeUniversitaire || academicInfo.annee_universitaire
+    ),
+    niveau,
+    etablissement,
+    faculteInstitut: normalizeText(
+      academicInfo.faculteInstitut || academicInfo.faculte_institut
+    ),
+    wilayaEtablissement: normalizeText(
+      academicInfo.wilayaEtablissement || academicInfo.wilaya_etablissement
+    ),
+    typeEtablissement: normalizeText(
+      academicInfo.typeEtablissement || academicInfo.type_etablissement
+    ),
+    specialite: filiere,
+    universite: etablissement,
+    niveauDemande: niveau,
     motivation: normalizeText(academicInfo.motivation || academicInfo.lettreMotivation),
     commentaires: normalizeText(academicInfo.commentaires),
   };
@@ -169,11 +215,13 @@ function normalizeAcademicInfo(academicInfo = {}) {
 function normalizeDocuments(documents = {}) {
   return {
     ...defaultDocuments,
-    copieBac: normalizeText(documents.copieBac),
+    copieBac: normalizeText(documents.copieBac || documents.attestationReussite),
+    attestationReussite: normalizeText(documents.attestationReussite || documents.copieBac),
     releveNotes: normalizeText(documents.releveNotes),
     carteIdentite: normalizeText(documents.carteIdentite),
     photo: normalizeText(documents.photo),
     residence: normalizeText(documents.residence),
+    justificatifParticulier: normalizeText(documents.justificatifParticulier || documents.cv),
     cv: normalizeText(documents.cv),
   };
 }
@@ -688,7 +736,7 @@ export function AdmissionsProvider({ children }) {
             ...defaultPersonalInfo,
             ...profileToPersonalInfo(profile),
           },
-      academicInfo: { ...defaultAcademicInfo },
+      academicInfo: normalizeAcademicInfo({}),
       documents: normalizeDocuments(currentDraft.documents),
     }));
   };

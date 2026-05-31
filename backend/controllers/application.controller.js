@@ -11,20 +11,32 @@ function normalizeText(value) {
 function validateApplicationPayload(payload) {
   const errors = {};
 
-  if (!normalizeText(payload.universite)) {
-    errors.universite = "L'universite est obligatoire.";
+  if (!normalizeText(payload.domaine)) {
+    errors.domaine = "Le domaine d'études est obligatoire.";
   }
 
-  if (!normalizeText(payload.formation)) {
-    errors.formation = "La formation est obligatoire.";
+  if (!normalizeText(payload.filiere || payload.formation)) {
+    errors.filiere = "La filière est obligatoire.";
   }
 
-  if (!normalizeText(payload.niveau)) {
-    errors.niveau = "Le niveau est obligatoire.";
+  if (!normalizeText(payload.annee_universitaire)) {
+    errors.annee_universitaire = "L'année universitaire est obligatoire.";
   }
 
-  if (!normalizeText(payload.motivation)) {
-    errors.motivation = "La motivation est obligatoire.";
+  if (!normalizeText(payload.etablissement || payload.universite)) {
+    errors.etablissement = "L'établissement est obligatoire.";
+  }
+
+  if (!normalizeText(payload.faculte_institut)) {
+    errors.faculte_institut = "La faculté ou l'institut est obligatoire.";
+  }
+
+  if (!normalizeText(payload.wilaya_etablissement)) {
+    errors.wilaya_etablissement = "La wilaya de l'établissement est obligatoire.";
+  }
+
+  if (!normalizeText(payload.type_etablissement)) {
+    errors.type_etablissement = "Le type d'établissement est obligatoire.";
   }
 
   return errors;
