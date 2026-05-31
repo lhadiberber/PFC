@@ -103,7 +103,15 @@ function buildProfile(row) {
 }
 
 async function ensureStudentProfileColumn(name, definition) {
-  const [columns] = await pool.execute(`SHOW COLUMNS FROM student_profiles LIKE ?`, [name]);
+  const [columns] = await pool.execute(
+    `SELECT COLUMN_NAME
+     FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE()
+       AND TABLE_NAME = 'student_profiles'
+       AND COLUMN_NAME = ?
+     LIMIT 1`,
+    [name]
+  );
 
   if (columns.length === 0) {
     await pool.execute(`ALTER TABLE student_profiles ADD COLUMN ${name} ${definition}`);
