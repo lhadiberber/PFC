@@ -3,6 +3,10 @@ export const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5
   ""
 );
 
+const API_FALLBACK_URLS = API_BASE_URL.includes("localhost")
+  ? [API_BASE_URL, API_BASE_URL.replace("localhost", "127.0.0.1")]
+  : [API_BASE_URL];
+
 const AUTH_STORAGE_KEYS = {
   token: "token",
   user: "user",
@@ -40,6 +44,18 @@ export async function readJsonResponse(response) {
   }
 }
 
+export async function fetchApi(endpoint, options = {}) {
+  for (const baseUrl of API_FALLBACK_URLS) {
+    try {
+      return await fetch(`${baseUrl}${endpoint}`, options);
+    } catch (_error) {
+      // Essaie l'URL suivante si localhost pose problème dans le navigateur.
+    }
+  }
+
+  throw new ApiError("Backend indisponible. Vérifiez que le serveur est lancé.");
+}
+
 export async function apiRequest(endpoint, options = {}) {
   const { method = "GET", body, token } = options;
   const headers = {
@@ -55,16 +71,11 @@ export async function apiRequest(endpoint, options = {}) {
     headers.Authorization = `Bearer ${authToken}`;
   }
 
-  let response;
-  try {
-    response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-  } catch (_error) {
-    throw new ApiError("Backend indisponible. Vérifiez que le serveur est lancé.");
-  }
+  const response = await fetchApi(endpoint, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
 
   const payload = await readJsonResponse(response);
 

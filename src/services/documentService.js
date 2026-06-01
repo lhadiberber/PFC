@@ -1,10 +1,4 @@
-import {
-  API_BASE_URL,
-  ApiError,
-  apiRequest,
-  getAuthToken,
-  readJsonResponse,
-} from "./authService";
+import { ApiError, apiRequest, fetchApi, getAuthToken, readJsonResponse } from "./authService";
 
 export async function uploadStudentDocument({ typeDocument, file, applicationId }) {
   const token = getAuthToken();
@@ -22,18 +16,14 @@ export async function uploadStudentDocument({ typeDocument, file, applicationId 
   }
 
   let response;
-  try {
-    response = await fetch(`${API_BASE_URL}/documents`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    });
-  } catch (_error) {
-    throw new ApiError("Backend indisponible. Vérifiez que le serveur est lancé.");
-  }
+  response = await fetchApi("/documents", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
 
   const payload = await readJsonResponse(response);
 
