@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
@@ -64,7 +64,7 @@ const BAC_FIELDS = [
   "wilayaLycee",
 ];
 
-const DOCUMENT_FIELDS = ["copieBac", "releveNotes", "carteIdentite", "photo", "residence", "cv"];
+const DOCUMENT_FIELDS = ["copieBac", "releveNotes", "carteIdentite", "photo", "residence"];
 
 const BAC_SERIES = [
   "Sciences expérimentales",
@@ -193,6 +193,42 @@ function updateStoredUserProfile(profile) {
   );
 }
 
+function Spinner() {
+  return (
+    <svg
+      className="login-spinner"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      width="16"
+      height="16"
+      aria-hidden="true"
+    >
+      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+    </svg>
+  );
+}
+
+function EyeOpen() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15" aria-hidden="true">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeClosed() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15" aria-hidden="true">
+      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
+      <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+    </svg>
+  );
+}
+
 export default function Profil() {
   const navigate = useNavigate();
   const {
@@ -219,6 +255,12 @@ export default function Profil() {
     newPassword: "",
     confirmPassword: "",
   });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const currentPasswordRef = useRef(null);
+  const newPasswordRef = useRef(null);
+  const confirmPasswordRef = useRef(null);
 
   useEffect(() => {
     setPersonalForm(buildPersonalForm(profile));
@@ -354,13 +396,13 @@ export default function Profil() {
     () =>
       `${personalForm.prenom || ""} ${personalForm.nom || ""}`.trim() ||
       accountInfo.email ||
-      "Etudiant",
+      "Étudiant",
     [accountInfo.email, personalForm.nom, personalForm.prenom]
   );
 
   const profileStatus = latestApplication?.statut || "Actif";
   const statusDescription = latestApplication
-    ? `Derniere candidature ${latestApplication.numeroDossier || ""}`.trim()
+    ? `Dernière candidature - ${latestApplication.numeroDossier || ""}`.trim()
     : "Aucune candidature soumise pour le moment";
   const completionTone =
     overallCompletion >= 90 ? "Complet" : overallCompletion >= 60 ? "En progression" : "À compléter";
@@ -408,10 +450,10 @@ export default function Profil() {
     if (!personalForm.sexe) nextErrors.sexe = "Veuillez sélectionner votre sexe.";
     if (!personalForm.nationalite.trim()) nextErrors.nationalite = "Veuillez renseigner votre nationalité.";
     if (!personalForm.lieuNaiss.trim()) nextErrors.lieuNaiss = "Veuillez renseigner votre lieu de naissance.";
-    if (!personalForm.email.trim()) nextErrors.email = "Veuillez renseigner votre email.";
-    else if (!/\S+@\S+\.\S+/.test(personalForm.email)) nextErrors.email = "Email invalide.";
-    if (!personalForm.telephone.trim()) nextErrors.telephone = "Veuillez renseigner votre téléphone.";
-    if (!personalForm.adresse.trim()) nextErrors.adresse = "Veuillez renseigner votre adresse.";
+    if (!personalForm.email.trim()) nextErrors.email = "Veuillez renseigner votre adresse e-mail.";
+    else if (!/\S+@\S+\.\S+/.test(personalForm.email)) nextErrors.email = "Adresse e-mail invalide.";
+    if (!personalForm.telephone.trim()) nextErrors.telephone = "Veuillez renseigner votre numéro de téléphone.";
+    if (!personalForm.adresse.trim()) nextErrors.adresse = "Veuillez renseigner votre adresse postale.";
     if (!personalForm.wilaya.trim()) nextErrors.wilaya = "Veuillez renseigner votre wilaya.";
     if (!personalForm.commune.trim()) nextErrors.commune = "Veuillez renseigner votre commune.";
 
@@ -419,17 +461,17 @@ export default function Profil() {
     const bacYear = Number(academicForm.anneeBac);
 
     if (!academicForm.anneeBac) {
-      nextErrors.anneeBac = "Veuillez renseigner l'année du bac.";
+      nextErrors.anneeBac = "Veuillez renseigner l'année d'obtention du baccalauréat.";
     } else if (
       !/^\d{4}$/.test(String(academicForm.anneeBac)) ||
       bacYear < 1980 ||
       bacYear > currentYear + 1
     ) {
-      nextErrors.anneeBac = "Veuillez saisir une année du bac valide.";
+      nextErrors.anneeBac = "Veuillez saisir une année valide, par exemple 2024.";
     }
 
     if (!academicForm.serieBac) {
-      nextErrors.serieBac = "Veuillez sélectionner votre série du bac.";
+      nextErrors.serieBac = "Veuillez sélectionner votre série du baccalauréat.";
     }
 
     if (!academicForm.moyenneBac) {
@@ -439,7 +481,7 @@ export default function Profil() {
     }
 
     if (!academicForm.numeroInscriptionBac.trim()) {
-      nextErrors.numeroInscriptionBac = "Veuillez renseigner votre numéro d'inscription au bac.";
+      nextErrors.numeroInscriptionBac = "Veuillez renseigner votre numéro d'inscription au baccalauréat.";
     }
 
     return nextErrors;
@@ -449,7 +491,7 @@ export default function Profil() {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      showToast("Merci de corriger les champs du profil avant d'enregistrer.", "error");
+      showToast("Veuillez corriger les champs indiqués avant d'enregistrer.", "error");
       return;
     }
 
@@ -510,7 +552,7 @@ export default function Profil() {
     event.preventDefault();
 
     if (!passwordData.newPassword.trim() || !passwordData.confirmPassword.trim()) {
-      showToast("Veuillez completer les champs de securite.", "error");
+      showToast("Veuillez renseigner tous les champs de sécurité.", "error");
       return;
     }
 
@@ -519,8 +561,8 @@ export default function Profil() {
       return;
     }
 
-    if (passwordData.newPassword.length < 6) {
-      showToast("Le nouveau mot de passe doit contenir au moins 6 caracteres.", "error");
+    if (passwordData.newPassword.length < 8) {
+      showToast("Le nouveau mot de passe doit contenir au moins 8 caractères.", "error");
       return;
     }
 
@@ -544,9 +586,53 @@ export default function Profil() {
       newPassword: "",
       confirmPassword: "",
     });
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
     setAccountInfo(readStoredStudentAccount());
     showToast(passwordUpdate.message, "success");
   };
+
+  const renderActions = () => (
+    <div className="student-profile-header-actions">
+      {isEditing ? (
+        <>
+          <button
+            type="button"
+            className="student-application-button student-application-button-secondary"
+            onClick={handleCancel}
+            disabled={isSavingProfile}
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            className="student-application-button student-application-button-primary"
+            onClick={handleSave}
+            disabled={isSavingProfile || isInitialLoading}
+          >
+            {isSavingProfile ? (
+              <span className="login-btn-inner">
+                <Spinner />
+                Enregistrement...
+              </span>
+            ) : (
+              "Enregistrer les modifications"
+            )}
+          </button>
+        </>
+      ) : (
+        <button
+          type="button"
+          className="student-application-button student-application-button-primary"
+          onClick={() => setIsEditing(true)}
+          disabled={isInitialLoading}
+        >
+          Modifier le profil
+        </button>
+      )}
+    </div>
+  );
 
   return (
     <div className="student-profile-shell">
@@ -555,49 +641,22 @@ export default function Profil() {
           <span className="student-dashboard-kicker">Espace candidat</span>
           <h1>Mon profil</h1>
           <p className="student-dashboard-subtitle">
-            Complétez vos informations pour faciliter le traitement de votre dossier.
+            Complétez vos informations pour faciliter le traitement de votre dossier d'admission.
           </p>
           <p className="student-dashboard-welcome">
             Vérifiez votre identité, vos coordonnées et les informations de votre baccalauréat.
           </p>
         </div>
 
-        <div className="student-profile-header-actions">
-          {isEditing ? (
-            <>
-              <button
-                type="button"
-                className="student-application-button student-application-button-secondary"
-                onClick={handleCancel}
-                disabled={isSavingProfile}
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                className="student-application-button student-application-button-primary"
-                onClick={handleSave}
-                disabled={isSavingProfile || isInitialLoading}
-              >
-                {isSavingProfile ? "Enregistrement..." : "Enregistrer les modifications"}
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              className="student-application-button student-application-button-primary"
-              onClick={() => setIsEditing(true)}
-              disabled={isInitialLoading}
-            >
-              Modifier le profil
-            </button>
-          )}
-        </div>
+        {renderActions()}
       </header>
 
       {isInitialLoading ? (
-        <div className="student-profile-feedback student-profile-feedback-info" role="status">
-          Chargement du profil étudiant...
+        <div className="student-profile-feedback student-profile-feedback-info" role="status" aria-live="polite">
+          <span className="login-btn-inner">
+            <Spinner />
+            Chargement de votre profil...
+          </span>
         </div>
       ) : null}
 
@@ -627,7 +686,7 @@ export default function Profil() {
 
         <div className="student-profile-identity-side">
           <div className="student-profile-meta-item">
-            <span>Profil complet</span>
+            <span>Profil complété</span>
             <strong>{overallCompletion}%</strong>
           </div>
           <div className="student-profile-meta-item">
@@ -646,12 +705,15 @@ export default function Profil() {
           <section className="student-dashboard-panel student-profile-section">
             <div className="student-dashboard-section-head">
               <h2>Informations personnelles</h2>
-              <p>Ces informations permettent d'identifier clairement votre dossier.</p>
+              <p>
+                Ces informations permettent d'identifier clairement votre dossier d'admission.
+                Les champs marqués <abbr title="obligatoire">*</abbr> sont obligatoires.
+              </p>
             </div>
 
             <div className="student-profile-form-grid">
               <label className="student-profile-field">
-                <span>Nom</span>
+                <span>Nom <abbr title="obligatoire">*</abbr></span>
                 <input
                   type="text"
                   name="nom"
@@ -665,7 +727,7 @@ export default function Profil() {
               </label>
 
               <label className="student-profile-field">
-                <span>Prénom</span>
+                <span>Prénom <abbr title="obligatoire">*</abbr></span>
                 <input
                   type="text"
                   name="prenom"
@@ -679,7 +741,7 @@ export default function Profil() {
               </label>
 
               <label className="student-profile-field">
-                <span>Date de naissance</span>
+                <span>Date de naissance <abbr title="obligatoire">*</abbr></span>
                 <input
                   type="date"
                   name="dateNaiss"
@@ -692,7 +754,7 @@ export default function Profil() {
               </label>
 
               <label className="student-profile-field">
-                <span>Lieu de naissance</span>
+                <span>Lieu de naissance <abbr title="obligatoire">*</abbr></span>
                 <input
                   type="text"
                   name="lieuNaiss"
@@ -705,7 +767,7 @@ export default function Profil() {
               </label>
 
               <label className="student-profile-field">
-                <span>Sexe</span>
+                <span>Sexe <abbr title="obligatoire">*</abbr></span>
                 <select
                   name="sexe"
                   value={personalForm.sexe}
@@ -721,7 +783,7 @@ export default function Profil() {
               </label>
 
               <label className="student-profile-field">
-                <span>Nationalité</span>
+                <span>Nationalité <abbr title="obligatoire">*</abbr></span>
                 <select
                   name="nationalite"
                   value={personalForm.nationalite}
@@ -747,12 +809,12 @@ export default function Profil() {
           <section className="student-dashboard-panel student-profile-section">
             <div className="student-dashboard-section-head">
               <h2>Coordonnées</h2>
-              <p>Indiquez les informations nécessaires pour vous contacter pendant le suivi du dossier.</p>
+              <p>Ces informations permettent à l'administration de vous contacter pendant le suivi de votre dossier.</p>
             </div>
 
             <div className="student-profile-form-grid">
               <label className="student-profile-field">
-                <span>Email</span>
+                <span>Adresse e-mail</span>
                 <input
                   type="email"
                   name="email"
@@ -761,11 +823,14 @@ export default function Profil() {
                   className="is-readonly"
                   autoComplete="email"
                 />
+                <small className="student-profile-field-hint">
+                  L'adresse e-mail ne peut pas être modifiée depuis cette page.
+                </small>
                 {errors.email ? <small className="error-message">{errors.email}</small> : null}
               </label>
 
               <label className="student-profile-field">
-                <span>Téléphone</span>
+                <span>Téléphone <abbr title="obligatoire">*</abbr></span>
                 <input
                   type="tel"
                   name="telephone"
@@ -781,7 +846,7 @@ export default function Profil() {
               </label>
 
               <label className="student-profile-field student-profile-field-full">
-                <span>Adresse</span>
+                <span>Adresse postale <abbr title="obligatoire">*</abbr></span>
                 <textarea
                   name="adresse"
                   rows={3}
@@ -794,7 +859,7 @@ export default function Profil() {
               </label>
 
               <label className="student-profile-field">
-                <span>Wilaya</span>
+                <span>Wilaya <abbr title="obligatoire">*</abbr></span>
                 <input
                   type="text"
                   name="wilaya"
@@ -807,7 +872,7 @@ export default function Profil() {
               </label>
 
               <label className="student-profile-field">
-                <span>Commune</span>
+                <span>Commune <abbr title="obligatoire">*</abbr></span>
                 <input
                   type="text"
                   name="commune"
@@ -824,12 +889,12 @@ export default function Profil() {
           <section className="student-dashboard-panel student-profile-section">
             <div className="student-dashboard-section-head">
               <h2>Baccalauréat</h2>
-              <p>Renseignez les informations de votre bac pour préparer l'étude de votre candidature.</p>
+              <p>Renseignez les informations relatives à votre baccalauréat pour préparer l'étude de votre candidature.</p>
             </div>
 
             <div className="student-profile-form-grid">
               <label className="student-profile-field">
-                <span>Année du bac</span>
+                <span>Année d'obtention <abbr title="obligatoire">*</abbr></span>
                 <input
                   type="number"
                   min="1980"
@@ -839,13 +904,13 @@ export default function Profil() {
                   onChange={handleAcademicChange}
                   readOnly={!isEditing}
                   className={isEditing ? "" : "is-readonly"}
-                  placeholder="Ex. 2026"
+                  placeholder="Ex. 2024"
                 />
                 {errors.anneeBac ? <small className="error-message">{errors.anneeBac}</small> : null}
               </label>
 
               <label className="student-profile-field">
-                <span>Série du bac</span>
+                <span>Série du baccalauréat <abbr title="obligatoire">*</abbr></span>
                 <select
                   name="serieBac"
                   value={academicForm.serieBac}
@@ -864,7 +929,7 @@ export default function Profil() {
               </label>
 
               <label className="student-profile-field">
-                <span>Moyenne générale</span>
+                <span>Moyenne générale <abbr title="obligatoire">*</abbr></span>
                 <input
                   type="number"
                   step="0.01"
@@ -901,7 +966,7 @@ export default function Profil() {
               </label>
 
               <label className="student-profile-field">
-                <span>Numéro d'inscription au bac</span>
+                <span>Numéro d'inscription au baccalauréat <abbr title="obligatoire">*</abbr></span>
                 <input
                   type="text"
                   name="numeroInscriptionBac"
@@ -909,6 +974,7 @@ export default function Profil() {
                   onChange={handleAcademicChange}
                   readOnly={!isEditing}
                   className={isEditing ? "" : "is-readonly"}
+                  placeholder="Ex. 12345678"
                 />
                 {errors.numeroInscriptionBac ? (
                   <small className="error-message">{errors.numeroInscriptionBac}</small>
@@ -924,6 +990,7 @@ export default function Profil() {
                   onChange={handleAcademicChange}
                   readOnly={!isEditing}
                   className={isEditing ? "" : "is-readonly"}
+                  placeholder="Nom de votre lycée"
                 />
               </label>
 
@@ -941,6 +1008,10 @@ export default function Profil() {
             </div>
           </section>
 
+          <div className="student-profile-bottom-actions">
+            {renderActions()}
+          </div>
+
           <section className="student-dashboard-panel student-profile-section">
             <div className="student-dashboard-section-head">
               <h2>Sécurité du compte</h2>
@@ -957,38 +1028,94 @@ export default function Profil() {
               </div>
             ) : null}
 
-            <form className="student-profile-form-grid" onSubmit={handlePasswordSubmit}>
+            <form className="student-profile-form-grid" onSubmit={handlePasswordSubmit} noValidate>
               <label className="student-profile-field">
                 <span>Mot de passe actuel</span>
-                <input
-                  type="password"
-                  name="currentPassword"
-                  value={passwordData.currentPassword}
-                  onChange={handlePasswordChange}
-                  placeholder={accountInfo.password ? "Saisir le mot de passe actuel" : "Optionnel si aucun mot de passe n'est configuré"}
-                />
+                <div className="login-password-wrap">
+                  <input
+                    ref={currentPasswordRef}
+                    type={showCurrentPassword ? "text" : "password"}
+                    name="currentPassword"
+                    value={passwordData.currentPassword}
+                    onChange={handlePasswordChange}
+                    placeholder={accountInfo.password ? "Saisir le mot de passe actuel" : "Non requis si aucun mot de passe n'est configuré"}
+                  />
+                  <button
+                    type="button"
+                    className="login-toggle-password"
+                    onClick={() => {
+                      setShowCurrentPassword((current) => !current);
+                      currentPasswordRef.current?.focus();
+                    }}
+                    aria-label={showCurrentPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  >
+                    {showCurrentPassword ? <EyeClosed /> : <EyeOpen />}
+                  </button>
+                </div>
               </label>
 
               <label className="student-profile-field">
                 <span>Nouveau mot de passe</span>
-                <input
-                  type="password"
-                  name="newPassword"
-                  value={passwordData.newPassword}
-                  onChange={handlePasswordChange}
-                  placeholder="Minimum 6 caractères"
-                />
+                <div className="login-password-wrap">
+                  <input
+                    ref={newPasswordRef}
+                    type={showNewPassword ? "text" : "password"}
+                    name="newPassword"
+                    value={passwordData.newPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Minimum 8 caractères"
+                  />
+                  <button
+                    type="button"
+                    className="login-toggle-password"
+                    onClick={() => {
+                      setShowNewPassword((current) => !current);
+                      newPasswordRef.current?.focus();
+                    }}
+                    aria-label={showNewPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  >
+                    {showNewPassword ? <EyeClosed /> : <EyeOpen />}
+                  </button>
+                </div>
               </label>
 
               <label className="student-profile-field student-profile-field-full">
                 <span>Confirmation du nouveau mot de passe</span>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={passwordData.confirmPassword}
-                  onChange={handlePasswordChange}
-                  placeholder="Confirmez le nouveau mot de passe"
-                />
+                <div className="login-password-wrap">
+                  <input
+                    ref={confirmPasswordRef}
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={passwordData.confirmPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Confirmez le nouveau mot de passe"
+                  />
+                  <button
+                    type="button"
+                    className="login-toggle-password"
+                    onClick={() => {
+                      setShowConfirmPassword((current) => !current);
+                      confirmPasswordRef.current?.focus();
+                    }}
+                    aria-label={showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  >
+                    {showConfirmPassword ? <EyeClosed /> : <EyeOpen />}
+                  </button>
+                </div>
+                {passwordData.confirmPassword.length > 0 ? (
+                  <small
+                    className={
+                      passwordData.newPassword === passwordData.confirmPassword
+                        ? "student-profile-match-ok"
+                        : "student-profile-match-error"
+                    }
+                    aria-live="polite"
+                  >
+                    {passwordData.newPassword === passwordData.confirmPassword
+                      ? "Les mots de passe correspondent."
+                      : "Les mots de passe ne correspondent pas."}
+                  </small>
+                ) : null}
               </label>
 
               <div className="student-profile-security-actions">
@@ -1007,13 +1134,13 @@ export default function Profil() {
           <section className="student-dashboard-panel student-profile-side-card">
             <div className="student-dashboard-section-head">
               <h2>État du profil</h2>
-              <p>Visualisez en un coup d'œil ce qui est déjà renseigné et ce qu'il reste à compléter.</p>
+              <p>Visualisez ce qui est déjà renseigné et ce qu'il reste à compléter avant de soumettre votre candidature.</p>
             </div>
 
             <div className="student-profile-progress-list">
               <div className="student-progress-row">
                 <div className="student-progress-head">
-                  <h3>Profil candidat</h3>
+                  <h3>Informations personnelles</h3>
                   <span>{personalCompletion}%</span>
                 </div>
                 <p>Identité, coordonnées et informations de contact.</p>
@@ -1025,7 +1152,7 @@ export default function Profil() {
                   <h3>Baccalauréat</h3>
                   <span>{academicCompletion}%</span>
                 </div>
-                <p>Série, moyenne et informations liées au bac.</p>
+                <p>Série, moyenne et informations liées au baccalauréat.</p>
                 <ProgressBar value={academicCompletion} color="#0f766e" label={`${academicCompletion}%`} />
               </div>
 
@@ -1034,7 +1161,7 @@ export default function Profil() {
                   <h3>Documents</h3>
                   <span>{documentsCompletion}%</span>
                 </div>
-                <p>Pièces déjà déposées ou encore manquantes sur votre dossier.</p>
+                <p>Pièces justificatives déposées sur votre dossier.</p>
                 <ProgressBar value={documentsCompletion} color="#d97706" label={`${documentsCompletion}%`} />
               </div>
             </div>
@@ -1057,8 +1184,8 @@ export default function Profil() {
 
             <div className="student-profile-account-list">
               <div className="student-profile-account-row">
-                <span>Email principal</span>
-                <strong>{accountInfo.email || personalForm.email || "Non renseignee"}</strong>
+                <span>Adresse e-mail</span>
+                <strong>{accountInfo.email || personalForm.email || "Non renseignée"}</strong>
               </div>
               <div className="student-profile-account-row">
                 <span>Date de création du compte</span>
@@ -1067,10 +1194,6 @@ export default function Profil() {
               <div className="student-profile-account-row">
                 <span>Dernière connexion</span>
                 <strong>{formatDateTime(accountInfo.lastLoginAt)}</strong>
-              </div>
-              <div className="student-profile-account-row">
-                <span>Navigateur utilisé</span>
-                <strong>{accountInfo.lastLoginBrowser || "Non renseigné"}</strong>
               </div>
               <div className="student-profile-account-row">
                 <span>Statut du compte</span>

@@ -233,6 +233,83 @@ button:disabled,
   color: var(--ui-success);
 }
 
+.student-profile-field-hint,
+.student-profile-match-ok,
+.student-profile-match-error {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.student-profile-field-hint {
+  color: var(--ui-muted);
+}
+
+.student-profile-match-ok {
+  color: var(--ui-success);
+  font-weight: 700;
+}
+
+.student-profile-match-error {
+  color: var(--ui-danger);
+  font-weight: 700;
+}
+
+.student-profile-bottom-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 18px 0 28px;
+}
+
+.login-password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-password-wrap input {
+  width: 100%;
+  padding-right: 44px;
+}
+
+.login-toggle-password {
+  position: absolute;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-muted);
+  cursor: pointer;
+}
+
+.login-toggle-password:hover {
+  background: var(--ui-primary-soft);
+  color: var(--ui-primary);
+}
+
+.login-btn-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.login-spinner {
+  animation: login-spinner-rotate 1s linear infinite;
+}
+
+@keyframes login-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .student-application-input,
 .student-application-textarea,
 .student-candidatures-page-size-select,
