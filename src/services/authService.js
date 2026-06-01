@@ -2,7 +2,7 @@ export const API_BASE_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/
 
 const API_FALLBACK_URLS = API_BASE_URL.startsWith("http://") && API_BASE_URL.includes("localhost")
   ? [API_BASE_URL, API_BASE_URL.replace("localhost", "127.0.0.1")]
-  : [API_BASE_URL];
+  : [API_BASE_URL, "http://localhost:5000/api", "http://127.0.0.1:5000/api"];
 
 const AUTH_STORAGE_KEYS = {
   token: "token",
