@@ -24,24 +24,54 @@ const PROFILE_FIELDS = [
 ];
 
 const ACADEMIC_FIELDS = [
-  "diplomeActuel",
-  "etablissementActuel",
-  "pays",
   "anneeBac",
+  "serieBac",
   "moyenneBac",
-  "specialiteActuelle",
+  "mentionBac",
+  "numeroInscriptionBac",
+  "lyceeOrigine",
+  "wilayaLycee",
+  "filiere",
   "specialite",
+  "etablissement",
   "universite",
   "niveauDemande",
 ];
 
 const DOCUMENT_FIELDS = [
-  { key: "copieBac", label: "Diplome" },
-  { key: "releveNotes", label: "Releve de notes" },
-  { key: "carteIdentite", label: "Passeport / Carte d'identite" },
-  { key: "photo", label: "Lettre de motivation" },
-  { key: "residence", label: "Certificat de langue" },
-  { key: "cv", label: "CV" },
+  {
+    key: "releveNotes",
+    label: "Relevé de notes du baccalauréat",
+    aliases: ["Relevé de notes du baccalauréat", "Releve de notes"],
+  },
+  {
+    key: "attestationReussite",
+    label: "Attestation de réussite au baccalauréat",
+    aliases: ["Attestation de réussite au baccalauréat", "Diplome", "copie du bac ou diplome"],
+    storageKeys: ["attestationReussite", "copieBac"],
+  },
+  {
+    key: "carteIdentite",
+    label: "Pièce d'identité",
+    aliases: ["Pièce d'identité", "Passeport / Carte d'identité"],
+  },
+  {
+    key: "photo",
+    label: "Photo d'identité",
+    aliases: ["Photo d'identité", "Lettre de motivation"],
+  },
+  {
+    key: "residence",
+    label: "Certificat de résidence",
+    aliases: ["Certificat de résidence", "Certificat de langue"],
+  },
+  {
+    key: "justificatifParticulier",
+    label: "Justificatif particulier",
+    aliases: ["Justificatif particulier", "CV"],
+    storageKeys: ["justificatifParticulier", "cv"],
+    optional: true,
+  },
 ];
 
 function hasValue(value) {
@@ -66,6 +96,23 @@ function buildMergedRecord(keys, sources) {
   }, {});
 }
 
+function normalizeDocumentType(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function findDocumentByType(documents, expectedDocument) {
+  const acceptedTypes = [expectedDocument.key, expectedDocument.label, ...(expectedDocument.aliases || [])]
+    .map(normalizeDocumentType);
+
+  return documents.find((document) =>
+    acceptedTypes.includes(normalizeDocumentType(document.type_document))
+  );
+}
+
 function countCompletedFields(record, keys) {
   return keys.filter((key) => hasValue(record[key])).length;
 }
@@ -80,7 +127,7 @@ function toPercent(completed, total) {
 
 function formatDate(value) {
   if (!value) {
-    return "Non renseignee";
+    return "Non renseignée";
   }
 
   const date = new Date(value);
@@ -97,7 +144,7 @@ function formatDate(value) {
 
 function formatDateTime(value) {
   if (!value) {
-    return "Non renseignee";
+    return "Non renseignée";
   }
 
   const date = new Date(value);
@@ -240,9 +287,9 @@ function buildCurrentStep({
   if (!latestApplication) {
     if (profileCompletion < 100) {
       return {
-        label: "Completer le profil",
+        label: "Compléter le profil",
         shortLabel: "Profil",
-        detail: "Renseignez vos informations personnelles pour preparer votre dossier.",
+        detail: "Renseignez vos informations personnelles pour préparer votre dossier.",
         path: "/profil",
         tone: "etudiants",
       };
@@ -250,19 +297,19 @@ function buildCurrentStep({
 
     if (academicCompletion < 100) {
       return {
-        label: "Renseigner le parcours academique",
-        shortLabel: "Academique",
-        detail: "Ajoutez vos informations de formation avant de finaliser la candidature.",
-        path: "/student-step2",
+        label: "Renseigner le baccalauréat",
+        shortLabel: "Baccalauréat",
+        detail: "Ajoutez vos informations de baccalauréat avant de finaliser la candidature.",
+        path: "/student-step1",
         tone: "attente",
       };
     }
 
     if (documentsCompletion < 100) {
       return {
-        label: "Deposer les pieces justificatives",
+        label: "Déposer les pièces justificatives",
         shortLabel: "Documents",
-        detail: "Joignez les documents demandes pour rendre le dossier complet.",
+        detail: "Joignez les documents demandés pour compléter votre dossier.",
         path: "/student-step3",
         tone: "incomplets",
       };
@@ -271,7 +318,7 @@ function buildCurrentStep({
     return {
       label: "Finaliser la candidature",
       shortLabel: "Finalisation",
-      detail: "Votre dossier est pret. Vous pouvez maintenant valider la soumission.",
+      detail: "Votre dossier est prêt. Vous pouvez valider la soumission.",
       path: "/student-recapitulatif",
       tone: "total",
     };
@@ -279,9 +326,9 @@ function buildCurrentStep({
 
   if (latestApplication.statut === "Acceptee") {
     return {
-      label: "Decision favorable rendue",
-      shortLabel: "Decision",
-      detail: "Votre dossier a ete accepte. Consultez le suivi de votre candidature.",
+      label: "Décision favorable rendue",
+      shortLabel: "Décision",
+      detail: "Votre dossier a été accepté. Consultez le suivi de votre candidature.",
       path: "/mes-candidatures",
       tone: "acceptee",
     };
@@ -289,9 +336,9 @@ function buildCurrentStep({
 
   if (latestApplication.statut === "Rejetee") {
     return {
-      label: "Decision finale disponible",
-      shortLabel: "Decision",
-      detail: "Une decision finale a ete enregistree sur votre dossier.",
+      label: "Décision finale disponible",
+      shortLabel: "Décision",
+      detail: "Une décision finale a été enregistrée sur votre dossier.",
       path: "/mes-candidatures",
       tone: "refusee",
     };
@@ -299,9 +346,9 @@ function buildCurrentStep({
 
   if (documentsCompletion < 100) {
     return {
-      label: "Completer les documents",
+      label: "Compléter les documents",
       shortLabel: "Documents",
-      detail: "Votre dossier peut encore etre consolide avec les pieces manquantes.",
+      detail: "Votre dossier peut encore être consolidé avec les pièces manquantes.",
       path: "/student-step3",
       tone: "incomplets",
     };
@@ -310,7 +357,7 @@ function buildCurrentStep({
   return {
     label: "Dossier en cours d'analyse",
     shortLabel: "Analyse",
-    detail: "Votre candidature est en cours de verification par l'administration.",
+    detail: "Votre candidature est en cours de vérification par l'administration.",
     path: "/mes-candidatures",
     tone: "attente",
   };
@@ -319,28 +366,28 @@ function buildCurrentStep({
 function getStatusPresentation(latestApplication, missingDocumentsCount) {
   if (!latestApplication) {
     return {
-      label: "A finaliser",
+      label: "À finaliser",
       description:
-        "Votre candidature n'a pas encore ete soumise. Finalisez les informations manquantes pour lancer l'etude du dossier.",
-      helper: "La soumission declenchera l'analyse administrative de votre candidature.",
+        "Votre candidature n'a pas encore été soumise. Complétez les informations manquantes pour lancer l'instruction du dossier.",
+      helper: "La soumission déclenchera l'analyse administrative de votre candidature.",
     };
   }
 
   if (latestApplication.statut === "Acceptee") {
     return {
-      label: "Acceptee",
+      label: "Acceptée",
       description:
-        "Une decision favorable a ete enregistree sur votre derniere candidature. Consultez le detail du dossier pour la suite.",
-      helper: "Pensez a suivre les prochaines etapes demandees par l'etablissement.",
+        "Une décision favorable a été enregistrée sur votre candidature. Consultez le détail du dossier pour connaître la suite.",
+      helper: "Pensez à suivre les prochaines étapes indiquées par l'établissement.",
     };
   }
 
   if (latestApplication.statut === "Rejetee") {
     return {
-      label: "Rejetee",
+      label: "Non retenue",
       description:
-        "Une decision finale a ete prise sur votre dossier. Vous pouvez consulter le detail pour suivre l'historique de traitement.",
-      helper: "Le detail du dossier reste disponible pour vos archives.",
+        "Une décision finale a été prise sur votre dossier. Vous pouvez consulter le détail pour en suivre l'historique.",
+      helper: "Le détail du dossier reste disponible pour vos archives.",
     };
   }
 
@@ -348,16 +395,16 @@ function getStatusPresentation(latestApplication, missingDocumentsCount) {
     return {
       label: "En attente",
       description:
-        "Votre dossier est bien enregistre, mais certaines pieces peuvent encore etre completees pour consolider l'instruction.",
-      helper: "Ajoutez les documents manquants pour eviter tout retard de traitement.",
+        "Votre dossier est bien enregistré, mais certaines pièces peuvent encore être complétées pour faciliter l'instruction.",
+      helper: "Ajoutez les documents manquants pour éviter tout retard de traitement.",
     };
   }
 
   return {
     label: "En attente",
     description:
-      "Votre candidature a ete transmise. Elle est maintenant en cours d'etude.",
-    helper: "Vous serez informe des evolutions majeures directement depuis cet espace.",
+      "Votre candidature a été transmise. Elle est actuellement en cours d'étude par l'administration.",
+    helper: "Vous serez informé des évolutions depuis cet espace.",
   };
 }
 
@@ -451,7 +498,7 @@ export default function StudentDashboard() {
       const token = getAuthToken();
 
       if (!token) {
-        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        const message = "Session absente ou expirée. Veuillez vous reconnecter.";
         clearAuthSession();
         navigate("/login", { state: { message } });
         return;
@@ -469,7 +516,7 @@ export default function StudentDashboard() {
       } catch (error) {
         if (isActive) {
           if (error.status === 401) {
-            const message = "Session expiree. Veuillez vous reconnecter.";
+            const message = "Session expirée. Veuillez vous reconnecter.";
             clearAuthSession();
             navigate("/login", { state: { message } });
             return;
@@ -524,7 +571,7 @@ export default function StudentDashboard() {
 
       if (apiDocuments.length > 0 || dashboardData?.documents) {
         return DOCUMENT_FIELDS.map((document) => {
-          const apiDocument = apiDocuments.find((item) => item.type_document === document.label);
+          const apiDocument = findDocumentByType(apiDocuments, document);
 
           return {
             ...document,
@@ -536,10 +583,9 @@ export default function StudentDashboard() {
       }
 
       return DOCUMENT_FIELDS.map((document) => {
-        const fileName = pickFirstFilled(
-          [applicationDraft.documents, latestApplication?.details],
-          document.key
-        );
+        const fileName = (document.storageKeys || [document.key])
+          .map((key) => pickFirstFilled([applicationDraft.documents, latestApplication?.details], key))
+          .find(hasValue) || "";
 
         return {
           ...document,
@@ -564,11 +610,12 @@ export default function StudentDashboard() {
     [mergedAcademic]
   );
 
-  const submittedDocumentsCount = documents.filter((document) => document.isSubmitted).length;
-  const missingDocuments = documents.filter((document) => !document.isSubmitted);
+  const requiredDocuments = documents.filter((document) => !document.optional);
+  const submittedRequiredDocumentsCount = requiredDocuments.filter((document) => document.isSubmitted).length;
+  const missingDocuments = requiredDocuments.filter((document) => !document.isSubmitted);
   const documentsCompletion =
     dashboardData?.documents?.completion ??
-    toPercent(submittedDocumentsCount, documents.length);
+    toPercent(submittedRequiredDocumentsCount, requiredDocuments.length);
   const applicationsTotal = dashboardData?.applications?.total ?? 0;
   const averageCompletion = Math.round(
     (profileCompletion + academicCompletion + documentsCompletion) / 3
@@ -583,7 +630,7 @@ export default function StudentDashboard() {
     mergedProfile.prenom ||
     latestApplication?.details?.prenom ||
     applicationDraft.personalInfo.prenom ||
-    "Etudiant";
+    "candidat(e)";
 
   const statusPresentation = getStatusPresentation(
     latestApplication,
@@ -620,8 +667,8 @@ export default function StudentDashboard() {
     return [
       {
         id: `fallback-${latestApplication.id}`,
-        title: "Candidature deposee",
-        description: `Votre dossier ${latestApplication.numeroDossier} a ete depose pour ${latestApplication.specialite}.`,
+        title: "Candidature déposée",
+        description: `Votre dossier ${latestApplication.numeroDossier} a été déposé pour ${latestApplication.specialite}.`,
         detail: latestApplication.universite,
         tone: "info",
         status: latestApplication.statut,
@@ -647,7 +694,7 @@ export default function StudentDashboard() {
       value: dashboardData?.globalStatus || statusPresentation.label,
       detail: latestApplication
         ? `${latestApplication.numeroDossier} - ${formatDate(latestApplication.submittedAt || latestApplication.dateDepot)}`
-        : "Aucune candidature finalisee pour le moment",
+        : "Aucune candidature finalisée pour le moment.",
       icon: "status",
       tone: latestApplication ? getStatusTone(latestApplication.statut) : "attente",
       to: latestApplication ? "/mes-candidatures" : currentStep.path,
@@ -655,24 +702,24 @@ export default function StudentDashboard() {
     },
     {
       id: "profile",
-      label: "Profil complete",
+      label: "Profil complété",
       value: `${profileCompletion}%`,
       detail:
         profileCompletion === 100
-          ? "Vos informations personnelles sont completes."
-          : "Des informations personnelles restent a renseigner.",
+          ? "Vos informations personnelles sont complètes."
+          : "Des informations personnelles restent à renseigner.",
       icon: "profile",
       tone: profileCompletion === 100 ? "acceptee" : "etudiants",
       to: "/profil",
     },
     {
       id: "documents",
-      label: "Documents deposes",
-      value: `${dashboardData?.documents?.total ?? submittedDocumentsCount}/${documents.length}`,
+      label: "Documents déposés",
+      value: `${dashboardData?.documents?.total ?? submittedRequiredDocumentsCount}/${requiredDocuments.length}`,
       detail:
-        submittedDocumentsCount === documents.length
-          ? "Toutes les pieces attendues sont presentes."
-          : `${missingDocuments.length} document(s) reste(nt) a ajouter.`,
+        submittedRequiredDocumentsCount === requiredDocuments.length
+          ? "Toutes les pièces attendues sont présentes."
+          : `${missingDocuments.length} pièce(s) restante(s) à déposer.`,
       icon: "documents",
       tone: missingDocuments.length === 0 ? "acceptee" : "attente",
       to: "/student-step3",
@@ -683,8 +730,8 @@ export default function StudentDashboard() {
       value: String(missingDocuments.length),
       detail:
         missingDocuments.length === 0
-          ? "Aucune piece manquante sur le dossier actuel."
-          : "Des pieces justificatives manquent encore.",
+          ? "Aucune pièce manquante sur le dossier actuel."
+          : "Des pièces justificatives manquent encore.",
       icon: "missing",
       tone: missingDocuments.length === 0 ? "acceptee" : "incomplets",
       to: "/student-step3",
@@ -701,11 +748,11 @@ export default function StudentDashboard() {
     },
     {
       id: "activity",
-      label: "Derniere activite",
+      label: "Dernière activité",
       value: recentActivity[0]?.timeLabel || "Aucune",
       detail:
         recentActivity[0]?.title ||
-        "Les mouvements recents de votre dossier apparaitront ici.",
+        "Les mouvements récents de votre dossier apparaîtront ici.",
       icon: "activity",
       tone: recentActivity[0]?.tone === "positive" ? "acceptee" : "total",
       to: "/mes-candidatures",
@@ -720,17 +767,17 @@ export default function StudentDashboard() {
       value: profileCompletion,
       caption:
         profileCompletion === 100
-          ? "Informations personnelles completes"
-          : "Mettez a jour vos donnees de contact et votre identite",
+          ? "Informations personnelles complètes."
+          : "Renseignez vos données de contact et d'identité.",
     },
     {
       id: "academic",
-      label: "Informations academiques",
+      label: "Baccalauréat",
       value: academicCompletion,
       caption:
         academicCompletion === 100
-          ? "Parcours academique renseigne"
-          : "Ajoutez ou completez votre cursus et votre specialite",
+          ? "Informations du baccalauréat complètes."
+          : "Complétez vos informations de baccalauréat.",
     },
     {
       id: "documents",
@@ -738,8 +785,8 @@ export default function StudentDashboard() {
       value: documentsCompletion,
       caption:
         missingDocuments.length === 0
-          ? "Toutes les pieces requises sont deposees"
-          : `${missingDocuments.length} piece(s) justificative(s) manque(nt) encore`,
+          ? "Toutes les pièces requises sont déposées."
+          : `${missingDocuments.length} pièce(s) justificative(s) manquante(s).`,
     },
     {
       id: "final",
@@ -747,10 +794,10 @@ export default function StudentDashboard() {
       value: finalValidationProgress,
       caption:
         latestApplication?.statut === "Acceptee" || latestApplication?.statut === "Rejetee"
-          ? "Decision finale enregistree sur le dossier"
+          ? "Décision finale enregistrée sur le dossier."
           : latestApplication
-            ? "Votre candidature suit actuellement le circuit administratif"
-            : "La finalisation sera disponible une fois le dossier complet",
+            ? "Votre candidature suit actuellement le circuit administratif."
+            : "La finalisation sera disponible une fois le dossier complet.",
     },
   ];
 
@@ -761,11 +808,11 @@ export default function StudentDashboard() {
       nextAlerts.push({
         id: "submit",
         count: "01",
-        title: "Candidature a finaliser",
-        problem: "Votre dossier n'a pas encore ete soumis.",
+        title: "Candidature à finaliser",
+        problem: "Votre dossier n'a pas encore été soumis.",
         importance:
-          "La candidature ne peut pas etre analysee tant que vous n'avez pas valide le recapitulatif final.",
-        helper: "Finalisez votre dossier pour lancer le traitement administratif.",
+          "La candidature ne peut être instruite qu'après validation du récapitulatif final.",
+        helper: "Finalisez votre dossier pour déclencher le traitement administratif.",
         actionLabel: "Finaliser",
         path: currentStep.path,
         tone: "warning",
@@ -776,11 +823,11 @@ export default function StudentDashboard() {
       nextAlerts.push({
         id: "documents",
         count: String(missingDocuments.length).padStart(2, "0"),
-        title: "Documents manquants",
-        problem: `${missingDocuments.length} piece(s) justificative(s) restent a deposer.`,
+        title: "Pièces manquantes",
+        problem: `${missingDocuments.length} pièce(s) justificative(s) restent à déposer.`,
         importance:
-          "Un dossier incomplet peut retarder ou bloquer l'analyse de votre candidature.",
-        helper: "Ajoutez les pieces manquantes depuis votre espace documents.",
+          "Un dossier incomplet peut retarder ou bloquer l'instruction de votre candidature.",
+        helper: "Ajoutez les pièces manquantes depuis votre espace documents.",
         actionLabel: "Ajouter",
         path: "/student-step3",
         tone: "danger",
@@ -792,11 +839,11 @@ export default function StudentDashboard() {
         id: "profile",
         count: `${100 - profileCompletion}%`,
         title: "Profil incomplet",
-        problem: "Certaines informations personnelles ne sont pas encore renseignees.",
+        problem: "Certaines informations personnelles ne sont pas encore renseignées.",
         importance:
-          "Vos coordonnees et donnees d'identite doivent etre completes pour fiabiliser le dossier.",
-        helper: "Mettez a jour le profil avant toute nouvelle candidature.",
-        actionLabel: "Completer",
+          "Vos coordonnées et données d'identité doivent être complètes pour fiabiliser le dossier.",
+        helper: "Mettez à jour votre profil avant toute nouvelle candidature.",
+        actionLabel: "Compléter",
         path: "/profil",
         tone: "info",
       });
@@ -806,11 +853,11 @@ export default function StudentDashboard() {
       nextAlerts.push({
         id: "ready",
         count: "OK",
-        title: "Dossier a jour",
-        problem: "Aucune action immediate n'est requise pour le moment.",
+        title: "Dossier à jour",
+        problem: "Aucune action immédiate n'est requise.",
         importance:
-          "Votre dossier est complet et le suivi peut maintenant se faire depuis les candidatures.",
-        helper: "Consultez regulierement le statut de votre dossier pour connaitre les prochaines etapes.",
+          "Votre dossier est complet. Le suivi s'effectue depuis la section candidatures.",
+        helper: "Consultez régulièrement le statut de votre dossier pour connaître les prochaines étapes.",
         actionLabel: "Suivre",
         path: "/mes-candidatures",
         tone: "positive",
@@ -823,8 +870,8 @@ export default function StudentDashboard() {
   const quickActions = [
     {
       id: "profile",
-      title: "Completer mon profil",
-      description: "Mettez a jour vos informations personnelles et vos coordonnees.",
+      title: "Compléter mon profil",
+      description: "Mettez à jour vos informations personnelles et vos coordonnées.",
       icon: "profile",
       tone: "etudiants",
       buttonLabel: "Ouvrir",
@@ -833,16 +880,16 @@ export default function StudentDashboard() {
     {
       id: "documents",
       title: "Ajouter mes documents",
-      description: "Deposez les pieces justificatives demandees pour le dossier.",
+      description: "Déposez les pièces justificatives requises pour votre dossier.",
       icon: "documents",
       tone: "incomplets",
-      buttonLabel: "Gerer",
+      buttonLabel: "Gérer",
       to: "/student-step3",
     },
     {
       id: "application",
       title: "Voir ma candidature",
-      description: "Consultez le recapitulatif et le statut des dossiers deja soumis.",
+      description: "Consultez le récapitulatif et le suivi de vos dossiers soumis.",
       icon: "folder",
       tone: "total",
       buttonLabel: "Voir",
@@ -851,7 +898,7 @@ export default function StudentDashboard() {
     {
       id: "draft",
       title: "Poursuivre mon dossier",
-      description: "Reprenez l'etape en cours pour finaliser votre candidature.",
+      description: "Reprenez l'étape en cours pour finaliser votre candidature.",
       icon: "edit",
       tone: "acceptee",
       buttonLabel: "Continuer",
@@ -864,10 +911,10 @@ export default function StudentDashboard() {
       <div className="student-dashboard-shell">
         <section className="student-dashboard-hero">
           <div className="student-dashboard-hero-copy">
-            <span className="student-dashboard-kicker">Espace etudiant</span>
-            <h1>Chargement du tableau de bord</h1>
+            <span className="student-dashboard-kicker">Espace étudiant</span>
+            <h1>Chargement en cours</h1>
             <p className="student-dashboard-subtitle">
-              Chargement de votre tableau de bord...
+              Récupération de vos données, veuillez patienter.
             </p>
           </div>
         </section>
@@ -884,7 +931,7 @@ export default function StudentDashboard() {
       <div className="student-dashboard-shell">
         <section className="student-dashboard-hero">
           <div className="student-dashboard-hero-copy">
-            <span className="student-dashboard-kicker">Espace etudiant</span>
+            <span className="student-dashboard-kicker">Espace étudiant</span>
             <h1>Tableau de bord indisponible</h1>
             <p className="student-dashboard-subtitle">{dashboardError}</p>
           </div>
@@ -892,8 +939,8 @@ export default function StudentDashboard() {
 
         <section className="campus-section-container student-dashboard-panel">
           <EmptyState
-            title="Impossible de charger vos donnees"
-            description="Verifiez que le serveur est lance, puis reessayez."
+            title="Impossible de charger vos données"
+            description="Vérifiez que le serveur est accessible, puis réessayez."
             actionLabel="Retour au profil"
             actionTo="/profil"
             className="admin-empty-state"
@@ -904,7 +951,7 @@ export default function StudentDashboard() {
               className="student-application-button student-application-button-primary"
               onClick={() => setReloadKey((currentKey) => currentKey + 1)}
             >
-              Reessayer
+              Réessayer
             </button>
           </div>
         </section>
@@ -916,14 +963,13 @@ export default function StudentDashboard() {
     <div className="student-dashboard-shell">
       <section className="student-dashboard-hero">
         <div className="student-dashboard-hero-copy">
-          <span className="student-dashboard-kicker">Espace etudiant</span>
-          <h1>Tableau de bord etudiant</h1>
+          <span className="student-dashboard-kicker">Espace étudiant</span>
+          <h1>Tableau de bord</h1>
           <p className="student-dashboard-subtitle">
-            Suivez l'avancement de votre candidature et completez votre dossier.
+            Suivez l'avancement de votre dossier et complétez les informations manquantes.
           </p>
           <p className="student-dashboard-welcome">
-            Bonjour {userName}, retrouvez ici les informations essentielles pour gerer votre
-            candidature en toute serenite.
+            Bonjour {userName}, retrouvez ici les informations essentielles liées à votre candidature.
           </p>
         </div>
 
@@ -934,10 +980,10 @@ export default function StudentDashboard() {
           <span className={`admin-page-context ${latestApplication ? "neutral" : "warning"}`}>
             {latestApplication
               ? `Dernier dossier ${latestApplication.numeroDossier}`
-              : "Dossier en preparation"}
+              : "Dossier en préparation"}
           </span>
           <span className="admin-page-context neutral">
-            Mis a jour le {formatDateTime(lastUpdate)}
+            Mis à jour le {formatDateTime(lastUpdate)}
           </span>
         </div>
       </section>
@@ -955,8 +1001,8 @@ export default function StudentDashboard() {
       <section className="campus-section-container student-dashboard-panel">
         <div className="campus-section-header student-dashboard-section-head">
           <div>
-            <h2>Resume de votre dossier</h2>
-            <p>Les indicateurs essentiels pour comprendre rapidement ou en est votre candidature.</p>
+            <h2>Résumé de votre dossier</h2>
+            <p>Les indicateurs essentiels pour évaluer rapidement l'état de votre candidature.</p>
           </div>
         </div>
 
@@ -994,7 +1040,7 @@ export default function StudentDashboard() {
           <div className="campus-section-header student-dashboard-section-head">
             <div>
               <h2>Progression du dossier</h2>
-              <p>Visualisez en un coup d'oeil les volets deja completes et ceux a terminer.</p>
+              <p>Visualisez les volets complétés et ceux qui restent à renseigner.</p>
             </div>
           </div>
 
@@ -1023,7 +1069,7 @@ export default function StudentDashboard() {
           <div className="campus-section-header student-dashboard-section-head">
             <div>
               <h2>Statut de ma candidature</h2>
-              <p>Consultez l'etat global de votre dernier dossier et les prochaines etapes utiles.</p>
+              <p>Consultez l'état de votre dernier dossier et les prochaines étapes à suivre.</p>
             </div>
           </div>
 
@@ -1032,7 +1078,7 @@ export default function StudentDashboard() {
               {latestApplication ? (
                 <StatusBadge status={latestApplication.statut} />
               ) : (
-                <span className="student-dashboard-draft-badge">A finaliser</span>
+                <span className="student-dashboard-draft-badge">À finaliser</span>
               )}
               <span
                 className={`admin-page-context ${
@@ -1057,23 +1103,23 @@ export default function StudentDashboard() {
 
             <div className="student-dashboard-status-meta">
               <div className="student-dashboard-status-item">
-                <span>Numero de dossier</span>
+                <span>Numéro de dossier</span>
                 <strong>{latestApplication?.numeroDossier || "Brouillon en cours"}</strong>
               </div>
               <div className="student-dashboard-status-item">
-                <span>Formation</span>
+                <span>Formation souhaitée</span>
                 <strong>
-                  {latestApplication?.specialite || mergedAcademic.specialite || "A renseigner"}
+                  {latestApplication?.specialite || mergedAcademic.filiere || mergedAcademic.specialite || "À renseigner"}
                 </strong>
               </div>
               <div className="student-dashboard-status-item">
-                <span>Universite</span>
+                <span>Établissement</span>
                 <strong>
-                  {latestApplication?.universite || mergedAcademic.universite || "A renseigner"}
+                  {latestApplication?.universite || mergedAcademic.etablissement || mergedAcademic.universite || "À renseigner"}
                 </strong>
               </div>
               <div className="student-dashboard-status-item">
-                <span>Derniere mise a jour</span>
+                <span>Dernière mise à jour</span>
                 <strong>{formatDate(lastUpdate)}</strong>
               </div>
             </div>
@@ -1095,14 +1141,14 @@ export default function StudentDashboard() {
           <div className="campus-section-header student-dashboard-section-head student-dashboard-section-head-inline">
             <div>
               <h2>Documents du dossier</h2>
-              <p>Reperez les pieces deja deposees et celles qui restent a fournir.</p>
+              <p>Repérez les pièces déjà déposées et celles qui restent à fournir.</p>
             </div>
             <span
               className={`admin-page-context ${
                 missingDocuments.length === 0 ? "positive" : "warning"
               }`}
             >
-              {submittedDocumentsCount}/{documents.length} pieces
+              {submittedRequiredDocumentsCount}/{requiredDocuments.length} pièces obligatoires
             </span>
           </div>
 
@@ -1111,10 +1157,11 @@ export default function StudentDashboard() {
               <div key={document.key} className="student-document-row">
                 <div className="student-document-copy">
                   <h3>{document.label}</h3>
+                  {document.optional ? <small>Optionnel</small> : null}
                   <p>
                     {document.isSubmitted
                       ? document.fileName
-                      : "Aucun fichier depose pour le moment"}
+                      : "Aucun fichier déposé pour le moment."}
                   </p>
                 </div>
 
@@ -1123,7 +1170,7 @@ export default function StudentDashboard() {
                     document.isSubmitted ? "is-submitted" : "is-missing"
                   }`}
                 >
-                  {document.isSubmitted ? "Depose" : "Manquant"}
+                  {document.isSubmitted ? "Déposé" : "Manquant"}
                 </span>
               </div>
             ))}
@@ -1139,8 +1186,8 @@ export default function StudentDashboard() {
         <section className="campus-section-container student-dashboard-panel">
           <div className="campus-section-header student-dashboard-section-head">
             <div>
-              <h2>A faire</h2>
-              <p>Les points qui demandent votre attention pour garder un dossier complet.</p>
+              <h2>Points d'attention</h2>
+              <p>Les éléments qui nécessitent votre attention pour maintenir un dossier complet.</p>
             </div>
           </div>
 
@@ -1182,16 +1229,16 @@ export default function StudentDashboard() {
       <section className="campus-section-container student-dashboard-panel">
         <div className="campus-section-header student-dashboard-section-head">
           <div>
-            <h2>Historique recent</h2>
-            <p>Retrouvez les mouvements les plus importants sur votre dossier.</p>
+            <h2>Historique récent</h2>
+            <p>Retrouvez les derniers mouvements enregistrés sur votre dossier.</p>
           </div>
         </div>
 
         {recentActivity.length === 0 ? (
           <EmptyState
-            title="Aucune activite recente"
-            description="Vos soumissions et les evolutions de statut apparaitront ici."
-            actionLabel="Completer mon dossier"
+            title="Aucune activité récente"
+            description="Vos soumissions et les évolutions de statut apparaîtront ici."
+            actionLabel="Compléter mon dossier"
             actionTo={currentStep.path}
             className="admin-empty-state"
           />
@@ -1226,7 +1273,7 @@ export default function StudentDashboard() {
         <div className="campus-section-header student-dashboard-section-head">
           <div>
             <h2>Actions rapides</h2>
-            <p>Retrouvez les raccourcis utiles pour avancer dans votre dossier.</p>
+            <p>Les raccourcis essentiels pour avancer dans votre candidature.</p>
           </div>
         </div>
 
