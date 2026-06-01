@@ -84,9 +84,7 @@ function normalizeKey(value) {
 
 function resolveDocumentField(documentType) {
   const directField = FIELD_BY_DOCUMENT_TYPE[documentType];
-  if (directField) {
-    return directField;
-  }
+  if (directField) return directField;
 
   const normalizedType = normalizeKey(documentType);
   const legacyMap = {
@@ -116,15 +114,8 @@ function formatMegabytes(size) {
 function normalizeDocumentStatus(status) {
   const cleanStatus = String(status || "").trim();
   const normalizedStatus = normalizeKey(cleanStatus);
-
-  if (normalizedStatus.startsWith("valid")) {
-    return "Validé";
-  }
-
-  if (normalizedStatus.startsWith("refus")) {
-    return "Refusé";
-  }
-
+  if (normalizedStatus.startsWith("valid")) return "Validé";
+  if (normalizedStatus.startsWith("refus")) return "Refusé";
   return "En attente";
 }
 
@@ -132,10 +123,7 @@ function mapApiDocumentsToFields(documents) {
   return documents.reduce(
     (mappedDocuments, document) => {
       const fieldName = resolveDocumentField(document.type_document);
-
-      if (!fieldName || mappedDocuments.files[fieldName]) {
-        return mappedDocuments;
-      }
+      if (!fieldName || mappedDocuments.files[fieldName]) return mappedDocuments;
 
       mappedDocuments.files[fieldName] = document.nom_fichier || "";
       mappedDocuments.documentIds[fieldName] = document.id;
@@ -188,10 +176,12 @@ export default function StudentStep3() {
         .map(([key]) => key),
     []
   );
+
   const uploadedRequiredCount = useMemo(
     () => requiredDocumentKeys.filter((key) => files[key]).length,
     [files, requiredDocumentKeys]
   );
+
   const uploadProgress = useMemo(
     () => Math.round((uploadedRequiredCount / requiredDocumentKeys.length) * 100),
     [requiredDocumentKeys.length, uploadedRequiredCount]
@@ -204,9 +194,10 @@ export default function StudentStep3() {
       const token = getAuthToken();
 
       if (!token) {
-        const message = "Session absente ou expirée. Veuillez vous reconnecter.";
         clearAuthSession();
-        navigate("/login", { state: { message } });
+        navigate("/login", {
+          state: { message: "Session absente ou expirée. Veuillez vous reconnecter." },
+        });
         return;
       }
 
@@ -215,25 +206,17 @@ export default function StudentStep3() {
 
       try {
         const documents = await listMyDocuments();
-
-        if (!isActive) {
-          return;
-        }
+        if (!isActive) return;
 
         const mappedDocuments = mapApiDocumentsToFields(documents);
-        const nextFiles = {
-          ...buildEmptyDocumentFiles(),
-          ...mappedDocuments.files,
-        };
+        const nextFiles = { ...buildEmptyDocumentFiles(), ...mappedDocuments.files };
 
         setFiles(nextFiles);
         setDocumentIds(mappedDocuments.documentIds);
         setDocumentStatuses(mappedDocuments.statuses);
         updateDocuments(nextFiles);
       } catch (error) {
-        if (!isActive) {
-          return;
-        }
+        if (!isActive) return;
 
         const message = error.message || "Impossible de charger les documents déjà déposés.";
 
@@ -245,14 +228,11 @@ export default function StudentStep3() {
 
         setPageError(message);
       } finally {
-        if (isActive) {
-          setIsLoadingDocuments(false);
-        }
+        if (isActive) setIsLoadingDocuments(false);
       }
     }
 
     loadExistingDocuments();
-
     return () => {
       isActive = false;
     };
@@ -261,18 +241,13 @@ export default function StudentStep3() {
   useEffect(() => {
     return () => {
       Object.values(previews).forEach((previewUrl) => {
-        if (previewUrl) {
-          URL.revokeObjectURL(previewUrl);
-        }
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
       });
     };
   }, [previews]);
 
   const clearFieldError = (fieldName) => {
-    if (!errors[fieldName]) {
-      return;
-    }
-
+    if (!errors[fieldName]) return;
     setErrors((currentErrors) => {
       const nextErrors = { ...currentErrors };
       delete nextErrors[fieldName];
@@ -282,10 +257,7 @@ export default function StudentStep3() {
 
   const processFile = async (file, fieldName) => {
     const config = documentConfig[fieldName];
-
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     const allowedTypes = config.accept.split(",").map((type) => type.trim().toLowerCase());
     const fileExtension = `.${file.name.split(".").pop().toLowerCase()}`;
@@ -293,7 +265,7 @@ export default function StudentStep3() {
     if (!allowedTypes.includes(fileExtension)) {
       setErrors((currentErrors) => ({
         ...currentErrors,
-        [fieldName]: `Type de fichier non autorisé. Formats acceptés : ${config.accept}`,
+        [fieldName]: `Format non autorisé. Formats acceptés : ${config.accept}`,
       }));
       return;
     }
@@ -326,10 +298,7 @@ export default function StudentStep3() {
       }
 
       setPreviews((currentPreviews) => {
-        if (currentPreviews[fieldName]) {
-          URL.revokeObjectURL(currentPreviews[fieldName]);
-        }
-
+        if (currentPreviews[fieldName]) URL.revokeObjectURL(currentPreviews[fieldName]);
         return {
           ...currentPreviews,
           [fieldName]: isImageDocument(fieldName) ? URL.createObjectURL(file) : "",
@@ -338,10 +307,7 @@ export default function StudentStep3() {
 
       const fileName = document.nom_fichier || file.name;
 
-      setFiles((currentFiles) => ({
-        ...currentFiles,
-        [fieldName]: fileName,
-      }));
+      setFiles((currentFiles) => ({ ...currentFiles, [fieldName]: fileName }));
       setDocumentIds((currentDocumentIds) => ({
         ...currentDocumentIds,
         [fieldName]: document.id,
@@ -357,17 +323,12 @@ export default function StudentStep3() {
       showToast(`${config.label} déposé avec succès.`, "success");
     } catch (error) {
       const message = error.message || "Impossible de déposer ce document.";
-
       if (error.status === 401) {
         clearAuthSession();
         navigate("/login", { state: { message } });
         return;
       }
-
-      setErrors((currentErrors) => ({
-        ...currentErrors,
-        [fieldName]: message,
-      }));
+      setErrors((currentErrors) => ({ ...currentErrors, [fieldName]: message }));
     } finally {
       setUploadingFields((currentFields) => ({ ...currentFields, [fieldName]: false }));
       if (fileInputRefs.current[fieldName]) {
@@ -382,29 +343,17 @@ export default function StudentStep3() {
 
   const handleRemoveFile = async (fieldName) => {
     const documentId = documentIds[fieldName];
-
     setUploadingFields((currentFields) => ({ ...currentFields, [fieldName]: true }));
 
     try {
-      if (documentId) {
-        await deleteStudentDocument(documentId);
-      }
+      if (documentId) await deleteStudentDocument(documentId);
 
       setPreviews((currentPreviews) => {
-        if (currentPreviews[fieldName]) {
-          URL.revokeObjectURL(currentPreviews[fieldName]);
-        }
-
-        return {
-          ...currentPreviews,
-          [fieldName]: "",
-        };
+        if (currentPreviews[fieldName]) URL.revokeObjectURL(currentPreviews[fieldName]);
+        return { ...currentPreviews, [fieldName]: "" };
       });
 
-      setFiles((currentFiles) => ({
-        ...currentFiles,
-        [fieldName]: "",
-      }));
+      setFiles((currentFiles) => ({ ...currentFiles, [fieldName]: "" }));
       setDocumentIds((currentDocumentIds) => {
         const nextDocumentIds = { ...currentDocumentIds };
         delete nextDocumentIds[fieldName];
@@ -427,17 +376,12 @@ export default function StudentStep3() {
       }
     } catch (error) {
       const message = error.message || "Impossible de retirer ce document.";
-
       if (error.status === 401) {
         clearAuthSession();
         navigate("/login", { state: { message } });
         return;
       }
-
-      setErrors((currentErrors) => ({
-        ...currentErrors,
-        [fieldName]: message,
-      }));
+      setErrors((currentErrors) => ({ ...currentErrors, [fieldName]: message }));
     } finally {
       setUploadingFields((currentFields) => ({ ...currentFields, [fieldName]: false }));
     }
@@ -445,9 +389,7 @@ export default function StudentStep3() {
 
   const handleDragOver = (event, fieldName) => {
     event.preventDefault();
-    if (uploadingFields[fieldName]) {
-      return;
-    }
+    if (uploadingFields[fieldName]) return;
     setDragStates((currentState) => ({ ...currentState, [fieldName]: true }));
   };
 
@@ -459,20 +401,17 @@ export default function StudentStep3() {
   const handleDrop = (event, fieldName) => {
     event.preventDefault();
     setDragStates((currentState) => ({ ...currentState, [fieldName]: false }));
-    if (uploadingFields[fieldName]) {
-      return;
-    }
+    if (uploadingFields[fieldName]) return;
     processFile(event.dataTransfer.files?.[0], fieldName);
   };
 
   const handleRecapitulatif = () => {
-    const nextErrors = {};
-
     if (Object.values(uploadingFields).some(Boolean)) {
-      setPageError("Veuillez attendre la fin de l'envoi des documents.");
+      setPageError("Veuillez attendre la fin de l'envoi des documents avant de continuer.");
       return;
     }
 
+    const nextErrors = {};
     requiredDocumentKeys.forEach((key) => {
       if (!files[key]) {
         nextErrors[key] = "Ce document est requis.";
@@ -481,12 +420,9 @@ export default function StudentStep3() {
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
-
       setTimeout(() => {
         const firstError = document.querySelector(".has-error");
-        if (firstError) {
-          firstError.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
+        if (firstError) firstError.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 100);
       return;
     }
@@ -499,18 +435,16 @@ export default function StudentStep3() {
       <div className="student-application-side-section">
         <h3>Documents requis</h3>
         <p>
-          Déposez des fichiers lisibles et conformes. Le justificatif particulier
-          reste optionnel.
+          Déposez des fichiers lisibles et conformes aux formats acceptés. Le justificatif
+          particulier est optionnel.
         </p>
       </div>
 
       <div className="student-application-side-metrics">
         <div className="student-application-side-metric">
           <div className="student-application-side-metric-head">
-            <strong>Pièces obligatoires</strong>
-            <span>
-              {uploadedRequiredCount}/{requiredDocumentKeys.length}
-            </span>
+            <strong>Pièces obligatoires déposées</strong>
+            <span>{uploadedRequiredCount}/{requiredDocumentKeys.length}</span>
           </div>
           <ProgressBar value={uploadProgress} color="#2563eb" label={`${uploadProgress}%`} compact />
         </div>
@@ -521,10 +455,16 @@ export default function StudentStep3() {
           <li key={key}>
             <div>
               <strong>{config.label}</strong>
-              <span>{isLoadingDocuments ? "Chargement..." : files[key] || "Document non déposé"}</span>
+              <span>
+                {isLoadingDocuments
+                  ? "Chargement..."
+                  : files[key] || "Non déposé"}
+              </span>
             </div>
             <span
-              className={`student-application-doc-status ${files[key] ? "is-ready" : "is-missing"}`.trim()}
+              className={`student-application-doc-status ${
+                files[key] ? "is-ready" : "is-missing"
+              }`.trim()}
             >
               {uploadingFields[key]
                 ? "Envoi..."
@@ -544,10 +484,10 @@ export default function StudentStep3() {
     <ApplicationStepLayout
       step={3}
       title="Déposer une candidature"
-      subtitle="Ajoutez les pièces justificatives nécessaires à la vérification de votre dossier."
-      helperText="Les documents téléversés ici seront contrôlés par l'administration. Vérifiez leur lisibilité avant de continuer."
+      subtitle="Ajoutez les pièces justificatives nécessaires à l'instruction de votre dossier."
+      helperText="Les documents téléversés seront contrôlés par l'administration. Vérifiez leur lisibilité avant de passer à l'étape suivante."
       introTitle="Documents justificatifs"
-      introText="Les documents obligatoires permettent de vérifier votre baccalauréat, votre identité et votre résidence. Le justificatif particulier est optionnel."
+      introText="Les pièces obligatoires permettent de vérifier votre baccalauréat, votre identité et votre résidence. Le justificatif particulier est facultatif."
       sidebar={sidebar}
     >
       <div className="student-application-form-stack">
@@ -555,27 +495,39 @@ export default function StudentStep3() {
           <div className="student-application-section-head">
             <div>
               <h2>Pièces à fournir</h2>
-              <p>Glissez vos fichiers dans la zone correspondante ou cliquez pour les sélectionner.</p>
+              <p>
+                Glissez vos fichiers dans la zone correspondante ou cliquez pour les
+                sélectionner depuis votre appareil.
+              </p>
             </div>
             <span className="student-application-required-pill">
-              {uploadedRequiredCount}/{requiredDocumentKeys.length} obligatoire(s)
+              {uploadedRequiredCount}/{requiredDocumentKeys.length} obligatoire(s) déposée(s)
             </span>
           </div>
 
           {pageError ? (
-            <div className="student-profile-feedback student-profile-feedback-error" role="alert">
+            <div
+              className="student-profile-feedback student-profile-feedback-error"
+              role="alert"
+            >
               {pageError}
             </div>
           ) : null}
 
           {isLoadingDocuments ? (
-            <div className="student-profile-feedback">Chargement des documents déjà déposés...</div>
+            <div className="student-profile-feedback" aria-live="polite">
+              Chargement des documents déjà déposés...
+            </div>
           ) : null}
 
           <div className="student-application-progress-banner">
             <div>
               <strong>Progression du dépôt</strong>
-              <p>Ajoutez les pièces obligatoires pour accéder à la validation finale.</p>
+              <p>
+                {uploadProgress === 100
+                  ? "Toutes les pièces obligatoires ont été déposées."
+                  : "Ajoutez les pièces obligatoires pour accéder à la validation finale."}
+              </p>
             </div>
             <ProgressBar value={uploadProgress} color="#2563eb" label={`${uploadProgress}%`} />
           </div>
@@ -587,7 +539,8 @@ export default function StudentStep3() {
                   <div>
                     <h3>{config.label}</h3>
                     <p>
-                      Formats acceptés : {config.accept.replace(/,/g, ", ")}. Taille max : {formatMegabytes(config.maxSize)}.
+                      Formats acceptés : {config.accept.replace(/,/g, ", ")}. Taille max :{" "}
+                      {formatMegabytes(config.maxSize)}.
                     </p>
                     {config.help ? <p>{config.help}</p> : null}
                   </div>
@@ -629,7 +582,11 @@ export default function StudentStep3() {
                     <div className="uploaded-file">
                       <div className="file-icon">
                         {previews[fieldName] ? (
-                          <img src={previews[fieldName]} alt="Aperçu du document" className="file-preview" />
+                          <img
+                            src={previews[fieldName]}
+                            alt="Aperçu du document"
+                            className="file-preview"
+                          />
                         ) : (
                           <span className="file-emoji">{config.icon}</span>
                         )}
@@ -640,7 +597,7 @@ export default function StudentStep3() {
                         <span className="file-status">
                           {uploadingFields[fieldName]
                             ? "Envoi en cours..."
-                            : `Document ${documentStatuses[fieldName] || "En attente"}`}
+                            : `Statut : ${documentStatuses[fieldName] || "En attente de validation"}`}
                         </span>
                       </div>
 
@@ -662,15 +619,19 @@ export default function StudentStep3() {
                       <span className="upload-label">{config.label}</span>
                       <span className="upload-hint">
                         {uploadingFields[fieldName]
-                          ? "Envoi du fichier..."
-                          : "Cliquer ou glisser un fichier ici"}
+                          ? "Envoi du fichier en cours..."
+                          : "Cliquez ou glissez un fichier ici"}
                       </span>
-                      <span className="upload-formats">{config.accept.replace(/,/g, ", ")}</span>
+                      <span className="upload-formats">
+                        {config.accept.replace(/,/g, ", ")}
+                      </span>
                     </div>
                   )}
                 </div>
 
-                {errors[fieldName] ? <span className="error-message">{errors[fieldName]}</span> : null}
+                {errors[fieldName] ? (
+                  <span className="error-message">{errors[fieldName]}</span>
+                ) : null}
               </div>
             ))}
           </div>
@@ -678,10 +639,11 @@ export default function StudentStep3() {
 
         <section className="student-dashboard-panel student-application-form-card">
           <div className="student-application-note">
-            <strong>Vérification finale</strong>
+            <strong>Avant de continuer</strong>
             <p>
-              Avant de passer au récapitulatif, assurez-vous que chaque document déposé
-              correspond bien au fichier attendu et qu'il est lisible.
+              Vérifiez que chaque document déposé est lisible, complet et correspond
+              bien à la pièce demandée. Un document illisible ou incorrect peut
+              entraîner un retard dans l'instruction de votre dossier.
             </p>
           </div>
         </section>
@@ -692,7 +654,7 @@ export default function StudentStep3() {
             className="student-application-button student-application-button-secondary"
             onClick={() => navigate("/student-step2")}
           >
-            Retour
+            Retour à l'établissement
           </button>
 
           <button
@@ -702,7 +664,7 @@ export default function StudentStep3() {
             disabled={isLoadingDocuments || Object.values(uploadingFields).some(Boolean)}
           >
             {Object.values(uploadingFields).some(Boolean)
-              ? "Envoi des documents..."
+              ? "Envoi en cours..."
               : "Accéder au récapitulatif"}
           </button>
         </div>
