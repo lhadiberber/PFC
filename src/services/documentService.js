@@ -1,24 +1,16 @@
-import { API_BASE_URL, ApiError, apiRequest, getAuthToken } from "./authService";
-
-async function readJsonResponse(response) {
-  const contentType = response.headers.get("content-type") || "";
-
-  if (!contentType.includes("application/json")) {
-    return null;
-  }
-
-  try {
-    return await response.json();
-  } catch (_error) {
-    throw new ApiError("Reponse invalide du serveur.", response.status);
-  }
-}
+import {
+  API_BASE_URL,
+  ApiError,
+  apiRequest,
+  getAuthToken,
+  readJsonResponse,
+} from "./authService";
 
 export async function uploadStudentDocument({ typeDocument, file, applicationId }) {
   const token = getAuthToken();
 
   if (!token) {
-    throw new ApiError("Session absente ou expiree. Veuillez vous reconnecter.", 401);
+    throw new ApiError("Session absente ou expirée. Veuillez vous reconnecter.", 401);
   }
 
   const formData = new FormData();
@@ -40,21 +32,21 @@ export async function uploadStudentDocument({ typeDocument, file, applicationId 
       body: formData,
     });
   } catch (_error) {
-    throw new ApiError("Backend indisponible. Verifiez que le serveur est lance.");
+    throw new ApiError("Backend indisponible. Vérifiez que le serveur est lancé.");
   }
 
   const payload = await readJsonResponse(response);
 
   if (!response.ok) {
     throw new ApiError(
-      payload?.message || "Impossible de deposer le document.",
+      payload?.message || "Impossible de déposer le document.",
       response.status,
       payload
     );
   }
 
   if (!payload?.document) {
-    throw new ApiError("Reponse invalide du serveur.", response.status, payload);
+    throw new ApiError("Réponse invalide du serveur.", response.status, payload);
   }
 
   return payload.document;
