@@ -31,11 +31,14 @@ const configuredClientOrigins = [process.env.CLIENT_URL, process.env.FRONTEND_UR
   .map((origin) => origin.trim())
   .filter(Boolean);
 const allowedClientOrigins = new Set([...defaultClientOrigins, ...configuredClientOrigins]);
+const isLocalDevOrigin = (origin) =>
+  /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin) &&
+  (process.env.NODE_ENV || "development") !== "production";
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedClientOrigins.has(origin)) {
+      if (!origin || allowedClientOrigins.has(origin) || isLocalDevOrigin(origin)) {
         callback(null, true);
         return;
       }
