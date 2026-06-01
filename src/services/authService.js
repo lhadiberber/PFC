@@ -132,6 +132,7 @@ export async function registerStudent(payload) {
       nom: payload.nom,
       prenom: payload.prenom,
       email: payload.email,
+      telephone: payload.telephone,
       password: payload.password,
     },
   });

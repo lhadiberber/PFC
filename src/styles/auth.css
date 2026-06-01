@@ -453,6 +453,74 @@
   }
 }
 
+.register-progress-wrap {
+  margin: 0 0 22px;
+  padding: 14px 16px;
+  border: 1px solid rgba(26, 54, 93, .08);
+  border-radius: 14px;
+  background: #f8fafc
+}
+
+.register-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px
+}
+
+.register-progress-label,
+.register-progress-pct {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700
+}
+
+.register-progress-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0
+}
+
+.register-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width .25s ease, background .25s ease
+}
+
+.register-strength-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px
+}
+
+.register-strength-bar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  flex: 1
+}
+
+.register-strength-segment {
+  height: 6px;
+  border-radius: 999px
+}
+
+.register-strength-label,
+.register-match-indicator {
+  font-size: 12px;
+  font-weight: 700
+}
+
+.register-match-indicator.is-valid {
+  color: #16a34a
+}
+
+.register-match-indicator.is-invalid {
+  color: #dc2626
+}
+
 .auth-register-footer {
   margin-top: 24px;
   padding-top: 20px;
