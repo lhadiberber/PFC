@@ -21,6 +21,10 @@ function countCompleted(values) {
   ).length;
 }
 
+function isValidAcademicYear(value) {
+  return /^\d{4}-\d{4}$/.test(value.trim());
+}
+
 export default function StudentStep1() {
   const navigate = useNavigate();
   const { applicationDraft, updateAcademicInfo } = useAdmissions();
@@ -100,6 +104,8 @@ export default function StudentStep1() {
     }
     if (!formData.anneeUniversitaire.trim()) {
       nextErrors.anneeUniversitaire = "Veuillez renseigner l'année universitaire.";
+    } else if (!isValidAcademicYear(formData.anneeUniversitaire)) {
+      nextErrors.anneeUniversitaire = "Format attendu : 2025-2026.";
     }
 
     return nextErrors;
@@ -125,17 +131,17 @@ export default function StudentStep1() {
   const sidebar = (
     <>
       <div className="student-application-side-section">
-        <h3>Choix de la filière</h3>
+        <h3>Orientation universitaire</h3>
         <p>
-          Choisissez la filière que vous souhaitez intégrer en première année
-          universitaire.
+          Sélectionnez la filière que vous souhaitez intégrer en première année
+          universitaire. Les établissements compatibles seront proposés à l'étape suivante.
         </p>
       </div>
 
       <div className="student-application-side-metrics">
         <div className="student-application-side-metric">
           <div className="student-application-side-metric-head">
-            <strong>Sélection</strong>
+            <strong>Complétion</strong>
             <span>{completion}%</span>
           </div>
           <ProgressBar value={completion} color="#2563eb" label={`${completion}%`} compact />
@@ -145,8 +151,8 @@ export default function StudentStep1() {
       <div className="student-application-note">
         <strong>Niveau de candidature</strong>
         <p>
-          Le niveau est fixé automatiquement à la première année universitaire
-          pour les bacheliers.
+          Le niveau est automatiquement fixé à la première année universitaire.
+          Il n'est pas modifiable pour les candidatures de bacheliers.
         </p>
       </div>
     </>
@@ -156,18 +162,24 @@ export default function StudentStep1() {
     <ApplicationStepLayout
       step={1}
       title="Déposer une candidature"
-      subtitle="Choisissez la filière que vous souhaitez intégrer après le baccalauréat."
-      helperText="Cette étape précise votre choix d'orientation. Les établissements proposés ensuite dépendront de la filière sélectionnée."
+      subtitle="Choisissez la filière que vous souhaitez intégrer après l'obtention du baccalauréat."
+      helperText="Votre choix de filière déterminera la liste des établissements proposés à l'étape suivante."
       introTitle="Choix de la filière"
       introText="Sélectionnez un domaine d'études, puis la filière souhaitée pour votre entrée en première année universitaire."
       sidebar={sidebar}
     >
-      <form className="student-application-form-stack" onSubmit={(event) => event.preventDefault()}>
+      <form
+        className="student-application-form-stack"
+        onSubmit={(event) => event.preventDefault()}
+      >
         <section className="student-dashboard-panel student-application-form-card">
           <div className="student-application-section-head">
             <div>
               <h2>Filière demandée</h2>
-              <p>Les champs ci-dessous permettent de préparer la liste des établissements compatibles.</p>
+              <p>
+                Renseignez votre choix d'orientation. Ces informations serviront à
+                filtrer les établissements compatibles à l'étape suivante.
+              </p>
             </div>
             <span className="student-application-required-pill">Champs obligatoires</span>
           </div>
@@ -205,7 +217,9 @@ export default function StudentStep1() {
                 required
               >
                 <option value="">
-                  {formData.domaine ? "Sélectionner une filière" : "Choisissez d'abord un domaine"}
+                  {formData.domaine
+                    ? "Sélectionner une filière"
+                    : "Choisissez d'abord un domaine"}
                 </option>
                 {filieres.map((filiere) => (
                   <option key={filiere.nom} value={filiere.nom}>
@@ -213,6 +227,11 @@ export default function StudentStep1() {
                   </option>
                 ))}
               </select>
+              {!formData.domaine ? (
+                <span className="student-application-hint">
+                  Sélectionnez un domaine pour afficher les filières disponibles.
+                </span>
+              ) : null}
               {errors.filiere ? <span className="error-message">{errors.filiere}</span> : null}
             </div>
 
@@ -224,17 +243,20 @@ export default function StudentStep1() {
                 name="anneeUniversitaire"
                 value={formData.anneeUniversitaire}
                 onChange={handleChange}
-                placeholder="Ex. 2026-2027"
+                placeholder="Ex. : 2025-2026"
                 className="student-application-input"
                 required
               />
+              <span className="student-application-hint">
+                Format attendu : 2025-2026.
+              </span>
               {errors.anneeUniversitaire ? (
                 <span className="error-message">{errors.anneeUniversitaire}</span>
               ) : null}
             </div>
 
             <div className="student-application-field">
-              <label htmlFor="application-level">Niveau</label>
+              <label htmlFor="application-level">Niveau de candidature</label>
               <input
                 id="application-level"
                 type="text"
@@ -243,7 +265,7 @@ export default function StudentStep1() {
                 readOnly
               />
               <span className="student-application-hint">
-                Le niveau n'est pas modifiable pour une candidature de bachelier.
+                Le niveau est fixé automatiquement pour les candidatures de bacheliers.
               </span>
             </div>
           </div>
@@ -255,7 +277,7 @@ export default function StudentStep1() {
             className="student-application-button student-application-button-secondary"
             onClick={() => navigate("/dashboard")}
           >
-            Retour au dashboard
+            Retour au tableau de bord
           </button>
 
           <button
