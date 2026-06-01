@@ -19,17 +19,24 @@ export class ApiError extends Error {
   }
 }
 
-async function readJsonResponse(response) {
+export async function readJsonResponse(response) {
   const contentType = response.headers.get("content-type") || "";
+  const text = await response.text();
 
-  if (!contentType.includes("application/json")) {
+  if (!text.trim()) {
     return null;
   }
 
+  if (!contentType.includes("application/json")) {
+    throw new ApiError("Réponse invalide du serveur. Vérifiez l'URL de l'API.", response.status, {
+      contentType,
+    });
+  }
+
   try {
-    return await response.json();
+    return JSON.parse(text);
   } catch (_error) {
-    throw new ApiError("Reponse invalide du serveur.", response.status);
+    throw new ApiError("Réponse invalide du serveur.", response.status);
   }
 }
 
@@ -56,7 +63,7 @@ export async function apiRequest(endpoint, options = {}) {
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch (_error) {
-    throw new ApiError("Backend indisponible. Verifiez que le serveur est lance.");
+    throw new ApiError("Backend indisponible. Vérifiez que le serveur est lancé.");
   }
 
   const payload = await readJsonResponse(response);
@@ -67,14 +74,14 @@ export async function apiRequest(endpoint, options = {}) {
     }
 
     throw new ApiError(
-      payload?.message || "Une erreur est survenue pendant la requete.",
+      payload?.message || "Une erreur est survenue pendant la requête.",
       response.status,
       payload
     );
   }
 
   if (!payload) {
-    throw new ApiError("Reponse invalide du serveur.", response.status);
+    return { success: true };
   }
 
   return payload;
@@ -110,7 +117,7 @@ export function getAuthSession() {
 
 export function saveAuthSession({ token, user }) {
   if (!token || !user?.role) {
-    throw new ApiError("Session invalide recue du serveur.");
+    throw new ApiError("Session invalide reçue du serveur.");
   }
 
   localStorage.setItem(AUTH_STORAGE_KEYS.token, token);
