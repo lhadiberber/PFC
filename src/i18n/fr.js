@@ -361,11 +361,29 @@ const fr = {
     },
   },
   success: {
-    title: "Votre candidature a ete soumise avec succes.",
-    dossierLabel: "Numero de dossier :",
-    submittedAt: "Soumis le {{date}} a {{time}}",
+    title: "Candidature soumise avec succès.",
+    summaryTitle: "Récapitulatif de votre dossier",
+    dossierLabel: "Numéro de dossier",
+    dateLabel: "Date de soumission",
+    at: "à",
+    statusLabel: "Statut",
+    statusPending: "En attente de traitement",
+    noDossier: "Non disponible",
+    copied: "Copié",
+    copy: "Copier",
+    submittedAt: "Soumis le {{date}} à {{time}}",
     message:
-      "Vous pouvez suivre le statut de votre candidature dans 'Mes candidatures'.",
+      "Votre dossier a bien été reçu. Vous pouvez suivre son évolution depuis votre espace étudiant.",
+    nextStepsTitle: "Que se passe-t-il maintenant ?",
+    step1Title: "Examen du dossier",
+    step1Desc:
+      "L’administration universitaire examine votre dossier et les documents déposés.",
+    step2Title: "Notification de décision",
+    step2Desc:
+      "Vous serez informé de la décision d’admission depuis votre espace étudiant.",
+    step3Title: "Suivi de candidature",
+    step3Desc:
+      "Consultez régulièrement la rubrique Mes candidatures pour suivre l’avancement de votre dossier.",
     viewApplications: "Voir mes candidatures",
     backDashboard: "Retour au tableau de bord",
   },
