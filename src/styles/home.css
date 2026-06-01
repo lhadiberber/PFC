@@ -216,6 +216,50 @@
   color: #64748b
 }
 
+.campus-input-password-wrap {
+  position: relative
+}
+
+.campus-form-group .campus-input-password-wrap input {
+  padding-right: 44px
+}
+
+.campus-btn-toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background .2s, color .2s
+}
+
+.campus-btn-toggle-password:hover {
+  background: #eff6ff;
+  color: var(--primary-color)
+}
+
+.campus-forgot-password {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--primary-color);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none
+}
+
+.campus-forgot-password:hover {
+  text-decoration: underline
+}
+
 .campus-dropdown-error {
   margin: 0 0 12px;
   padding: 10px 12px;
@@ -249,6 +293,23 @@
 .campus-btn-submit:disabled {
   cursor: not-allowed;
   opacity: .7
+}
+
+.campus-btn-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px
+}
+
+.spin {
+  animation: campus-spin 1s linear infinite
+}
+
+@keyframes campus-spin {
+  to {
+    transform: rotate(360deg)
+  }
 }
 
 .campus-dropdown-footer {
@@ -1059,6 +1120,47 @@
   margin: 0
 }
 
+.campus-btn-hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(22, 58, 99, .18);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--primary-color);
+  cursor: pointer
+}
+
+.campus-mobile-menu {
+  display: none
+}
+
+.campus-scroll-top {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary-color);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, .22);
+  transition: transform .2s, background .2s
+}
+
+.campus-scroll-top:hover {
+  background: var(--secondary-color);
+  transform: translateY(-2px)
+}
+
 /* Responsive */
 
 @media (max-width: 1024px) {
@@ -1095,6 +1197,28 @@
   }
   .campus-nav {
     display: none
+  }
+  .campus-btn-hamburger {
+    display: inline-flex
+  }
+  .campus-mobile-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px 20px 22px;
+    background: #fff;
+    border-top: 1px solid var(--color-border-soft);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, .08)
+  }
+  .campus-mobile-menu-link {
+    color: var(--primary-color);
+    font-weight: 700;
+    text-decoration: none
+  }
+  .campus-mobile-menu-actions {
+    display: grid;
+    gap: 10px;
+    margin-top: 8px
   }
   .campus-header-actions {
     width: 100%;
