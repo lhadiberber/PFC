@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import LanguageSelector from "../../components/LanguageSelector";
 import { useAdmissions } from "../../context/AdmissionsContext";
@@ -55,6 +56,19 @@ function Icon({ name, size = 20 }) {
 
   return <svg {...commonProps}>{paths[name]}</svg>;
 }
+
+Icon.propTypes = {
+  name: PropTypes.oneOf([
+    "checkCircle",
+    "copy",
+    "check",
+    "file",
+    "bell",
+    "search",
+    "arrowRight",
+  ]).isRequired,
+  size: PropTypes.number,
+};
 
 export default function Success() {
   const [searchParams] = useSearchParams();
