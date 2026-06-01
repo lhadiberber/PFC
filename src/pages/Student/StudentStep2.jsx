@@ -65,11 +65,8 @@ export default function StudentStep2() {
 
   const validate = () => {
     if (!formData.etablissement.trim()) {
-      return {
-        etablissement: "Veuillez sélectionner un établissement.",
-      };
+      return { etablissement: "Veuillez sélectionner un établissement." };
     }
-
     return {};
   };
 
@@ -79,7 +76,6 @@ export default function StudentStep2() {
       setErrors(validationErrors);
       return;
     }
-
     updateAcademicInfo({
       ...formData,
       universite: formData.etablissement,
@@ -91,13 +87,16 @@ export default function StudentStep2() {
     <>
       <div className="student-application-side-section">
         <h3>Établissements proposés</h3>
-        <p>Les établissements affichés dépendent de la filière sélectionnée.</p>
+        <p>
+          La liste des établissements est filtrée automatiquement selon la filière
+          sélectionnée à l'étape précédente.
+        </p>
       </div>
 
       <div className="student-application-side-metrics">
         <div className="student-application-side-metric">
           <div className="student-application-side-metric-head">
-            <strong>Choix de l'établissement</strong>
+            <strong>Complétion</strong>
             <span>{completion}%</span>
           </div>
           <ProgressBar value={completion} color="#0f766e" label={`${completion}%`} compact />
@@ -106,8 +105,15 @@ export default function StudentStep2() {
 
       <div className="student-application-note">
         <strong>Filière sélectionnée</strong>
-        <p>{selectedFiliere || "Aucune filière sélectionnée pour le moment."}</p>
+        <p>{selectedFiliere || "Aucune filière sélectionnée."}</p>
       </div>
+
+      {selectedDomaine ? (
+        <div className="student-application-note">
+          <strong>Domaine</strong>
+          <p>{selectedDomaine}</p>
+        </div>
+      ) : null}
     </>
   );
 
@@ -115,34 +121,45 @@ export default function StudentStep2() {
     <ApplicationStepLayout
       step={2}
       title="Déposer une candidature"
-      subtitle="Choisissez l'établissement qui correspond à votre filière."
-      helperText="La liste est filtrée selon votre choix de filière. Vous pourrez revenir à l'étape précédente si nécessaire."
+      subtitle="Sélectionnez l'établissement correspondant à votre filière."
+      helperText="La liste est filtrée selon votre choix de filière. Vous pouvez revenir à l'étape précédente pour modifier votre sélection."
       introTitle="Choix de l'établissement"
-      introText="Sélectionnez l'établissement qui propose la filière demandée en première année universitaire."
+      introText="Sélectionnez l'établissement qui propose votre filière en première année universitaire. Les informations associées seront renseignées automatiquement."
       sidebar={sidebar}
     >
-      <form className="student-application-form-stack" onSubmit={(event) => event.preventDefault()}>
+      <form
+        className="student-application-form-stack"
+        onSubmit={(event) => event.preventDefault()}
+      >
         <section className="student-dashboard-panel student-application-form-card">
           <div className="student-application-section-head">
             <div>
               <h2>Établissement demandé</h2>
               <p>
-                Domaine : {selectedDomaine || "non renseigné"} · Filière :{" "}
-                {selectedFiliere || "non renseignée"}
+                Domaine : <strong>{selectedDomaine || "non renseigné"}</strong> · Filière :{" "}
+                <strong>{selectedFiliere || "non renseignée"}</strong>
               </p>
             </div>
             <span className="student-application-required-pill">Choix obligatoire</span>
           </div>
 
           {!selectedFiliere ? (
-            <div className="student-profile-feedback student-profile-feedback-error" role="alert">
-              Veuillez d'abord sélectionner une filière.
+            <div
+              className="student-profile-feedback student-profile-feedback-error"
+              role="alert"
+            >
+              Aucune filière sélectionnée. Veuillez retourner à l'étape précédente pour
+              effectuer votre choix.
             </div>
           ) : null}
 
           {selectedFiliere && etablissements.length === 0 ? (
-            <div className="student-profile-feedback student-profile-feedback-info" role="status">
-              Aucun établissement disponible pour cette filière pour le moment.
+            <div
+              className="student-profile-feedback student-profile-feedback-info"
+              role="status"
+            >
+              Aucun établissement disponible pour la filière sélectionnée. Veuillez
+              retourner à l'étape précédente et choisir une autre filière.
             </div>
           ) : null}
 
@@ -179,6 +196,9 @@ export default function StudentStep2() {
                 className="student-application-input"
                 readOnly
               />
+              <span className="student-application-hint">
+                Renseigné automatiquement selon l'établissement choisi.
+              </span>
             </div>
 
             <div className="student-application-field">
@@ -190,6 +210,9 @@ export default function StudentStep2() {
                 className="student-application-input"
                 readOnly
               />
+              <span className="student-application-hint">
+                Renseignée automatiquement selon l'établissement choisi.
+              </span>
             </div>
 
             <div className="student-application-field">
@@ -201,6 +224,9 @@ export default function StudentStep2() {
                 className="student-application-input"
                 readOnly
               />
+              <span className="student-application-hint">
+                Renseigné automatiquement selon l'établissement choisi.
+              </span>
             </div>
           </div>
         </section>
@@ -211,7 +237,7 @@ export default function StudentStep2() {
             className="student-application-button student-application-button-secondary"
             onClick={() => navigate("/student-step1")}
           >
-            Retour
+            Retour à la filière
           </button>
 
           <button
