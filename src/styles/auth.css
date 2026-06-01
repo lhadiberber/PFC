@@ -305,6 +305,54 @@
   color: #64748b
 }
 
+.login-password-wrap {
+  position: relative
+}
+
+.auth-register-field .login-password-wrap input {
+  padding-right: 48px
+}
+
+.login-toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background .2s ease, color .2s ease
+}
+
+.login-toggle-password:hover {
+  background: #eff6ff;
+  color: #1d4ed8
+}
+
+.login-toggle-password:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, .16);
+  outline-offset: 2px
+}
+
+.login-forgot-link {
+  align-self: flex-start;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none
+}
+
+.login-forgot-link:hover {
+  text-decoration: underline
+}
+
 .auth-feedback {
   padding: 12px 14px;
   border-radius: 14px;
@@ -386,6 +434,23 @@
 .auth-register-submit:focus-visible {
   outline: 3px solid rgba(37, 99, 235, .16);
   outline-offset: 4px
+}
+
+.login-btn-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px
+}
+
+.login-spinner {
+  animation: login-spin 1s linear infinite
+}
+
+@keyframes login-spin {
+  to {
+    transform: rotate(360deg)
+  }
 }
 
 .auth-register-footer {
