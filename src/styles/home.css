@@ -243,7 +243,7 @@
 }
 
 .campus-btn-toggle-password:hover {
-  background: #eff6ff;
+  background: #E0F7F4;
   color: var(--primary-color)
 }
 
@@ -365,7 +365,7 @@
   color: var(--accent-color);
   font-size: 13px;
   font-weight: 600;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   margin-bottom: 20px
 }
 
@@ -473,14 +473,14 @@
   width: 100%;
   max-width: 450px;
   height: auto;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   box-shadow: 0 20px 60px #00000026;
   object-fit: cover
 }
 
 .campus-hero-card {
   background: var(--color-white);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   box-shadow: 0 20px 60px #00000026;
   padding: 30px;
   width: 100%;
@@ -635,7 +635,7 @@
   position: relative;
   padding: 30px;
   background: var(--color-white);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   box-shadow: 0 4px 20px #00000014;
   transition: all .3s
 }
@@ -648,7 +648,7 @@
 .campus-step-number {
   font-size: 3rem;
   font-weight: 800;
-  color: #1a365d1a;
+  color: #1E2D3D1a;
   position: absolute;
   top: 15px;
   right: 20px
@@ -682,7 +682,7 @@
 
 .campus-university-card {
   background: var(--color-white);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   padding: 30px;
   box-shadow: 0 4px 20px #00000014;
   transition: all .3s;
@@ -712,7 +712,7 @@
 .university-badge {
   display: inline-block;
   padding: 4px 10px;
-  background: #1a365d1a;
+  background: #1E2D3D1a;
   color: var(--primary-color);
   font-size: .75rem;
   font-weight: 600;
@@ -760,7 +760,7 @@
 .campus-program-card {
   background: var(--color-white);
   border: 1px solid var(--color-border-soft);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   padding: 28px;
   box-shadow: 0 4px 20px #00000014;
   transition: all .3s
@@ -850,7 +850,7 @@
 }
 
 .phase-avril {
-  background: #3b82f6
+  background: #00C9B1
 }
 
 .phase-juin {
@@ -900,7 +900,7 @@
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, .2);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   padding: 30px;
   text-align: center;
   transition: all .3s
@@ -1371,7 +1371,7 @@
 
 .landing-nav-btn-auth:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px #1a365d66
+  box-shadow: 0 4px 15px #1E2D3D66
 }
 
 .landing-nav-btn-auth span:first-child {
@@ -1444,7 +1444,7 @@
 
 .login-dropdown-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px #1a365d66
+  box-shadow: 0 4px 15px #1E2D3D66
 }
 
 .login-dropdown-footer {
@@ -1563,14 +1563,14 @@
   gap: 10px;
   background: linear-gradient(135deg, var(--color-brand-navy), var(--color-brand-navy-light));
   padding: 10px 18px;
-  border-radius: 25px;
-  box-shadow: 0 3px 12px #1a365d40;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 3px 12px #1E2D3D40;
   transition: all .3s ease
 }
 
 .how-to-use-step:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 20px #1a365d59
+  box-shadow: 0 5px 20px #1E2D3D59
 }
 
 .how-to-use-step .step-icon {
@@ -1617,7 +1617,7 @@
   gap: 15px;
   padding: 18px 20px;
   background: var(--color-white);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   box-shadow: 0 4px 15px #00000014;
   border: 1px solid rgba(26, 54, 93, .1);
   transition: all .3s ease
@@ -1626,13 +1626,13 @@
 .hero-feature-item:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 25px #0000001f;
-  border-color: #1a365d4d
+  border-color: #1E2D3D4d
 }
 
 .hero-feature-icon {
   font-size: 32px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #f0f7ff, #e6f0ff);
+  background: linear-gradient(135deg, #F7FAFB, #E0F7F4);
   width: 55px;
   height: 55px;
   display: flex;
@@ -1801,7 +1801,7 @@
   flex-direction: column;
   align-items: center;
   padding: 30px 50px;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   text-decoration: none;
   transition: all .3s ease;
   min-width: 280px;
@@ -1856,7 +1856,7 @@
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   padding: 30px 20px;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   border: 1px solid rgba(255, 255, 255, .2);
   transition: all .3s ease
 }
@@ -1961,7 +1961,7 @@
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   padding: 30px 20px;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   text-align: center;
   border: 1px solid rgba(255, 255, 255, .2);
   transition: all .3s ease
@@ -2038,7 +2038,7 @@
   text-align: center;
   padding: 25px 20px;
   background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   box-shadow: 0 4px 15px #0000001a;
   transition: transform .3s ease
 }
@@ -2101,7 +2101,7 @@
 .university-card {
   background: var(--color-white);
   padding: 30px 20px;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   text-align: center;
   box-shadow: 0 4px 15px #0000001a;
   transition: all .3s ease;
@@ -2327,5 +2327,627 @@
   .landing-features {
     grid-template-columns: 1fr;
     gap: 20px
+  }
+}
+
+/* Design system Ardoise + Cyan Menthe - Accueil */
+
+.campus-landing {
+  --primary-color: var(--color-primary);
+  --secondary-color: var(--color-primary-light);
+  --accent-color: var(--color-accent);
+  --text-dark: var(--color-text);
+  --text-gray: var(--color-text-secondary);
+  --bg-light: var(--color-bg);
+  --bg-white: var(--color-surface);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+.campus-landing .campus-header {
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, .96);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: none;
+}
+
+.campus-landing .campus-header-container {
+  width: min(100%, var(--max-width));
+  height: 56px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.campus-landing .campus-logo .logo-icon {
+  min-width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.campus-landing .campus-logo .logo-text {
+  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.campus-landing .campus-nav-link {
+  min-height: 56px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.campus-landing .campus-nav-link.active,
+.campus-landing .campus-nav-link:hover {
+  color: var(--color-primary);
+}
+
+.campus-landing .campus-nav-link.active::after {
+  background: var(--color-accent);
+}
+
+.campus-hero {
+  position: relative;
+  min-height: 480px;
+  overflow: hidden;
+  background: var(--color-hero-bg);
+  color: var(--color-text-on-dark);
+}
+
+.campus-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--color-accent);
+  z-index: 2;
+}
+
+.campus-hero-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.campus-hero-container {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 360px);
+  align-items: center;
+  gap: 40px;
+  width: min(100%, var(--max-width));
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.campus-hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.campus-hero-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 16px;
+  padding: 4px 10px;
+  border: 1px solid rgba(0, 201, 177, .3);
+  border-radius: var(--radius-pill);
+  background: rgba(0, 201, 177, .15);
+  color: #9FE1CB;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.campus-hero-title {
+  max-width: 720px;
+  margin: 0 0 16px;
+  color: #fff;
+  font-size: clamp(30px, 4vw, 36px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.campus-hero-title strong,
+.campus-hero-title em,
+.campus-hero-title span {
+  color: var(--color-accent);
+}
+
+.campus-hero-subtitle {
+  max-width: 420px;
+  margin: 0 0 24px;
+  color: rgba(255, 255, 255, .62);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.campus-hero-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.campus-hero .campus-btn-secondary {
+  border-color: rgba(255, 255, 255, .22);
+  color: rgba(255, 255, 255, .82);
+}
+
+.campus-hero .campus-btn-secondary:hover {
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  border-color: rgba(0, 201, 177, .35);
+}
+
+.campus-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.campus-hero-stat,
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-value,
+.campus-hero-stat strong {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stat-label,
+.campus-hero-stat span {
+  color: rgba(255, 255, 255, .42);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.campus-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255, 255, 255, .12);
+}
+
+.campus-hero-visual {
+  overflow: hidden;
+  border: 1px solid rgba(0, 201, 177, .15);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, .04);
+  box-shadow: var(--shadow-hero);
+}
+
+.campus-hero-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+  object-fit: cover;
+  opacity: .9;
+}
+
+.campus-steps,
+.campus-programs,
+.campus-faq,
+.campus-cta {
+  background: var(--color-surface);
+  padding: 44px 24px;
+}
+
+.campus-universities,
+.campus-features,
+.campus-footer-info {
+  background: var(--color-bg);
+  padding: 44px 24px;
+}
+
+.campus-calendar {
+  background: var(--color-primary-dark);
+  padding: 44px 24px;
+  color: #fff;
+}
+
+.campus-section-header {
+  width: min(100%, var(--max-width-sm));
+  margin: 0 auto 30px;
+  text-align: center;
+}
+
+.campus-section-header .kicker,
+.campus-section-header span:first-child,
+.campus-section-kicker {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--color-accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.campus-section-header h2 {
+  margin: 0 0 8px;
+  color: var(--color-text);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.campus-calendar .campus-section-header h2,
+.campus-calendar .campus-section-header p {
+  color: #fff;
+}
+
+.campus-section-header p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.campus-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  width: min(100%, var(--max-width));
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.campus-step-card,
+.step-card {
+  position: relative;
+  padding: 18px;
+  border-right: 1px solid var(--color-border);
+}
+
+.campus-step-card:last-child,
+.step-card:last-child {
+  border-right: 0;
+}
+
+.campus-step-card::before,
+.step-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: var(--color-accent);
+}
+
+.step-number,
+.campus-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin-bottom: 12px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.campus-step-card h3,
+.step-card h3,
+.campus-program-card h3,
+.campus-university-card h3,
+.campus-feature-card h3,
+.campus-faq-item h3 {
+  margin: 0 0 6px;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.campus-step-card p,
+.step-card p,
+.campus-program-card p,
+.campus-university-card p,
+.campus-feature-card p,
+.campus-faq-item p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.campus-universities-grid,
+.campus-programs-grid,
+.campus-faq-grid,
+.campus-footer-info-grid {
+  display: grid;
+  width: min(100%, var(--max-width));
+  margin: 0 auto;
+  gap: 12px;
+}
+
+.campus-universities-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.campus-programs-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.campus-faq-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.campus-university-card,
+.campus-program-card,
+.campus-feature-card,
+.campus-faq-item,
+.campus-footer-info-card,
+.program-card,
+.feature-card,
+.university-card {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.campus-university-card,
+.university-card {
+  padding: 0;
+}
+
+.campus-university-card-header,
+.university-card-header {
+  padding: 12px 16px;
+  background: var(--color-primary);
+}
+
+.university-badge {
+  color: #9FE1CB;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.campus-university-card-body,
+.university-card-body,
+.campus-program-card,
+.program-card,
+.campus-feature-card,
+.feature-card,
+.campus-faq-item,
+.campus-footer-info-card {
+  padding: 18px;
+}
+
+.campus-program-card,
+.program-card {
+  border-top: 3px solid var(--color-primary);
+}
+
+.program-level {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 10px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-light);
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.campus-features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  width: min(100%, var(--max-width));
+  margin: 0 auto;
+  gap: 12px;
+}
+
+.campus-feature-icon,
+.feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-lg);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
+}
+
+.campus-calendar-timeline,
+.calendar-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: min(100%, var(--max-width-sm));
+  margin: 0 auto;
+}
+
+.calendar-phase,
+.campus-calendar-phase {
+  position: relative;
+  padding-left: 28px;
+  color: rgba(255, 255, 255, .72);
+}
+
+.calendar-phase::before,
+.campus-calendar-phase::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.calendar-phase::after,
+.campus-calendar-phase::after {
+  content: "";
+  position: absolute;
+  top: 20px;
+  bottom: -18px;
+  left: 5px;
+  width: 1px;
+  background: rgba(255, 255, 255, .1);
+}
+
+.calendar-phase:last-child::after,
+.campus-calendar-phase:last-child::after {
+  display: none;
+}
+
+.calendar-phase h3,
+.campus-calendar-phase h3 {
+  color: #fff;
+  font-size: 14px;
+}
+
+.calendar-phase p,
+.campus-calendar-phase p {
+  color: rgba(255, 255, 255, .62);
+}
+
+.campus-cta {
+  border-top: 4px solid var(--color-accent);
+}
+
+.campus-cta-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: min(100%, var(--max-width));
+  margin: 0 auto;
+}
+
+.campus-cta h2 {
+  margin: 0 0 6px;
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.campus-cta p {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.campus-footer {
+  padding: 32px 24px;
+  background: var(--color-primary-dark);
+  color: #fff;
+}
+
+.campus-footer-container {
+  width: min(100%, var(--max-width));
+  margin: 0 auto;
+}
+
+.campus-footer-top {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: 24px;
+}
+
+.campus-footer h3,
+.campus-footer h4,
+.campus-footer-brand strong {
+  color: #fff;
+  font-size: 13px;
+}
+
+.campus-footer p,
+.campus-footer a,
+.campus-footer-bottom {
+  color: rgba(255, 255, 255, .42);
+  font-size: 11px;
+}
+
+.campus-footer a:hover {
+  color: var(--color-accent);
+}
+
+.campus-footer-bottom {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, .06);
+}
+
+@media (max-width: 900px) {
+  .campus-hero-container,
+  .campus-footer-top {
+    grid-template-columns: 1fr;
+  }
+
+  .campus-hero-visual {
+    display: none;
+  }
+
+  .campus-steps-grid,
+  .campus-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .campus-universities-grid,
+  .campus-programs-grid,
+  .campus-faq-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .campus-cta-container {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .campus-hero-stats,
+  .campus-steps-grid,
+  .campus-features-grid {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .campus-step-card,
+  .step-card {
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .campus-step-card:last-child,
+  .step-card:last-child {
+    border-bottom: 0;
   }
 }

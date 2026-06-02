@@ -19,7 +19,7 @@
   padding: 24px;
   background: var(--color-white);
   border: 1px solid var(--color-border-soft);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
 }
 
 .ui-empty-state h3 {
@@ -71,4 +71,447 @@
   color: var(--color-neutral-700);
   min-width: 40px;
   text-align: right;
+}
+
+/* Design system Ardoise + Cyan Menthe - UI */
+
+.ui-button,
+.campus-btn-primary,
+.campus-btn-secondary,
+.campus-btn-submit,
+.campus-btn-login,
+.campus-btn-header-cta,
+.home-btn,
+.dashboard-btn,
+.valider-btn,
+.retour-btn,
+.auth-register-submit,
+.student-application-button,
+.student-dashboard-link,
+.student-dashboard-ghost-link,
+.admin-table-action-button,
+.admin-filter-tab,
+.admin-pagination-page-button,
+.ui-empty-link,
+.btn-primary,
+.btn-secondary,
+.btn-action,
+.btn-nav,
+.btn-file-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.ui-button,
+.campus-btn-primary,
+.campus-btn-submit,
+.dashboard-btn,
+.auth-register-submit,
+.student-application-button-primary,
+.student-dashboard-link,
+.admin-main .campus-btn-primary,
+.btn-primary {
+  background: var(--color-btn-primary-bg);
+  color: var(--color-btn-primary-text);
+  border-color: var(--color-btn-primary-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.ui-button:hover,
+.campus-btn-primary:hover,
+.campus-btn-submit:hover,
+.dashboard-btn:hover,
+.auth-register-submit:hover,
+.student-application-button-primary:hover,
+.student-dashboard-link:hover,
+.admin-main .campus-btn-primary:hover,
+.btn-primary:hover {
+  background: var(--color-btn-primary-hover);
+  border-color: var(--color-btn-primary-hover);
+  color: var(--color-btn-primary-text);
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.campus-hero .campus-btn-primary,
+.campus-cta .campus-btn-primary,
+.student-dashboard-hero .student-dashboard-link {
+  background: var(--color-btn-accent-bg);
+  border-color: var(--color-btn-accent-bg);
+  color: var(--color-btn-accent-text);
+}
+
+.campus-hero .campus-btn-primary:hover,
+.campus-cta .campus-btn-primary:hover,
+.student-dashboard-hero .student-dashboard-link:hover {
+  background: var(--color-btn-accent-hover);
+  border-color: var(--color-btn-accent-hover);
+  color: var(--color-btn-accent-text);
+}
+
+.campus-btn-secondary,
+.campus-btn-login,
+.home-btn,
+.retour-btn,
+.student-application-button-secondary,
+.student-dashboard-ghost-link,
+.admin-filter-tab,
+.admin-table-action-button,
+.admin-pagination-page-button,
+.ui-empty-link,
+.btn-secondary,
+.btn-nav,
+.btn-file-action {
+  background: transparent;
+  color: var(--color-btn-ghost-text);
+  border-color: var(--color-btn-ghost-border);
+  box-shadow: none;
+}
+
+.campus-btn-secondary:hover,
+.campus-btn-login:hover,
+.home-btn:hover,
+.retour-btn:hover,
+.student-application-button-secondary:hover,
+.student-dashboard-ghost-link:hover,
+.admin-filter-tab:hover,
+.admin-table-action-button:hover,
+.admin-pagination-page-button:hover,
+.ui-empty-link:hover,
+.btn-secondary:hover,
+.btn-nav:hover,
+.btn-file-action:hover {
+  background: var(--color-accent-light);
+  border-color: var(--color-accent);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.btn-action-primary,
+.admin-detail-action-primary,
+.valider-btn,
+.recapitulatif-btn {
+  background: var(--color-success) !important;
+  color: #fff !important;
+  border-color: var(--color-success) !important;
+}
+
+.btn-action-danger,
+.admin-detail-action-danger,
+.retour-btn {
+  background: var(--color-danger) !important;
+  color: #fff !important;
+  border-color: var(--color-danger) !important;
+}
+
+button:disabled,
+.ui-button:disabled,
+.campus-btn-primary:disabled,
+.auth-register-submit:disabled,
+.student-application-button:disabled,
+.admin-table-action-button:disabled,
+.admin-pagination-page-button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+  transform: none;
+  box-shadow: none;
+}
+
+.ui-empty-state,
+.admin-empty-state {
+  padding: 40px 24px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
+  text-align: center;
+  font-style: normal;
+}
+
+.ui-empty-state h3,
+.admin-empty-state h3 {
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ui-empty-state p,
+.admin-empty-state p {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.ui-badge,
+.statut-badge,
+.admin-page-context,
+.student-dashboard-draft-badge,
+.student-profile-completion-pill,
+.status-pending,
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 24px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.statut-attente,
+.status-pending,
+.admin-page-context.warning {
+  background: var(--color-statut-attente-bg);
+  color: var(--color-statut-attente-text);
+  border-color: var(--color-statut-attente-border);
+}
+
+.statut-acceptee,
+.statut-actif,
+.admin-page-context.positive,
+.student-document-status.is-submitted {
+  background: var(--color-statut-acceptee-bg);
+  color: var(--color-statut-acceptee-text);
+  border-color: var(--color-statut-acceptee-border);
+}
+
+.statut-rejetee,
+.admin-page-context.danger,
+.student-document-status.is-missing {
+  background: var(--color-statut-rejetee-bg);
+  color: var(--color-statut-rejetee-text);
+  border-color: var(--color-statut-rejetee-border);
+}
+
+.admin-page-context.info {
+  background: var(--color-info-soft);
+  color: var(--color-info);
+  border-color: var(--color-info-border);
+}
+
+.admin-page-context.neutral,
+.meta-badge {
+  background: var(--color-surface-soft);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border);
+}
+
+.auth-feedback,
+.student-profile-feedback,
+.feedback-message,
+.message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-info-border);
+  border-radius: var(--radius-md);
+  background: var(--color-info-soft);
+  color: var(--color-info);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.auth-feedback-error,
+.student-profile-feedback-error,
+.feedback-error,
+.message-error {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  border-color: var(--color-danger-border);
+}
+
+.auth-feedback-success,
+.student-profile-feedback-success,
+.feedback-success,
+.message-success {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+  border-color: var(--color-success-border);
+}
+
+.student-profile-feedback-info,
+.feedback-info {
+  background: var(--color-info-soft);
+  color: var(--color-info);
+  border-color: var(--color-info-border);
+}
+
+.feedback-warning,
+.message-warning {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+  border-color: var(--color-warning-border);
+}
+
+.spinner,
+.login-spinner,
+.spin {
+  animation: spin .75s linear infinite;
+  color: currentColor;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.login-btn-inner,
+.campus-btn-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ui-progress,
+.register-progress-wrap {
+  width: 100%;
+}
+
+.ui-progress-track,
+.register-progress-bar,
+.student-progress-track,
+.progress-bar {
+  height: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.ui-progress-fill,
+.register-progress-fill,
+.student-progress-fill,
+.progress-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  transition: width .4s ease, background .2s ease;
+}
+
+.register-progress-fill[style*="100"] {
+  background: var(--color-accent);
+}
+
+.register-strength-wrap,
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.register-strength-bar {
+  display: flex;
+  flex: 1;
+  gap: 3px;
+}
+
+.register-strength-segment {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  transition: background .25s ease;
+}
+
+.register-strength-label,
+.strength-label {
+  min-width: 64px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.register-match-indicator,
+.student-profile-match-ok,
+.student-profile-match-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  transition: color .2s ease;
+}
+
+.register-match-indicator.is-valid,
+.student-profile-match-ok {
+  color: var(--color-success);
+}
+
+.register-match-indicator.is-invalid,
+.student-profile-match-error {
+  color: var(--color-danger);
+}
+
+.campus-scroll-top {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 999;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, background .15s ease;
+}
+
+.campus-scroll-top:hover {
+  background: var(--color-primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.toast,
+.toast-notification,
+.toast-message {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lg);
+}
+
+input,
+select,
+textarea {
+  border-radius: var(--radius-md);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(0, 201, 177, .15);
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
 }
