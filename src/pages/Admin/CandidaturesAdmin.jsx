@@ -20,7 +20,12 @@ import {
 import "../../index.css";
 
 function normalize(value) {
-  return (value ?? "").toString().toLowerCase().trim();
+  return (value ?? "")
+    .toString()
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function isToday(dateValue) {
@@ -118,7 +123,7 @@ export default function CandidaturesAdmin() {
       const token = getAuthToken();
 
       if (!token) {
-        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        const message = "Session absente ou expirée. Veuillez vous reconnecter.";
         clearAuthSession();
         navigate("/login", { state: { message } });
         return;
@@ -136,7 +141,7 @@ export default function CandidaturesAdmin() {
         if (!isActive) return;
 
         if (error.status === 401) {
-          const message = "Session expiree. Veuillez vous reconnecter.";
+          const message = "Session expirée. Veuillez vous reconnecter.";
           clearAuthSession();
           navigate("/login", { state: { message } });
           return;
@@ -144,7 +149,7 @@ export default function CandidaturesAdmin() {
 
         setApplicationsError(
           error.status === 403
-            ? "Acces refuse. Cette page est reservee aux administrateurs."
+            ? "Accès refusé. Cette page est réservée aux administrateurs."
             : error.message || "Impossible de charger les candidatures."
         );
       } finally {
@@ -397,26 +402,26 @@ export default function CandidaturesAdmin() {
     finalisees: adminStats.finalisees,
   };
   const advancedFilterSummary = [
-    filterUniversity !== "toutes" ? `Universite : ${filterUniversity}` : null,
-    filterSpecialite !== "toutes" ? `Specialite : ${filterSpecialite}` : null,
+    filterUniversity !== "toutes" ? `Université : ${filterUniversity}` : null,
+    filterSpecialite !== "toutes" ? `Spécialité : ${filterSpecialite}` : null,
     filterCompletion !== "tous"
-      ? `Completude : ${filterCompletion === "complets" ? "Complets" : "Incomplets"}`
+      ? `Complétude : ${filterCompletion === "complets" ? "Complets" : "Incomplets"}`
       : null,
     filterQueue !== "tous"
       ? `File : ${
           {
-            recent: "Soumis recemment",
-            review: "En cours d'etude",
+            recent: "Soumis récemment",
+            review: "En cours d'étude",
             retard: "Retard > 7 j",
-            pret: "Prets a decider",
+            pret: "Prêts à décider",
             today: "Soumissions du jour",
           }[filterQueue]
         }`
       : null,
-    filterManualPriority !== "toutes" ? `Priorite : ${filterManualPriority}` : null,
+    filterManualPriority !== "toutes" ? `Priorité : ${filterManualPriority}` : null,
     filterAssignedTo !== "tous"
       ? `Affectation : ${
-          filterAssignedTo === "non-assigne" ? "Non assignes" : filterAssignedTo
+          filterAssignedTo === "non-assigne" ? "Non assignés" : filterAssignedTo
         }`
       : null,
     filterInternalStatus !== "tous"
@@ -425,8 +430,8 @@ export default function CandidaturesAdmin() {
             qualification: "Qualification",
             instruction: "Instruction",
             commission: "Commission",
-            decision: "Decision",
-            "decision-finalisee": "Decision finalisee",
+            decision: "Décision",
+            "decision-finalisee": "Décision finalisée",
           }[filterInternalStatus]
         }`
       : null,
@@ -435,11 +440,11 @@ export default function CandidaturesAdmin() {
           {
             date: "Date",
             nom: "Nom",
-            universite: "Universite",
-            specialite: "Specialite",
+            universite: "Université",
+            specialite: "Spécialité",
             statut: "Statut",
-            priorite: "Priorite interne",
-            miseajour: "Derniere mise a jour",
+            priorite: "Priorité interne",
+            miseajour: "Dernière mise à jour",
           }[sortField]
         }`
       : null,
@@ -450,22 +455,22 @@ export default function CandidaturesAdmin() {
 
   const exportColumns = [
     { label: "Nom", getValue: (item) => item.nom },
-    { label: "Numero de dossier", getValue: (item) => item.numeroDossier },
-    { label: "Universite", getValue: (item) => item.universite },
-    { label: "Specialite", getValue: (item) => item.specialite },
-    { label: "Date de depot", getValue: (item) => formatAdminDate(item.date) },
+    { label: "Numéro de dossier", getValue: (item) => item.numeroDossier },
+    { label: "Université", getValue: (item) => item.universite },
+    { label: "Spécialité", getValue: (item) => item.specialite },
+    { label: "Date de dépôt", getValue: (item) => formatAdminDate(item.date) },
     { label: "Statut", getValue: (item) => item.statut },
     {
-      label: "Priorite interne",
+      label: "Priorité interne",
       getValue: (item) => item.adminMeta?.internalPriorityLabel || "Moyenne",
     },
     {
       label: "Statut interne",
       getValue: (item) => item.adminMeta?.internalStatusLabel || "Qualification",
     },
-    { label: "Affecte a", getValue: (item) => item.adminMeta?.assignedTo || "Non assigne" },
+    { label: "Affecté à", getValue: (item) => item.adminMeta?.assignedTo || "Non assigné" },
     {
-      label: "Derniere mise a jour",
+      label: "Dernière mise à jour",
       getValue: (item) => formatAdminDate(item.adminMeta?.lastUpdatedAt),
     },
     { label: "Email", getValue: (item) => item.details?.email || "" },
@@ -490,10 +495,10 @@ export default function CandidaturesAdmin() {
   return (
     <AdminLayout
       title="Gestion des candidatures"
-      subtitle="Consultez, triez et exportez les dossiers remontes du parcours etudiant"
+      subtitle="Consultez, triez et exportez les dossiers remontés du parcours étudiant"
       searchValue={searchQuery}
       onSearchChange={handleSearchChange}
-      searchPlaceholder="Rechercher un dossier, un etudiant ou une universite..."
+      searchPlaceholder="Rechercher un dossier, un étudiant ou une université..."
     >
       {isLoadingApplications ? (
         <div className="student-profile-feedback">Chargement des candidatures...</div>
@@ -506,7 +511,7 @@ export default function CandidaturesAdmin() {
             className="admin-filter-tab"
             onClick={() => setReloadKey((currentKey) => currentKey + 1)}
           >
-            Reessayer
+            Réessayer
           </Button>
         </div>
       ) : null}
@@ -514,16 +519,16 @@ export default function CandidaturesAdmin() {
       <section className="campus-section-container">
         <div className="campus-section-header">
           <h2>Filtres rapides</h2>
-          <p>Statut visible en premier plan, criteres avances accessibles sur demande</p>
+          <p>Statut visible en premier plan, critères avancés accessibles sur demande.</p>
         </div>
 
         <div className="admin-filter-tabs">
             {[
               { id: "tous", label: "Tous" },
               { id: "attente", label: "En attente" },
-              { id: "acceptee", label: "Acceptees" },
-              { id: "refusee", label: "Refusees" },
-              { id: "finalisees", label: "Finalisees" },
+              { id: "acceptee", label: "Acceptées" },
+              { id: "refusee", label: "Refusées" },
+              { id: "finalisees", label: "Finalisées" },
             ].map((tab) => (
             <Button
               key={tab.id}
@@ -541,7 +546,7 @@ export default function CandidaturesAdmin() {
         <div className="admin-candidatures-toolbar">
           <div className="admin-candidatures-toolbar-summary">
             <span className="admin-page-context neutral">
-              {sortedCandidatures.length} dossier(s) correspondent a la vue courante
+              {sortedCandidatures.length} dossier(s) correspondent à la vue courante
             </span>
             {advancedFilterCount > 0 ? (
               advancedFilterSummary.slice(0, 3).map((item) => (
@@ -550,7 +555,7 @@ export default function CandidaturesAdmin() {
                 </span>
               ))
             ) : (
-              <span className="admin-page-context positive">Aucun filtre avance actif</span>
+              <span className="admin-page-context positive">Aucun filtre avancé actif</span>
             )}
             {advancedFilterCount > 3 ? (
               <span className="admin-page-context warning">
@@ -565,6 +570,7 @@ export default function CandidaturesAdmin() {
                 showAdvancedFilters ? "active" : ""
               }`}
               onClick={() => setShowAdvancedFilters((current) => !current)}
+              aria-expanded={showAdvancedFilters}
             >
               <span className="admin-advanced-filter-toggle-icon">
                 <FilterIcon />
@@ -585,7 +591,7 @@ export default function CandidaturesAdmin() {
             <div className="admin-toolbar">
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="candidaturesUniversity">
-                  Universite
+                  Université
                 </label>
                 <select
                   id="candidaturesUniversity"
@@ -608,7 +614,7 @@ export default function CandidaturesAdmin() {
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="candidaturesSpecialite">
-                  Specialite
+                  Spécialité
                 </label>
                 <select
                   id="candidaturesSpecialite"
@@ -631,7 +637,7 @@ export default function CandidaturesAdmin() {
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="candidaturesCompletion">
-                  Completude
+                  Complétude
                 </label>
                 <select
                   id="candidaturesCompletion"
@@ -664,17 +670,17 @@ export default function CandidaturesAdmin() {
                   }}
                 >
                   <option value="tous">Toutes</option>
-                  <option value="recent">Soumis recemment</option>
-                  <option value="review">En cours d'etude</option>
+                  <option value="recent">Soumis récemment</option>
+                  <option value="review">En cours d'étude</option>
                   <option value="retard">Retard {'>'} 7 j</option>
-                  <option value="pret">Prets a decider</option>
+                  <option value="pret">Prêts à décider</option>
                   <option value="today">Soumissions du jour</option>
                 </select>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="candidaturesManualPriority">
-                  Priorite manuelle
+                  Priorité manuelle
                 </label>
                 <select
                   id="candidaturesManualPriority"
@@ -709,7 +715,7 @@ export default function CandidaturesAdmin() {
                   }}
                 >
                   <option value="tous">Toutes</option>
-                  <option value="non-assigne">Non assignes</option>
+                  <option value="non-assigne">Non assignés</option>
                   {assignedToOptions.map((option) => (
                     <option key={option} value={option}>
                       {option}
@@ -736,8 +742,8 @@ export default function CandidaturesAdmin() {
                   <option value="qualification">Qualification</option>
                   <option value="instruction">Instruction</option>
                   <option value="commission">Commission</option>
-                  <option value="decision">Decision</option>
-                  <option value="decision-finalisee">Decision finalisee</option>
+                  <option value="decision">Décision</option>
+                  <option value="decision-finalisee">Décision finalisée</option>
                 </select>
               </div>
 
@@ -753,11 +759,11 @@ export default function CandidaturesAdmin() {
                 >
                   <option value="date">Date</option>
                   <option value="nom">Nom</option>
-                  <option value="universite">Universite</option>
-                  <option value="specialite">Specialite</option>
+                  <option value="universite">Université</option>
+                  <option value="specialite">Spécialité</option>
                   <option value="statut">Statut</option>
-                  <option value="priorite">Priorite interne</option>
-                  <option value="miseajour">Derniere mise a jour</option>
+                  <option value="priorite">Priorité interne</option>
+                  <option value="miseajour">Dernière mise à jour</option>
                 </select>
               </div>
 
@@ -771,7 +777,7 @@ export default function CandidaturesAdmin() {
                   value={sortDirection}
                   onChange={(event) => setSortDirection(event.target.value)}
                 >
-                  <option value="desc">Decroissant</option>
+                  <option value="desc">Décroissant</option>
                   <option value="asc">Croissant</option>
                 </select>
               </div>
@@ -794,7 +800,7 @@ export default function CandidaturesAdmin() {
 
               <div className="admin-toolbar-actions">
                 <Button className="admin-filter-tab" onClick={handleResetFilters}>
-                  Reinitialiser
+                  Réinitialiser
                 </Button>
               </div>
             </div>
@@ -816,8 +822,8 @@ export default function CandidaturesAdmin() {
               <tr>
                 <th>Nom</th>
                 <th>Dossier</th>
-                <th>Universite</th>
-                <th>Specialite</th>
+                <th>Université</th>
+                <th>Spécialité</th>
                 <th>Date</th>
                 <th>Statut</th>
                 <th>Pilotage</th>
@@ -848,8 +854,8 @@ export default function CandidaturesAdmin() {
                     >
                       <td data-label="Nom">{candidature.nom}</td>
                       <td data-label="Dossier">{candidature.numeroDossier}</td>
-                      <td data-label="Universite">{candidature.universite}</td>
-                      <td data-label="Specialite">{candidature.specialite}</td>
+                      <td data-label="Université">{candidature.universite}</td>
+                      <td data-label="Spécialité">{candidature.specialite}</td>
                       <td data-label="Date">{formatAdminDate(candidature.date)}</td>
                       <td data-label="Statut">
                         <StatusBadge status={candidature.statut} />
@@ -867,10 +873,10 @@ export default function CandidaturesAdmin() {
                             {candidature.adminMeta.internalStatusLabel}
                           </span>
                           <span className="admin-table-meta-text">
-                            {candidature.adminMeta.assignedTo || "Non assigne"}
+                            {candidature.adminMeta.assignedTo || "Non assigné"}
                           </span>
                           <span className="admin-table-meta-subtext">
-                            Mis a jour {formatAdminDate(candidature.adminMeta.lastUpdatedAt)}
+                            Mis à jour {formatAdminDate(candidature.adminMeta.lastUpdatedAt)}
                           </span>
                         </div>
                       </td>
@@ -915,7 +921,7 @@ export default function CandidaturesAdmin() {
               onClick={() => setPage((current) => Math.max(1, current - 1))}
               disabled={safePage === 1}
             >
-              Precedent
+              Précédent
             </Button>
             <Button
               className="admin-filter-tab"
