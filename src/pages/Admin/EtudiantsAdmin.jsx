@@ -18,13 +18,30 @@ import { showToast } from "../../utils/toast";
 import "../../index.css";
 
 function normalize(value) {
-  return (value ?? "").toString().toLowerCase().trim();
+  return (value ?? "")
+    .toString()
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function normalizeStatus(status) {
-  if (status === "Accepté" || status === "Accepte") return "Acceptee";
-  if (status === "Refusé" || status === "Refuse") return "Rejetee";
+  if (["Accepté", "Accepte", "Acceptée", "Acceptee"].includes(status)) return "Acceptee";
+  if (["Refusé", "Refuse", "Refusée", "Refusee", "Rejetee"].includes(status)) return "Rejetee";
   return "En attente";
+}
+
+function getStudentDisplayStatus(status) {
+  if (status === "Accepte" || status === "Acceptee") {
+    return "Accepté";
+  }
+
+  if (status === "Refuse" || status === "Rejetee") {
+    return "Refusé";
+  }
+
+  return status;
 }
 
 function mapApiStudentToRecord(student) {
@@ -34,18 +51,18 @@ function mapApiStudentToRecord(student) {
     prenom: student.prenom || "",
     nom: student.nom || "",
     fullName: [student.prenom, student.nom].filter(Boolean).join(" ") || student.email,
-    email: student.email || "Non renseigne",
-    telephone: student.telephone || "Non renseigne",
-    nationalite: student.profile?.nationalite || "Non renseignee",
+    email: student.email || "Non renseigné",
+    telephone: student.telephone || "Non renseigné",
+    nationalite: student.profile?.nationalite || "Non renseignée",
     latestApplicationId: student.id,
     latestDate: student.latestDateDepot || student.created_at,
     firstDate: student.created_at,
     latestStatus: normalizeStatus(student.statutGlobal),
-    latestUniversite: student.latestUniversite || "Non renseignee",
-    latestSpecialite: student.latestFormation || "Non renseigne",
-    latestProgramme: student.latestFormation || "Non renseigne",
-    latestDiplome: student.profile?.diplome_actuel || "Non renseigne",
-    latestYear: student.profile?.annee_obtention || "Non renseignee",
+    latestUniversite: student.latestUniversite || "Non renseignée",
+    latestSpecialite: student.latestFormation || "Non renseigné",
+    latestProgramme: student.latestFormation || "Non renseigné",
+    latestDiplome: student.profile?.diplome_actuel || "Non renseigné",
+    latestYear: student.profile?.annee_obtention || "Non renseignée",
     latestApplication: {
       id: student.id,
       statut: normalizeStatus(student.statutGlobal),
@@ -172,7 +189,7 @@ export default function EtudiantsAdmin() {
       const token = getAuthToken();
 
       if (!token) {
-        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        const message = "Session absente ou expirée. Veuillez vous reconnecter.";
         clearAuthSession();
         navigate("/login", { state: { message } });
         return;
@@ -190,7 +207,7 @@ export default function EtudiantsAdmin() {
         if (!isActive) return;
 
         if (error.status === 401) {
-          const message = "Session expiree. Veuillez vous reconnecter.";
+          const message = "Session expirée. Veuillez vous reconnecter.";
           clearAuthSession();
           navigate("/login", { state: { message } });
           return;
@@ -198,8 +215,8 @@ export default function EtudiantsAdmin() {
 
         setStudentsError(
           error.status === 403
-            ? "Acces refuse. Cette page est reservee aux administrateurs."
-            : error.message || "Impossible de charger les etudiants."
+            ? "Accès refusé. Cette page est réservée aux administrateurs."
+            : error.message || "Impossible de charger les étudiants."
         );
       } finally {
         if (isActive) {
@@ -396,11 +413,11 @@ export default function EtudiantsAdmin() {
       .length,
   };
   const advancedFilterSummary = [
-    filterUniversity !== "toutes" ? `Universite : ${filterUniversity}` : null,
+    filterUniversity !== "toutes" ? `Université : ${filterUniversity}` : null,
     filterSpecialite !== "toutes" ? `Programme : ${filterSpecialite}` : null,
     filterAssignedTo !== "tous"
       ? `Affectation : ${
-          filterAssignedTo === "non-assigne" ? "Non assignes" : filterAssignedTo
+          filterAssignedTo === "non-assigne" ? "Non assignés" : filterAssignedTo
         }`
       : null,
     filterInternalStatus !== "tous"
@@ -409,17 +426,17 @@ export default function EtudiantsAdmin() {
             qualification: "Qualification",
             instruction: "Instruction",
             commission: "Commission",
-            decision: "Decision",
-            "decision-finalisee": "Decision finalisee",
+            decision: "Décision",
+            "decision-finalisee": "Décision finalisée",
           }[filterInternalStatus]
         }`
       : null,
     sortField !== "date"
       ? `Tri : ${
           {
-            date: "Date inscription",
+            date: "Date d'inscription",
             nom: "Nom",
-            universite: "Universite",
+            universite: "Université",
             programme: "Programme",
             statut: "Statut",
           }[sortField]
@@ -433,10 +450,10 @@ export default function EtudiantsAdmin() {
   const exportColumns = [
     { label: "Nom", getValue: (item) => item.fullName },
     { label: "Email", getValue: (item) => item.email },
-    { label: "Universite", getValue: (item) => item.latestUniversite },
+    { label: "Université", getValue: (item) => item.latestUniversite },
     { label: "Programme", getValue: (item) => item.latestProgramme },
-    { label: "Statut", getValue: (item) => item.statusMeta.label },
-    { label: "Date inscription", getValue: (item) => formatAdminDate(item.firstDate) },
+    { label: "Statut", getValue: (item) => getStudentDisplayStatus(item.statusMeta.label) },
+    { label: "Date d'inscription", getValue: (item) => formatAdminDate(item.firstDate) },
   ];
 
   const handleExportCsv = () => {
@@ -445,8 +462,8 @@ export default function EtudiantsAdmin() {
 
   const handleExportPdf = () => {
     downloadPdfReport({
-      title: "Rapport des etudiants",
-      subtitle: "Vue admin des profils etudiants selon les filtres courants",
+      title: "Rapport des étudiants",
+      subtitle: "Vue admin des profils étudiants selon les filtres courants",
       columns: exportColumns,
       items: sortedStudents,
     });
@@ -476,22 +493,22 @@ export default function EtudiantsAdmin() {
 
   return (
     <AdminLayout
-      title="Etudiants"
-      subtitle="Gestion et suivi des etudiants inscrits sur la plateforme"
+      title="Étudiants"
+      subtitle="Gestion et suivi des étudiants inscrits sur la plateforme"
       headerAction={
         <Button
           className="admin-header-primary-action"
-          onClick={() => showToast("Ajout manuel d'etudiant bientot disponible.", "info")}
+          onClick={() => showToast("Ajout manuel d'étudiant bientôt disponible.", "info")}
         >
-          + Ajouter un etudiant
+          + Ajouter un étudiant
         </Button>
       }
       searchValue={searchQuery}
       onSearchChange={handleSearchChange}
-      searchPlaceholder="Rechercher un etudiant, un email, une universite ou un programme..."
+      searchPlaceholder="Rechercher un étudiant, un email, une université ou un programme..."
     >
       {isLoadingStudents ? (
-        <div className="student-profile-feedback">Chargement des etudiants...</div>
+        <div className="student-profile-feedback">Chargement des étudiants...</div>
       ) : null}
 
       {studentsError ? (
@@ -501,7 +518,7 @@ export default function EtudiantsAdmin() {
             className="admin-filter-tab"
             onClick={() => setReloadKey((currentKey) => currentKey + 1)}
           >
-            Reessayer
+            Réessayer
           </Button>
         </div>
       ) : null}
@@ -509,14 +526,14 @@ export default function EtudiantsAdmin() {
       <section className="campus-section-container">
         <div className="campus-section-header">
           <h2>Vue rapide des profils</h2>
-          <p>Les indicateurs essentiels pour comprendre l'etat actuel de la base etudiante</p>
+          <p>Les indicateurs essentiels pour comprendre l'état actuel de la base étudiante</p>
         </div>
 
         <div className="admin-primary-stats-grid admin-student-stats-grid">
           {[
             {
               id: "total",
-              label: "Total etudiants",
+              label: "Total étudiants",
               value: quickStats.total,
               detail: `${advancedScopedStudents.length} profil(s) visibles dans cette vue`,
               tone: "etudiants",
@@ -524,7 +541,7 @@ export default function EtudiantsAdmin() {
             },
             {
               id: "active",
-              label: "Etudiants actifs",
+              label: "Étudiants actifs",
               value: quickStats.active,
               detail: "Profils avec dossier en cours et complet",
               tone: "attente",
@@ -540,9 +557,9 @@ export default function EtudiantsAdmin() {
             },
             {
               id: "accepted",
-              label: "Etudiants acceptes",
+              label: "Étudiants acceptés",
               value: quickStats.accepted,
-              detail: "Derniere candidature finalisee favorablement",
+              detail: "Dernière candidature finalisée favorablement",
               tone: "acceptee",
               icon: "accepted",
             },
@@ -570,15 +587,15 @@ export default function EtudiantsAdmin() {
       <section className="campus-section-container">
         <div className="campus-section-header">
           <h2>Filtres rapides</h2>
-          <p>Les statuts principaux restent visibles, les criteres avances s'ouvrent sur demande</p>
+          <p>Les statuts principaux restent visibles, les critères avancés s'ouvrent sur demande</p>
         </div>
 
         <div className="admin-filter-tabs">
           {[
             { id: "tous", label: "Tous" },
             { id: "actifs", label: "Actifs" },
-            { id: "acceptee", label: "Acceptes" },
-            { id: "refusee", label: "Refuses" },
+            { id: "acceptee", label: "Acceptés" },
+            { id: "refusee", label: "Refusés" },
             { id: "attente", label: "En attente" },
           ].map((tab) => (
             <Button
@@ -597,7 +614,7 @@ export default function EtudiantsAdmin() {
         <div className="admin-candidatures-toolbar">
           <div className="admin-candidatures-toolbar-summary">
             <span className="admin-page-context neutral">
-              {sortedStudents.length} profil(s) correspondent a la vue courante
+              {sortedStudents.length} profil(s) correspondent à la vue courante
             </span>
             {advancedFilterCount > 0 ? (
               advancedFilterSummary.slice(0, 3).map((item) => (
@@ -606,7 +623,7 @@ export default function EtudiantsAdmin() {
                 </span>
               ))
             ) : (
-              <span className="admin-page-context positive">Aucun filtre avance actif</span>
+              <span className="admin-page-context positive">Aucun filtre avancé actif</span>
             )}
             {advancedFilterCount > 3 ? (
               <span className="admin-page-context warning">
@@ -621,6 +638,7 @@ export default function EtudiantsAdmin() {
                 showAdvancedFilters ? "active" : ""
               }`}
               onClick={() => setShowAdvancedFilters((current) => !current)}
+              aria-expanded={showAdvancedFilters}
             >
               <span className="admin-advanced-filter-toggle-icon">
                 <FilterIcon />
@@ -641,7 +659,7 @@ export default function EtudiantsAdmin() {
             <div className="admin-toolbar">
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="studentsUniversity">
-                  Universite
+                  Université
                 </label>
                 <select
                   id="studentsUniversity"
@@ -700,7 +718,7 @@ export default function EtudiantsAdmin() {
                   }}
                 >
                   <option value="tous">Toutes</option>
-                  <option value="non-assigne">Non assignes</option>
+                  <option value="non-assigne">Non assignés</option>
                   {assignedToOptions.map((option) => (
                     <option key={option} value={option}>
                       {option}
@@ -727,8 +745,8 @@ export default function EtudiantsAdmin() {
                   <option value="qualification">Qualification</option>
                   <option value="instruction">Instruction</option>
                   <option value="commission">Commission</option>
-                  <option value="decision">Decision</option>
-                  <option value="decision-finalisee">Decision finalisee</option>
+                  <option value="decision">Décision</option>
+                  <option value="decision-finalisee">Décision finalisée</option>
                 </select>
               </div>
 
@@ -742,9 +760,9 @@ export default function EtudiantsAdmin() {
                   value={sortField}
                   onChange={(event) => setSortField(event.target.value)}
                 >
-                  <option value="date">Date inscription</option>
+                  <option value="date">Date d'inscription</option>
                   <option value="nom">Nom</option>
-                  <option value="universite">Universite</option>
+                  <option value="universite">Université</option>
                   <option value="programme">Programme</option>
                   <option value="statut">Statut</option>
                 </select>
@@ -760,7 +778,7 @@ export default function EtudiantsAdmin() {
                   value={sortDirection}
                   onChange={(event) => setSortDirection(event.target.value)}
                 >
-                  <option value="desc">Decroissant</option>
+                  <option value="desc">Décroissant</option>
                   <option value="asc">Croissant</option>
                 </select>
               </div>
@@ -783,7 +801,7 @@ export default function EtudiantsAdmin() {
 
               <div className="admin-toolbar-actions">
                 <Button className="admin-filter-tab" onClick={handleResetFilters}>
-                  Reinitialiser
+                  Réinitialiser
                 </Button>
               </div>
             </div>
@@ -793,7 +811,7 @@ export default function EtudiantsAdmin() {
 
       <section className="campus-section-container">
         <div className="campus-section-header">
-          <h2>Liste des etudiants ({sortedStudents.length})</h2>
+          <h2>Liste des étudiants ({sortedStudents.length})</h2>
           <p>
             Affichage {startIndex}-{endIndex} sur {sortedStudents.length} profil(s)
           </p>
@@ -805,10 +823,10 @@ export default function EtudiantsAdmin() {
               <tr>
                 <th>Nom</th>
                 <th>Email</th>
-                <th>Universite</th>
+                <th>Université</th>
                 <th>Programme</th>
                 <th>Statut</th>
-                <th>Date inscription</th>
+                <th>Date d'inscription</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -817,8 +835,8 @@ export default function EtudiantsAdmin() {
                 <tr>
                   <td colSpan="7">
                     <EmptyState
-                      title="Aucun etudiant"
-                      description="Aucun profil ne correspond aux filtres ou a la recherche en cours."
+                      title="Aucun étudiant"
+                      description="Aucun profil ne correspond aux filtres ou à la recherche en cours."
                       className="admin-empty-state"
                     />
                   </td>
@@ -849,12 +867,12 @@ export default function EtudiantsAdmin() {
                         <span className="admin-table-meta-subtext">{student.telephone}</span>
                       </div>
                     </td>
-                    <td data-label="Universite">{student.latestUniversite}</td>
+                    <td data-label="Université">{student.latestUniversite}</td>
                     <td data-label="Programme">{student.latestProgramme}</td>
                     <td data-label="Statut">
-                      <StatusBadge status={student.statusMeta.badgeStatus} />
+                      <StatusBadge status={getStudentDisplayStatus(student.statusMeta.badgeStatus)} />
                     </td>
-                    <td data-label="Date inscription">{formatAdminDate(student.firstDate)}</td>
+                    <td data-label="Date d'inscription">{formatAdminDate(student.firstDate)}</td>
                     <td data-label="Action">
                       <Button
                         className="admin-table-action-button"
@@ -883,7 +901,7 @@ export default function EtudiantsAdmin() {
               onClick={() => setPage((current) => Math.max(1, current - 1))}
               disabled={safePage === 1}
             >
-              Precedent
+              Précédent
             </Button>
             <Button
               className="admin-filter-tab"

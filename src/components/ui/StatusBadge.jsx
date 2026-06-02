@@ -5,16 +5,17 @@ const STATUS_CLASS_MAP = {
   Actif: "statut-actif",
   Inactif: "statut-rejetee",
   "En attente": "statut-attente",
+  Accepté: "statut-acceptee",
   Acceptée: "statut-acceptee",
   Acceptee: "statut-acceptee",
   Accepte: "statut-acceptee",
   Valide: "statut-acceptee",
   Validé: "statut-acceptee",
+  Refusé: "statut-rejetee",
   Refusée: "statut-rejetee",
   Rejetee: "statut-rejetee",
   Refuse: "statut-rejetee",
   Refusee: "statut-rejetee",
-  Refusé: "statut-rejetee",
   Manquant: "statut-attente",
 };
 
