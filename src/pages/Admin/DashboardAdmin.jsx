@@ -305,11 +305,11 @@ function getWorkQueueRoute(filter) {
 function getWorkQueueFooterLabel(filter) {
   switch (filter) {
     case "critiques":
-      return "Voir la file critique complete";
+      return "Voir la file critique complète";
     case "relances":
       return "Voir toutes les relances";
     case "decision":
-      return "Voir les dossiers prets a arbitrer";
+      return "Voir les dossiers prêts à arbitrer";
     case "nouveaux":
       return "Voir les nouvelles soumissions";
     default:
@@ -375,19 +375,19 @@ export default function DashboardAdmin() {
   const statusOptions = [
     { value: "tous", label: "Tous les statuts" },
     { value: "attente", label: "En attente" },
-    { value: "acceptee", label: "Acceptees" },
-    { value: "refusee", label: "Refusees" },
+    { value: "acceptee", label: "Acceptées" },
+    { value: "refusee", label: "Refusées" },
   ];
   const priorityOptions = [
-    { value: "toutes", label: "Toutes les priorites" },
+    { value: "toutes", label: "Toutes les priorités" },
     { value: "critiques", label: "Critiques" },
     { value: "relances", label: "Relances" },
-    { value: "decision", label: "Prets a arbitrer" },
+    { value: "decision", label: "Prêts à arbitrer" },
     { value: "nouveaux", label: "Nouveaux" },
     { value: "instruction", label: "En instruction" },
   ];
   const manualPriorityOptions = [
-    { value: "toutes", label: "Toutes les priorites manuelles" },
+    { value: "toutes", label: "Toutes les priorités manuelles" },
     { value: "basse", label: "Basse" },
     { value: "moyenne", label: "Moyenne" },
     { value: "haute", label: "Haute" },
@@ -399,7 +399,7 @@ export default function DashboardAdmin() {
     { value: "instruction", label: "Instruction" },
     { value: "commission", label: "Commission" },
     { value: "decision", label: "Decision" },
-    { value: "decision-finalisee", label: "Decision finalisee" },
+    { value: "decision-finalisee", label: "Décision finalisée" },
   ];
 
   useEffect(() => {
@@ -409,7 +409,7 @@ export default function DashboardAdmin() {
       const token = getAuthToken();
 
       if (!token) {
-        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        const message = "Session absente ou expirée. Veuillez vous reconnecter.";
         clearAuthSession();
         navigate("/login", { state: { message } });
         return;
@@ -427,7 +427,7 @@ export default function DashboardAdmin() {
       } catch (error) {
         if (isActive) {
           if (error.status === 401) {
-            const message = "Session expiree. Veuillez vous reconnecter.";
+            const message = "Session expirée. Veuillez vous reconnecter.";
             clearAuthSession();
             navigate("/login", { state: { message } });
             return;
@@ -435,7 +435,7 @@ export default function DashboardAdmin() {
 
           setAdminDashboardError(
             error.status === 403
-              ? "Acces refuse. Ce tableau de bord est reserve aux administrateurs."
+              ? "Accès refusé. Ce tableau de bord est réservé aux administrateurs."
               : error.message || "Impossible de charger le dashboard admin."
           );
         }
@@ -466,7 +466,7 @@ export default function DashboardAdmin() {
               : activity.status === "Rejetee"
                 ? "Refus"
                 : "Soumission",
-        title: activity.title || "Activite",
+        title: activity.title || "Activité",
         description: activity.description || "",
         detail: "",
         actorName: "Plateforme PFC",
@@ -614,27 +614,27 @@ export default function DashboardAdmin() {
   const dashboardHasResults = filteredAdminApplications.length > 0;
   const dashboardScopeSummary = [
     dashboardPeriod !== "all"
-      ? `Periode : ${getFilterLabel(dashboardPeriod, periodOptions, "Toute la campagne")}`
+      ? `Période : ${getFilterLabel(dashboardPeriod, periodOptions, "Toute la campagne")}`
       : null,
     dashboardStatus !== "tous"
       ? `Statut : ${getFilterLabel(dashboardStatus, statusOptions, "Tous les statuts")}`
       : null,
     dashboardPriority !== "toutes"
-      ? `Priorite operationnelle : ${getFilterLabel(
+      ? `Priorité opérationnelle : ${getFilterLabel(
           dashboardPriority,
           priorityOptions,
-          "Toutes les priorites"
+          "Toutes les priorités"
         )}`
       : null,
     dashboardManualPriority !== "toutes"
-      ? `Priorite manuelle : ${getFilterLabel(
+      ? `Priorité manuelle : ${getFilterLabel(
           dashboardManualPriority,
           manualPriorityOptions,
-          "Toutes les priorites manuelles"
+          "Toutes les priorités manuelles"
         )}`
       : null,
     dashboardAssignedTo !== "tous"
-      ? `Affectation : ${dashboardAssignedTo === "non-assigne" ? "Non assigne" : dashboardAssignedTo}`
+      ? `Affectation : ${dashboardAssignedTo === "non-assigne" ? "Non assigné" : dashboardAssignedTo}`
       : null,
     dashboardInternalStatus !== "tous"
       ? `Statut interne : ${getFilterLabel(
@@ -643,8 +643,8 @@ export default function DashboardAdmin() {
           "Tous les statuts internes"
         )}`
       : null,
-    dashboardUniversity !== "toutes" ? `Universite : ${dashboardUniversity}` : null,
-    dashboardSpecialite !== "toutes" ? `Specialite : ${dashboardSpecialite}` : null,
+    dashboardUniversity !== "toutes" ? `Université : ${dashboardUniversity}` : null,
+    dashboardSpecialite !== "toutes" ? `Spécialité : ${dashboardSpecialite}` : null,
   ].filter(Boolean);
   const adminStats = useMemo(
     () => getAdminStats(filteredAdminApplications),
@@ -805,7 +805,7 @@ export default function DashboardAdmin() {
       id: "total",
       label: "Total candidatures",
       value: adminStats.totalCandidatures,
-      detail: `${adminStats.receptions7j} deposee(s) sur 7 jours`,
+      detail: `${adminStats.receptions7j} déposée(s) sur 7 jours`,
       tone: "total",
       icon: "files",
       path: buildScopedAdminPath("/admin/candidatures"),
@@ -817,30 +817,30 @@ export default function DashboardAdmin() {
       detail:
         adminStats.backlogCritique > 0
           ? `${adminStats.backlogCritique} retard(s) critique(s)`
-          : "A traiter en priorite",
+          : "À traiter en priorité",
       tone: "attente",
       icon: "clock",
       path: buildScopedAdminPath("/admin/candidatures", { status: "attente" }),
     },
     {
       id: "accepted",
-      label: "Acceptees",
+      label: "Acceptées",
       value: adminStats.acceptees,
       detail:
         adminStats.finalisees > 0
           ? `${adminStats.tauxAcceptation}% des decisions`
-          : "Aucune decision finalisee",
+          : "Aucune décision finalisée",
       tone: "acceptee",
       icon: "check",
       path: buildScopedAdminPath("/admin/candidatures", { status: "acceptee" }),
     },
     {
       id: "refused",
-      label: "Refusees",
+      label: "Refusées",
       value: adminStats.refusees,
       detail:
         adminStats.finalisees > 0
-          ? `${adminStats.tauxFinalisation}% du portefeuille traite`
+          ? `${adminStats.tauxFinalisation}% du portefeuille traité`
           : "Suivi des arbitrages",
       tone: "refusee",
       icon: "close",
@@ -848,9 +848,9 @@ export default function DashboardAdmin() {
     },
     {
       id: "students",
-      label: "Etudiants inscrits",
+      label: "Étudiants inscrits",
       value: adminStats.totalEtudiants,
-      detail: `${adminStats.totalCandidatures} candidature(s) deposee(s)`,
+      detail: `${adminStats.totalCandidatures} candidature(s) déposée(s)`,
       tone: "etudiants",
       icon: "student",
       path: buildScopedAdminPath("/admin/etudiants"),
@@ -895,7 +895,7 @@ export default function DashboardAdmin() {
           return {
             ...card,
             value: backendStats.dossiersIncomplets ?? card.value,
-            detail: `${backendStats.documentsEnAttente ?? 0} document(s) a verifier`,
+            detail: `${backendStats.documentsEnAttente ?? 0} document(s) à vérifier`,
           };
         }
 
@@ -908,18 +908,18 @@ export default function DashboardAdmin() {
   const dashboardQuickActions = [
     {
       id: "candidatures",
-      title: "Gerer les candidatures",
+      title: "Gérer les candidatures",
       description: "Suivre, filtrer et examiner les dossiers en cours d'instruction.",
-      buttonLabel: "Acceder",
+      buttonLabel: "Accéder",
       icon: "files",
       tone: "total",
       path: buildScopedAdminPath("/admin/candidatures"),
     },
     {
       id: "etudiants",
-      title: "Voir les etudiants",
+      title: "Voir les étudiants",
       description: "Consulter les profils, les inscriptions et les informations de parcours.",
-      buttonLabel: "Acceder",
+      buttonLabel: "Accéder",
       icon: "student",
       tone: "etudiants",
       path: buildScopedAdminPath("/admin/etudiants"),
@@ -927,8 +927,8 @@ export default function DashboardAdmin() {
     {
       id: "documents",
       title: "Consulter les documents",
-      description: "Verifier les pieces manquantes et la completude documentaire.",
-      buttonLabel: "Acceder",
+      description: "Vérifier les pièces manquantes et la complétude documentaire.",
+      buttonLabel: "Accéder",
       icon: "warning",
       tone: "incomplets",
       path: buildScopedAdminPath("/admin/documents"),
@@ -936,8 +936,8 @@ export default function DashboardAdmin() {
     {
       id: "profil",
       title: "Profil administrateur",
-      description: "Mettre a jour vos preferences et informations de session.",
-      buttonLabel: "Acceder",
+      description: "Mettre à jour vos préférences et informations de session.",
+      buttonLabel: "Accéder",
       icon: "check",
       tone: "acceptee",
       path: "/admin/profil",
@@ -975,12 +975,12 @@ export default function DashboardAdmin() {
   const recentStatusCounts = useMemo(
     () => ({
       tous: recentApplicationsBySearch.length,
-      attente: recentApplicationsBySearch.filter((application) => application.statut === "attente")
+      attente: recentApplicationsBySearch.filter((application) => application.statut === "En attente")
         .length,
       acceptee: recentApplicationsBySearch.filter(
-        (application) => application.statut === "acceptee"
+        (application) => application.statut === "Acceptee"
       ).length,
-      refusee: recentApplicationsBySearch.filter((application) => application.statut === "refusee")
+      refusee: recentApplicationsBySearch.filter((application) => application.statut === "Rejetee")
         .length,
     }),
     [recentApplicationsBySearch]
@@ -990,16 +990,22 @@ export default function DashboardAdmin() {
       return recentApplicationsBySearch;
     }
 
+    const statusByFilter = {
+      attente: "En attente",
+      acceptee: "Acceptee",
+      refusee: "Rejetee",
+    };
+
     return recentApplicationsBySearch.filter(
-      (application) => application.statut === recentStatusFilter
+      (application) => application.statut === statusByFilter[recentStatusFilter]
     );
   }, [recentApplicationsBySearch, recentStatusFilter]);
   const recentApplications = recentFilteredApplications.slice(0, 6);
   const recentStatusTabs = [
     { id: "tous", label: "Tous", count: recentStatusCounts.tous },
     { id: "attente", label: "En attente", count: recentStatusCounts.attente },
-    { id: "acceptee", label: "Acceptees", count: recentStatusCounts.acceptee },
-    { id: "refusee", label: "Refusees", count: recentStatusCounts.refusee },
+    { id: "acceptee", label: "Acceptées", count: recentStatusCounts.acceptee },
+    { id: "refusee", label: "Refusées", count: recentStatusCounts.refusee },
   ];
   const pilotageUniversityChart = chartInsights.volumeByUniversity.slice(0, 5);
   const visibleRecentActivity = adminRecentActivity.slice(0, 6);
@@ -1007,7 +1013,7 @@ export default function DashboardAdmin() {
     {
       id: "pilotage",
       label: "Pilotage",
-      helper: "Priorites, dossiers et activite",
+      helper: "Priorités, dossiers et activité",
       count: `${adminStats.totalCandidatures} dossiers`,
     },
     {
@@ -1070,7 +1076,7 @@ export default function DashboardAdmin() {
               className="campus-btn-primary"
               onClick={() => setReloadDashboardKey((currentKey) => currentKey + 1)}
             >
-              Reessayer
+              Réessayer
             </Button>
           </div>
         </section>
@@ -1085,7 +1091,7 @@ export default function DashboardAdmin() {
       searchValue={searchQuery}
       onSearchChange={setSearchQuery}
       onSearchKeyDown={handleSearchKeyDown}
-      searchPlaceholder="Rechercher un etudiant, une universite, une specialite ou un numero de dossier..."
+      searchPlaceholder="Rechercher un étudiant, une université, une spécialité ou un numéro de dossier..."
     >
       {adminDashboardError ? (
         <div className="student-profile-feedback student-profile-feedback-error" role="alert">
@@ -1094,7 +1100,7 @@ export default function DashboardAdmin() {
       ) : null}
 
       {isAdminDashboardLoading ? (
-        <div className="student-profile-feedback">Actualisation des donnees admin...</div>
+        <div className="student-profile-feedback">Actualisation des données admin...</div>
       ) : null}
 
       <section className="campus-section-container">
@@ -1108,7 +1114,7 @@ export default function DashboardAdmin() {
                 {activeFilterCount} filtre(s) actif(s)
               </span>
             ) : (
-              <span className="admin-page-context positive">Campagne complete</span>
+              <span className="admin-page-context positive">Campagne complète</span>
             )}
           </div>
 
@@ -1146,7 +1152,7 @@ export default function DashboardAdmin() {
               <h3>{filteredAdminApplications.length} dossier(s) dans la vue courante</h3>
               <p>
                 Tous les indicateurs, alertes, graphiques et files de travail du dashboard
-                utilisent ce perimetre partage.
+                utilisent ce périmètre partagé.
               </p>
             </div>
 
@@ -1158,7 +1164,7 @@ export default function DashboardAdmin() {
                   </span>
                 ))
               ) : (
-                <span className="admin-queue-pill neutral">Campagne complete</span>
+                <span className="admin-queue-pill neutral">Campagne complète</span>
               )}
             </div>
           </div>
@@ -1166,7 +1172,7 @@ export default function DashboardAdmin() {
           <div className="admin-toolbar admin-dashboard-toolbar">
             <div className="admin-toolbar-group">
               <label className="admin-toolbar-label" htmlFor="dashboardPeriod">
-                Periode
+                Période
               </label>
               <select
                 id="dashboardPeriod"
@@ -1210,7 +1216,7 @@ export default function DashboardAdmin() {
 
             <div className="admin-toolbar-group">
               <label className="admin-toolbar-label" htmlFor="dashboardUniversity">
-                Universite
+                Université
               </label>
               <select
                 id="dashboardUniversity"
@@ -1233,7 +1239,7 @@ export default function DashboardAdmin() {
 
             <div className="admin-toolbar-group">
               <label className="admin-toolbar-label" htmlFor="dashboardSpecialite">
-                Specialite
+                Spécialité
               </label>
               <select
                 id="dashboardSpecialite"
@@ -1256,13 +1262,13 @@ export default function DashboardAdmin() {
 
             <div className="admin-toolbar-actions">
               <Button className="admin-filter-tab" onClick={handleResetDashboardFilters}>
-                Reinitialiser les filtres
+                Réinitialiser les filtres
               </Button>
               <Button
                 className={`admin-filter-tab ${showAdvancedFilters ? "active" : ""}`}
                 onClick={() => setShowAdvancedFilters((current) => !current)}
               >
-                {showAdvancedFilters ? "Masquer les filtres avances" : "Filtres avances"}
+                {showAdvancedFilters ? "Masquer les filtres avancés" : "Filtres avancés"}
               </Button>
             </div>
           </div>
@@ -1272,7 +1278,7 @@ export default function DashboardAdmin() {
               <div className="admin-toolbar admin-dashboard-toolbar admin-dashboard-toolbar-secondary">
                 <div className="admin-toolbar-group">
                   <label className="admin-toolbar-label" htmlFor="dashboardPriority">
-                    Priorite
+                    Priorité
                   </label>
                   <select
                     id="dashboardPriority"
@@ -1294,7 +1300,7 @@ export default function DashboardAdmin() {
 
                 <div className="admin-toolbar-group">
                   <label className="admin-toolbar-label" htmlFor="dashboardManualPriority">
-                    Priorite manuelle
+                    Priorité manuelle
                   </label>
                   <select
                     id="dashboardManualPriority"
@@ -1372,8 +1378,8 @@ export default function DashboardAdmin() {
           <section className="campus-section-container">
             <div className="campus-section-header">
               <div>
-                <h2>Chiffres cles</h2>
-                <p>Les indicateurs essentiels pour suivre rapidement l'etat global des candidatures</p>
+                <h2>Statistiques clés</h2>
+                <p>Les indicateurs essentiels pour suivre rapidement l'état global des candidatures.</p>
               </div>
             </div>
 
@@ -1405,7 +1411,7 @@ export default function DashboardAdmin() {
             <div className="campus-section-header">
               <div>
                 <h2>Actions rapides</h2>
-                <p>Retrouvez les raccourcis utiles pour gerer les dossiers.</p>
+                <p>Retrouvez les raccourcis utiles pour gérer les dossiers.</p>
               </div>
             </div>
 
@@ -1437,13 +1443,13 @@ export default function DashboardAdmin() {
           <section className="campus-section-container">
             <div className="campus-section-header">
               <h2>Alertes prioritaires</h2>
-              <p>Les sujets qui demandent une action immediate sur le portefeuille courant</p>
+              <p>Les sujets qui demandent une action immédiate sur le portefeuille courant.</p>
             </div>
 
             {activeAdminAlerts.length === 0 ? (
               <EmptyState
                 title="Aucune alerte active"
-                description="Le portefeuille filtre ne presente actuellement aucun blocage prioritaire."
+                description="Le portefeuille filtré ne présente actuellement aucun blocage prioritaire."
                 className="admin-empty-state"
               />
             ) : (
@@ -1478,8 +1484,8 @@ export default function DashboardAdmin() {
           <section className="campus-section-container">
             <div className="campus-section-header">
               <div>
-                <h2>Candidatures recentes ({recentFilteredApplications.length})</h2>
-                <p>Les derniers dossiers recus sur le perimetre courant, avec leur niveau d'avancement</p>
+                <h2>Candidatures récentes ({recentFilteredApplications.length})</h2>
+                <p>Les derniers dossiers reçus sur le périmètre courant, avec leur niveau d'avancement.</p>
               </div>
             </div>
 
@@ -1493,11 +1499,11 @@ export default function DashboardAdmin() {
                   type="search"
                   value={recentSearchQuery}
                   onChange={(event) => setRecentSearchQuery(event.target.value)}
-                  placeholder="Rechercher un candidat, une universite ou une specialite..."
+                  placeholder="Rechercher un candidat, une université ou une spécialité..."
                 />
               </label>
 
-              <div className="admin-recent-status-tabs" role="tablist" aria-label="Filtrer les candidatures recentes par statut">
+              <div className="admin-recent-status-tabs" role="tablist" aria-label="Filtrer les candidatures récentes par statut">
                 {recentStatusTabs.map((tab) => (
                   <button
                     key={tab.id}
@@ -1513,11 +1519,11 @@ export default function DashboardAdmin() {
 
             {recentApplications.length === 0 ? (
               <EmptyState
-                title="Aucune candidature recente"
+                title="Aucune candidature récente"
                 description={
                   recentSearchQuery.trim() || recentStatusFilter !== "tous"
-                    ? "Aucun dossier recent ne correspond a votre recherche ou au statut selectionne."
-                    : "Les derniers dossiers apparaitront ici des qu'une candidature correspondra aux filtres courants."
+                    ? "Aucun dossier récent ne correspond à votre recherche ou au statut sélectionné."
+                    : "Les derniers dossiers apparaîtront ici dès qu'une candidature correspondra aux filtres courants."
                 }
                 className="admin-empty-state"
               />
@@ -1528,8 +1534,8 @@ export default function DashboardAdmin() {
                     <thead>
                       <tr>
                         <th>Nom</th>
-                        <th>Universite</th>
-                        <th>Specialite</th>
+                        <th>Université</th>
+                        <th>Spécialité</th>
                         <th>Date</th>
                         <th>Statut</th>
                         <th>Progression</th>
@@ -1554,7 +1560,7 @@ export default function DashboardAdmin() {
                               </span>
                             </div>
                           </td>
-                          <td data-label="Universite">
+                          <td data-label="Université">
                             <div className="admin-table-meta">
                               <span className="admin-table-meta-text">{application.universite}</span>
                               <span className="admin-table-meta-subtext">
@@ -1562,7 +1568,7 @@ export default function DashboardAdmin() {
                               </span>
                             </div>
                           </td>
-                          <td data-label="Specialite">
+                          <td data-label="Spécialité">
                             <div className="admin-table-meta">
                               <span className="admin-table-meta-text">{application.specialite}</span>
                               <span className="admin-table-meta-subtext">
@@ -1622,8 +1628,8 @@ export default function DashboardAdmin() {
                 <div className="admin-table-footer admin-recent-table-footer">
                   <span className="admin-pagination-info">
                     {recentFilteredApplications.length > recentApplications.length
-                      ? `Affichage des ${recentApplications.length} dossiers les plus recents sur ${recentFilteredApplications.length} correspondants.`
-                      : `${recentApplications.length} dossier(s) correspondent a la recherche et aux filtres courants.`}
+                      ? `Affichage des ${recentApplications.length} dossiers les plus récents sur ${recentFilteredApplications.length} correspondants.`
+                      : `${recentApplications.length} dossier(s) correspondent à la recherche et aux filtres courants.`}
                   </span>
                   <Link to={buildScopedAdminPath("/admin/candidatures")} className="campus-btn-primary">
                     Voir toutes les candidatures
@@ -1636,23 +1642,23 @@ export default function DashboardAdmin() {
           <section className="campus-section-container">
             <div className="campus-section-header">
               <div>
-                <h2>Repartition des dossiers</h2>
-                <p>Une lecture simple de la repartition des candidatures par universite</p>
+                <h2>Répartition des dossiers</h2>
+                <p>Une lecture simple de la répartition des candidatures par université.</p>
               </div>
             </div>
 
             {!pilotageUniversityChart.length ? (
               <EmptyState
                 title="Aucune repartition disponible"
-                description="Le graphique apparaitra ici des qu'au moins une candidature sera visible dans le perimetre courant."
+                description="Le graphique apparaîtra ici dès qu'au moins une candidature sera visible dans le périmètre courant."
                 className="admin-empty-state"
               />
             ) : (
               <div className="admin-mini-chart-card">
                 <div className="admin-mini-chart-header">
                   <div>
-                    <h3>Candidatures par universite</h3>
-                    <p>Top etablissements sur la vue en cours</p>
+                    <h3>Candidatures par université</h3>
+                    <p>Top établissements sur la vue en cours.</p>
                   </div>
                   <span className="admin-queue-pill neutral">
                     {filteredAdminApplications.length} dossiers
@@ -1676,15 +1682,15 @@ export default function DashboardAdmin() {
 
           <section className="campus-section-container">
             <div className="campus-section-header">
-              <h2>Activite recente</h2>
-              <p>Les derniers changements enregistres sur les dossiers.</p>
+              <h2>Activité récente</h2>
+              <p>Les derniers changements enregistrés sur les dossiers.</p>
             </div>
 
             <div className="admin-activity-list">
               {visibleRecentActivity.length === 0 ? (
                 <EmptyState
                   title="Aucune activite recente"
-                  description="Les soumissions et les changements de statut apparaitront ici."
+                  description="Les soumissions et les changements de statut apparaîtront ici."
                   className="admin-empty-state"
                 />
               ) : (
@@ -1724,26 +1730,26 @@ export default function DashboardAdmin() {
       <section className="campus-section-container">
         <div className="campus-section-header">
           <h2>Pilotage interne des dossiers</h2>
-          <p>Suivi interne des dossiers affiches.</p>
+          <p>Suivi interne des dossiers affichés.</p>
         </div>
 
         {!dashboardHasResults ? (
           <EmptyState
             title="Aucun pilotage a afficher"
-            description="Ajoutez des dossiers ou assouplissez les filtres globaux pour visualiser les metadonnees internes."
+            description="Ajoutez des dossiers ou assouplissez les filtres globaux pour visualiser les métadonnées internes."
             className="admin-empty-state"
           />
         ) : (
           <>
             <div className="admin-worklist-overview">
               <div className="admin-worklist-overview-copy">
-                <span className="admin-section-kicker">Gouvernance operative</span>
-                <h3>{metadataInsights.summary.assignedCount} dossier(s) deja affectes a une cellule</h3>
+                <span className="admin-section-kicker">Gouvernance opérationnelle</span>
+                <h3>{metadataInsights.summary.assignedCount} dossier(s) déjà affecté(s) à une cellule</h3>
                 <p>
                   {metadataInsights.summary.unassignedPendingCount} dossier(s) ouverts restent sans
-                  affectation, {metadataInsights.summary.staleCount} n'ont pas ete actualises depuis
-                  au moins 4 jours et {metadataInsights.summary.decisionStageCount} sont deja en
-                  circuit de commission ou de decision.
+                  affectation, {metadataInsights.summary.staleCount} n'ont pas été actualisés depuis
+                  au moins 4 jours et {metadataInsights.summary.decisionStageCount} sont déjà en
+                  circuit de commission ou de décision.
                 </p>
               </div>
 
@@ -1751,7 +1757,7 @@ export default function DashboardAdmin() {
                 <div className="admin-worklist-overview-card">
                   <span>Taux d'affectation</span>
                   <strong>{metadataInsights.summary.assignmentRate}%</strong>
-                  <small>{metadataInsights.summary.assignedCount} dossiers pilotes par une cellule</small>
+                  <small>{metadataInsights.summary.assignedCount} dossiers pilotés par une cellule</small>
                 </div>
                 <div className="admin-worklist-overview-card">
                   <span>Sans affectation</span>
@@ -1775,8 +1781,8 @@ export default function DashboardAdmin() {
               <div className="admin-analytics-card">
                 <div className="admin-analytics-card-header">
                   <div>
-                    <h3>Priorites internes</h3>
-                    <p>Lecture manuelle du portefeuille selon les niveaux de priorisation admin</p>
+                    <h3>Priorités internes</h3>
+                    <p>Lecture manuelle du portefeuille selon les niveaux de priorisation admin.</p>
                   </div>
                 </div>
 
@@ -1789,7 +1795,7 @@ export default function DashboardAdmin() {
                       onClick={() =>
                         applyDashboardMetadataFilter({ manualPriority: item.key })
                       }
-                      title={`Filtrer le dashboard sur la priorite manuelle ${item.label}`}
+                      title={`Filtrer le dashboard sur la priorité manuelle ${item.label}`}
                     >
                       <span className="chart-label">{item.label}</span>
                       <div className="chart-bar">
@@ -1816,7 +1822,7 @@ export default function DashboardAdmin() {
                 <div className="admin-analytics-card-header">
                   <div>
                     <h3>Statuts internes</h3>
-                    <p>Repartition du portefeuille entre qualification, instruction et decision</p>
+                    <p>Répartition du portefeuille entre qualification, instruction et décision</p>
                   </div>
                 </div>
 
@@ -1891,15 +1897,15 @@ export default function DashboardAdmin() {
       <section className="campus-section-container">
         <div className="campus-section-header">
           <h2>Tunnel de traitement</h2>
-          <p>Lecture du cycle dossier depuis la reception jusqu'a la decision finale</p>
+          <p>Lecture du cycle dossier depuis la réception jusqu'à la décision finale.</p>
         </div>
 
         <div className="admin-funnel-summary">
           <div className="admin-funnel-summary-copy">
-            <h3>Etat du portefeuille en instruction</h3>
+            <h3>État du portefeuille en instruction</h3>
             <p>
               {processingFunnel.summary.pendingCount} dossier(s) suivent encore le circuit
-              d'analyse. {processingFunnel.summary.readyCount} sont deja prets pour arbitrage et{" "}
+              d'analyse. {processingFunnel.summary.readyCount} sont déjà prêts pour arbitrage et{" "}
               {processingFunnel.summary.incompleteCount} demandent encore une relance.
             </p>
           </div>
@@ -1911,9 +1917,9 @@ export default function DashboardAdmin() {
               <small>{processingFunnel.summary.pendingRate}% du portefeuille</small>
             </div>
             <div className="admin-funnel-summary-card">
-              <span>Finalises</span>
+              <span>Finalisés</span>
               <strong>{processingFunnel.summary.finalizedCount}</strong>
-              <small>{processingFunnel.summary.finalizationRate}% deja arbitres</small>
+              <small>{processingFunnel.summary.finalizationRate}% déjà arbitrés</small>
             </div>
           </div>
         </div>
@@ -1951,8 +1957,8 @@ export default function DashboardAdmin() {
       {activeDashboardSection === "analyses" ? (
       <section className="campus-section-container">
         <div className="campus-section-header">
-          <h2>Repartition des statuts</h2>
-          <p>Repartition des candidatures par decision.</p>
+          <h2>Répartition des statuts</h2>
+          <p>Répartition des candidatures par décision.</p>
         </div>
 
         <div className="campus-universities-grid">
@@ -1965,13 +1971,13 @@ export default function DashboardAdmin() {
             ],
             [
               "status-acceptee",
-              "Acceptees",
+              "Acceptées",
               adminStats.acceptees,
               buildScopedAdminPath("/admin/candidatures", { status: "acceptee" }),
             ],
             [
               "status-refusee",
-              "Refusees",
+              "Refusées",
               adminStats.refusees,
               buildScopedAdminPath("/admin/candidatures", { status: "refusee" }),
             ],
@@ -1999,7 +2005,7 @@ export default function DashboardAdmin() {
                     : 0
                 }
               />
-              <span className="admin-card-action-hint">Ouvrir la vue filtree</span>
+              <span className="admin-card-action-hint">Ouvrir la vue filtrée</span>
             </button>
           ))}
         </div>
@@ -2010,7 +2016,7 @@ export default function DashboardAdmin() {
       <section className="campus-section-container">
         <div className="campus-section-header">
           <h2>File de traitement prioritaire</h2>
-          <p>Ouvrez rapidement les dossiers a traiter en priorite.</p>
+          <p>Ouvrez rapidement les dossiers à traiter en priorité.</p>
         </div>
 
         <div className="admin-queue-grid">
@@ -2041,7 +2047,7 @@ export default function DashboardAdmin() {
           <div className="admin-urgent-panel-header">
             <div>
               <h3>A traiter maintenant</h3>
-              <p>Les dossiers les plus urgents sont classes par niveau de blocage et anciennete</p>
+              <p>Les dossiers les plus urgents sont classés par niveau de blocage et ancienneté.</p>
             </div>
             <Button
               className="admin-filter-tab"
@@ -2057,8 +2063,8 @@ export default function DashboardAdmin() {
 
           {treatmentQueue.urgentApplications.length === 0 ? (
             <EmptyState
-              title="Aucune urgence immediate"
-              description="Les dossiers prioritaires apparaitront ici des qu'un blocage est detecte."
+              title="Aucune urgence immédiate"
+              description="Les dossiers prioritaires apparaîtront ici dès qu'un blocage est détecté."
               className="admin-empty-state"
             />
           ) : (
@@ -2082,11 +2088,11 @@ export default function DashboardAdmin() {
 
                   <div className="admin-urgent-side">
                     <div className="admin-urgent-meta">
-                      <span>Depot</span>
+                      <span>Dépôt</span>
                       <strong>{formatAdminDate(application.date)}</strong>
                     </div>
                     <div className="admin-urgent-meta">
-                      <span>Anciennete</span>
+                      <span>Ancienneté</span>
                       <strong>{application.ageDays} j</strong>
                     </div>
                     <div className="admin-urgent-meta">
@@ -2094,7 +2100,7 @@ export default function DashboardAdmin() {
                       <StatusBadge status={application.statut} />
                     </div>
                     <div className="admin-urgent-meta admin-urgent-progress">
-                      <span>Completude</span>
+                      <span>Complétude</span>
                       <ProgressBar
                         value={application.progress.finale}
                         label={`${application.progress.finale}%`}
@@ -2119,18 +2125,18 @@ export default function DashboardAdmin() {
       {activeDashboardSection === "traitement" ? (
       <section className="campus-section-container">
         <div className="campus-section-header">
-          <h2>File de travail operationnelle</h2>
-          <p>Priorisez les dossiers ouverts par urgence, blocage et prochaine action</p>
+          <h2>File de travail opérationnelle</h2>
+          <p>Priorisez les dossiers ouverts par urgence, blocage et prochaine action.</p>
         </div>
 
         <div className="admin-worklist-overview">
           <div className="admin-worklist-overview-copy">
-            <span className="admin-section-kicker">Vue operateur</span>
+            <span className="admin-section-kicker">Vue opérateur</span>
             <h3>{adminWorkQueue.summary.totalOpen} dossier(s) actifs dans la file d'instruction</h3>
             <p>
-              {adminWorkQueue.summary.criticalCount} dossier(s) sont deja critiques,{" "}
+              {adminWorkQueue.summary.criticalCount} dossier(s) sont déjà critiques,{" "}
               {adminWorkQueue.summary.followUpCount} demandent une relance et{" "}
-              {adminWorkQueue.summary.readyCount} peuvent etre arbitres sans attente complementaire.
+              {adminWorkQueue.summary.readyCount} peuvent être arbitrés sans attente complémentaire.
             </p>
           </div>
 
@@ -2138,22 +2144,22 @@ export default function DashboardAdmin() {
             <div className="admin-worklist-overview-card">
               <span>Critiques</span>
               <strong>{adminWorkQueue.summary.criticalCount}</strong>
-              <small>Dossiers a reprendre en priorite haute</small>
+              <small>Dossiers à reprendre en priorité haute</small>
             </div>
             <div className="admin-worklist-overview-card">
               <span>Relances</span>
               <strong>{adminWorkQueue.summary.followUpCount}</strong>
-              <small>Informations ou pieces encore attendues</small>
+              <small>Informations ou pièces encore attendues</small>
             </div>
             <div className="admin-worklist-overview-card">
-              <span>Prets</span>
+              <span>Prêts</span>
               <strong>{adminWorkQueue.summary.readyCount}</strong>
-              <small>Dossiers complets a arbitrer</small>
+              <small>Dossiers complets à arbitrer</small>
             </div>
             <div className="admin-worklist-overview-card">
-              <span>Age moyen</span>
+              <span>Âge moyen</span>
               <strong>{adminWorkQueue.summary.averageAge} j</strong>
-              <small>Anciennete moyenne des dossiers ouverts</small>
+              <small>Ancienneté moyenne des dossiers ouverts</small>
             </div>
           </div>
         </div>
@@ -2163,7 +2169,7 @@ export default function DashboardAdmin() {
             { id: "tous", label: "Toute la file" },
             { id: "critiques", label: "Critiques" },
             { id: "relances", label: "Relances" },
-            { id: "decision", label: "Prets a arbitrer" },
+            { id: "decision", label: "Prêts à arbitrer" },
             { id: "nouveaux", label: "Nouveaux" },
           ].map((tab) => (
             <Button
@@ -2179,7 +2185,7 @@ export default function DashboardAdmin() {
         {filteredWorkQueue.length === 0 ? (
           <EmptyState
             title="Aucun dossier dans cette file"
-            description="Aucun dossier ouvert ne correspond a votre recherche ou au filtre selectionne."
+            description="Aucun dossier ouvert ne correspond à votre recherche ou au filtre sélectionné."
             className="admin-empty-state"
           />
         ) : (
@@ -2242,11 +2248,11 @@ export default function DashboardAdmin() {
 
                 <div className="admin-worklist-side">
                   <div className="admin-worklist-metric">
-                    <span>Depot</span>
+                    <span>Dépôt</span>
                     <strong>{formatAdminDate(application.date)}</strong>
                   </div>
                   <div className="admin-worklist-metric">
-                    <span>Anciennete</span>
+                    <span>Ancienneté</span>
                     <strong>J+{application.ageDays}</strong>
                   </div>
                   <div className="admin-worklist-metric">
@@ -2268,7 +2274,7 @@ export default function DashboardAdmin() {
                     <StatusBadge status={application.statut} />
                   </div>
                   <div className="admin-worklist-metric">
-                    <span>Derniere maj</span>
+                    <span>Dernière maj</span>
                     <strong>{formatAdminDateTime(application.lastUpdatedAt)}</strong>
                   </div>
                   <div className="admin-worklist-metric">
@@ -2276,7 +2282,7 @@ export default function DashboardAdmin() {
                     <strong>{application.notesCount} trace(s)</strong>
                   </div>
                   <div className="admin-worklist-metric admin-worklist-metric-stack">
-                    <span>Completude globale</span>
+                    <span>Complétude globale</span>
                     <ProgressBar
                       value={application.progress.finale}
                       label={`${application.progress.finale}%`}
@@ -2286,8 +2292,8 @@ export default function DashboardAdmin() {
 
                   <p className="admin-worklist-footnote">
                     {application.missingDocuments.length > 0
-                      ? `Pieces a controler : ${application.missingDocumentsSummary}`
-                      : "Dossier administrativement complet a ce stade."}
+                      ? `Pièces à contrôler : ${application.missingDocumentsSummary}`
+                      : "Dossier administrativement complet à ce stade."}
                   </p>
 
                   <div className="admin-worklist-actions">
@@ -2316,7 +2322,7 @@ export default function DashboardAdmin() {
           <span className="admin-pagination-info">
             {filteredWorkQueue.length > displayedWorkQueue.length
               ? `Affichage des ${displayedWorkQueue.length} dossiers les plus prioritaires sur ${filteredWorkQueue.length}.`
-              : `${filteredWorkQueue.length} dossier(s) correspondent aux criteres courants.`}
+              : `${filteredWorkQueue.length} dossier(s) correspondent aux critères courants.`}
           </span>
           <Link
             to={buildScopedAdminPath(getWorkQueueRoute(workQueueFilter))}
@@ -2337,7 +2343,7 @@ export default function DashboardAdmin() {
 
         {!dashboardHasResults ? (
           <EmptyState
-            title="Aucune donnee pour le moment"
+            title="Aucune donnée pour le moment"
             description="Les analyses graphiques reapparaitront des qu'un portefeuille correspondra aux filtres globaux."
             className="admin-empty-state"
           />
@@ -2347,7 +2353,7 @@ export default function DashboardAdmin() {
               <div className="admin-analytics-card">
                 <div className="admin-analytics-card-header">
                   <div>
-                    <h3>Volumes par universite</h3>
+                    <h3>Volumes par université</h3>
                     <p>Les etablissements qui concentrent le plus de dossiers sur cette vue</p>
                   </div>
                 </div>
@@ -2389,8 +2395,8 @@ export default function DashboardAdmin() {
               <div className="admin-analytics-card">
                 <div className="admin-analytics-card-header">
                   <div>
-                    <h3>Completude par formation</h3>
-                    <p>Moyenne de finalisation des dossiers selon la specialite visee</p>
+                    <h3>Complétude par formation</h3>
+                    <p>Moyenne de finalisation des dossiers selon la spécialité visée</p>
                   </div>
                 </div>
 
@@ -2413,8 +2419,8 @@ export default function DashboardAdmin() {
               <div className="admin-analytics-card">
                 <div className="admin-analytics-card-header">
                   <div>
-                    <h3>Taux d'admission par universite</h3>
-                    <p>Lecture decisionnelle des etablissements deja arbitres</p>
+                    <h3>Taux d'admission par université</h3>
+                    <p>Lecture décisionnelle des établissements déjà arbitrés</p>
                   </div>
                 </div>
 
