@@ -29,7 +29,7 @@ function mapApiDocumentToDetail(document) {
   const studentName =
     [document.student?.prenom, document.student?.nom].filter(Boolean).join(" ") ||
     document.student?.email ||
-    "Etudiant non renseigne";
+    "Étudiant non renseigné";
 
   return {
     id: String(document.id),
@@ -42,7 +42,7 @@ function mapApiDocumentToDetail(document) {
     status: document.statut || "En attente",
     depositedAt: document.date_upload,
     reviewUpdatedAt: "",
-    university: application?.universite || "Candidature non liee",
+    university: application?.universite || "Candidature non liée",
     programme: application?.formation || "",
     niveau: application?.niveau || "",
     applicationStatus: application?.statut || "",
@@ -52,14 +52,26 @@ function mapApiDocumentToDetail(document) {
 
 function getDocumentConfirmationMessage(status) {
   if (status === "Valide") {
-    return "Confirmer la validation de ce document ?";
+    return "Êtes-vous sûr de vouloir valider ce document ?";
   }
 
   if (status === "Refuse") {
-    return "Confirmer le refus de ce document ?";
+    return "Êtes-vous sûr de vouloir refuser ce document ?";
   }
 
-  return "Confirmer la remise en attente de ce document ?";
+  return "Êtes-vous sûr de vouloir remettre ce document en attente ?";
+}
+
+function getDocumentDisplayStatus(status) {
+  if (status === "Valide") {
+    return "Validé";
+  }
+
+  if (status === "Refuse") {
+    return "Refusé";
+  }
+
+  return status;
 }
 
 function buildHistoryEntries(documentRow) {
@@ -67,7 +79,7 @@ function buildHistoryEntries(documentRow) {
     {
       id: `${documentRow.id}-submitted`,
       title: "Document soumis",
-      description: `${documentRow.typeLabel} depose par ${documentRow.studentName}.`,
+      description: `${documentRow.typeLabel} déposé par ${documentRow.studentName}.`,
       occurredAt: documentRow.depositedAt,
       tone: "info",
     },
@@ -78,16 +90,16 @@ function buildHistoryEntries(documentRow) {
       id: `${documentRow.id}-review`,
       title:
         documentRow.status === "Valide"
-          ? "Document valide"
+          ? "Document validé"
           : documentRow.status === "Refuse"
-            ? "Document refuse"
+            ? "Document refusé"
             : "Document remis en attente",
       description:
         documentRow.status === "Valide"
-          ? "La piece a ete approuvee par l'administration."
+          ? "La pièce a été approuvée par l'administration."
           : documentRow.status === "Refuse"
-            ? "La piece necessite un nouveau depot ou une verification complementaire."
-            : "Le document attend une nouvelle verification administrative.",
+            ? "La pièce nécessite un nouveau dépôt ou une vérification complémentaire."
+            : "Le document attend une nouvelle vérification administrative.",
       occurredAt: documentRow.reviewUpdatedAt,
       tone:
         documentRow.status === "Valide"
@@ -117,7 +129,7 @@ export default function DetailDocumentAdmin() {
       const token = getAuthToken();
 
       if (!token) {
-        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        const message = "Session absente ou expirée. Veuillez vous reconnecter.";
         clearAuthSession();
         navigate("/login", { state: { message } });
         return;
@@ -133,7 +145,7 @@ export default function DetailDocumentAdmin() {
         if (!isActive) return;
 
         if (error.status === 401) {
-          const message = "Session expiree. Veuillez vous reconnecter.";
+          const message = "Session expirée. Veuillez vous reconnecter.";
           clearAuthSession();
           navigate("/login", { state: { message } });
           return;
@@ -141,7 +153,7 @@ export default function DetailDocumentAdmin() {
 
         setDocumentError(
           error.status === 403
-            ? "Acces refuse. Cette page est reservee aux administrateurs."
+            ? "Accès refusé. Cette page est réservée aux administrateurs."
             : error.message || "Impossible de charger le document."
         );
       } finally {
@@ -161,8 +173,8 @@ export default function DetailDocumentAdmin() {
   if (isLoadingDocument && !documentRow) {
     return (
       <AdminLayout
-        title="Detail du document"
-        subtitle="Verification d'une piece candidate"
+        title="Vérification du document"
+        subtitle="Examen d'une pièce justificative"
         showSearch={false}
       >
         <section className="campus-section-container">
@@ -175,8 +187,8 @@ export default function DetailDocumentAdmin() {
   if (documentError && !documentRow) {
     return (
       <AdminLayout
-        title="Detail du document"
-        subtitle="Verification d'une piece candidate"
+        title="Vérification du document"
+        subtitle="Examen d'une pièce justificative"
         showSearch={false}
       >
         <section className="campus-section-container">
@@ -195,14 +207,14 @@ export default function DetailDocumentAdmin() {
   if (!documentRow) {
     return (
       <AdminLayout
-        title="Detail du document"
-        subtitle="Verification d'une piece candidate"
+        title="Vérification du document"
+        subtitle="Examen d'une pièce justificative"
         showSearch={false}
       >
         <section className="campus-section-container">
           <EmptyState
             title="Document introuvable"
-            description="Ce document n'existe pas ou n'est plus disponible dans le perimetre courant."
+            description="Ce document n'existe pas ou n'est plus disponible dans le périmètre courant."
             actionLabel="Retour aux documents"
             actionTo="/admin/documents"
             className="admin-empty-state"
@@ -225,9 +237,12 @@ export default function DetailDocumentAdmin() {
     try {
       const updatedDocument = await updateAdminDocumentStatus(documentRow.id, { statut: nextStatus });
       setDocumentData(updatedDocument);
-      showToast(`Document passe en statut ${nextStatus.toLowerCase()}.`, "success");
+      showToast(
+        `Document passé en statut ${getDocumentDisplayStatus(nextStatus).toLowerCase()}.`,
+        "success"
+      );
     } catch (error) {
-      const message = error.message || "Impossible de mettre a jour le statut du document.";
+      const message = error.message || "Impossible de mettre à jour le statut du document.";
 
       if (error.status === 401) {
         clearAuthSession();
@@ -244,8 +259,8 @@ export default function DetailDocumentAdmin() {
 
   return (
     <AdminLayout
-      title="Detail du document"
-      subtitle="Verification et validation d'une piece candidate"
+      title="Vérification du document"
+      subtitle="Examen et validation d'une pièce justificative"
       showSearch={false}
     >
       <section className="campus-section-container">
@@ -254,12 +269,12 @@ export default function DetailDocumentAdmin() {
             <Link to="/admin/documents" className="admin-application-back-link">
               Retour aux documents
             </Link>
-            <span className="admin-section-kicker">Piece candidate</span>
+            <span className="admin-section-kicker">Pièce candidate</span>
             <h2>{documentRow.typeLabel}</h2>
             <p className="admin-application-dossier-id">{documentRow.fileName}</p>
 
             <div className="admin-application-hero-tags">
-              <StatusBadge status={documentRow.status} />
+              <StatusBadge status={getDocumentDisplayStatus(documentRow.status)} />
               <span className="admin-page-context neutral">{documentRow.studentName}</span>
               <span className="admin-page-context info">{documentRow.university}</span>
             </div>
@@ -270,16 +285,16 @@ export default function DetailDocumentAdmin() {
                 <strong>{documentRow.numeroDossier}</strong>
               </div>
               <div className="admin-document-hero-item">
-                <span>Date de depot</span>
+                <span>Date de dépôt</span>
                 <strong>{formatAdminDate(documentRow.depositedAt)}</strong>
               </div>
               <div className="admin-document-hero-item">
                 <span>Programme</span>
-                <strong>{documentRow.programme || "Non renseigne"}</strong>
+                <strong>{documentRow.programme || "Non renseigné"}</strong>
               </div>
               <div className="admin-document-hero-item">
                 <span>Email candidat</span>
-                <strong>{documentRow.email || "Non renseigne"}</strong>
+                <strong>{documentRow.email || "Non renseigné"}</strong>
               </div>
             </div>
           </div>
@@ -304,7 +319,7 @@ export default function DetailDocumentAdmin() {
               onClick={() => handleReviewAction("En attente")}
               disabled={Boolean(actionLoading)}
             >
-              {actionLoading === "En attente" ? "Mise a jour..." : "Remettre en attente"}
+              {actionLoading === "En attente" ? "Mise à jour..." : "Remettre en attente"}
             </Button>
           </div>
         </div>
@@ -323,7 +338,7 @@ export default function DetailDocumentAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Informations du document</h3>
-                  <p>Reference, statut et disponibilite du fichier depose</p>
+                  <p>Référence, statut et disponibilité du fichier déposé</p>
                 </div>
               </div>
 
@@ -331,13 +346,13 @@ export default function DetailDocumentAdmin() {
                 {[
                   ["Type de document", documentRow.typeLabel],
                   ["Nom du fichier", documentRow.fileName],
-                  ["Statut de verification", documentRow.status],
-                  ["Derniere mise a jour", documentRow.reviewUpdatedAt || documentRow.depositedAt],
+                  ["Statut de vérification", getDocumentDisplayStatus(documentRow.status)],
+                  ["Dernière mise à jour", documentRow.reviewUpdatedAt || documentRow.depositedAt],
                 ].map(([label, value]) => (
                   <div key={label} className="admin-application-info-item">
                     <span>{label}</span>
                     <strong>
-                      {label === "Derniere mise a jour"
+                      {label === "Dernière mise à jour"
                         ? formatAdminDateTime(value)
                         : value}
                     </strong>
@@ -350,7 +365,7 @@ export default function DetailDocumentAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Fichier soumis</h3>
-                  <p>La plateforme conserve ici la reference du fichier depose par le candidat</p>
+                  <p>La plateforme conserve ici la référence du fichier déposé par le candidat</p>
                 </div>
               </div>
 
@@ -365,7 +380,7 @@ export default function DetailDocumentAdmin() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Voir / telecharger
+                      Voir / télécharger
                     </a>
                   ) : (
                     <span>Fichier indisponible</span>
@@ -378,18 +393,18 @@ export default function DetailDocumentAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Contexte de candidature</h3>
-                  <p>Rattachement du document au dossier et a la formation demandee</p>
+                  <p>Rattachement du document au dossier et à la formation demandée</p>
                 </div>
               </div>
 
               <div className="admin-application-info-grid">
                 {[
-                  ["Etudiant", documentRow.studentName],
-                  ["Universite", documentRow.university],
-                  ["Programme", documentRow.programme || "Non renseigne"],
-                  ["Niveau", documentRow.niveau || "Non renseigne"],
-                  ["Statut candidature", documentRow.applicationStatus || "Non liee"],
-                  ["Numero de dossier", documentRow.numeroDossier],
+                  ["Étudiant", documentRow.studentName],
+                  ["Université", documentRow.university],
+                  ["Programme", documentRow.programme || "Non renseigné"],
+                  ["Niveau", documentRow.niveau || "Non renseigné"],
+                  ["Statut candidature", documentRow.applicationStatus || "Non liée"],
+                  ["Numéro de dossier", documentRow.numeroDossier],
                 ].map(([label, value]) => (
                   <div key={label} className="admin-application-info-item">
                     <span>{label}</span>
@@ -404,7 +419,7 @@ export default function DetailDocumentAdmin() {
             <article className="admin-meta-card admin-application-sticky-card">
               <div className="admin-meta-card-header">
                 <div>
-                  <h3>Resume de verification</h3>
+                  <h3>Résumé de vérification</h3>
                   <p>Lecture rapide de la situation documentaire</p>
                 </div>
               </div>
@@ -412,18 +427,18 @@ export default function DetailDocumentAdmin() {
               <div className="admin-application-summary-grid">
                 <div className="admin-application-summary-item">
                   <span>Statut</span>
-                  <strong>{documentRow.status}</strong>
-                  <StatusBadge status={documentRow.status} />
+                  <strong>{getDocumentDisplayStatus(documentRow.status)}</strong>
+                  <StatusBadge status={getDocumentDisplayStatus(documentRow.status)} />
                 </div>
                 <div className="admin-application-summary-item">
-                  <span>Depot</span>
+                  <span>Dépôt</span>
                   <strong>{formatAdminDate(documentRow.depositedAt)}</strong>
                   <p>{documentRow.typeLabel}</p>
                 </div>
                 <div className="admin-application-summary-item">
-                  <span>Universite</span>
+                  <span>Université</span>
                   <strong>{documentRow.university}</strong>
-                  <p>{documentRow.programme || "Programme non renseigne"}</p>
+                  <p>{documentRow.programme || "Programme non renseigné"}</p>
                 </div>
               </div>
             </article>
@@ -432,7 +447,7 @@ export default function DetailDocumentAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Historique</h3>
-                  <p>Chronologie des evenements lies a cette piece</p>
+                  <p>Chronologie des événements liés à cette pièce</p>
                 </div>
               </div>
 
@@ -469,7 +484,7 @@ export default function DetailDocumentAdmin() {
                   Voir le dossier
                 </Button>
                 <Button className="admin-filter-tab" onClick={() => navigate("/admin/documents")}>
-                  Retour a la liste
+                  Retour à la liste
                 </Button>
               </div>
             </article>
