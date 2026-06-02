@@ -31,16 +31,16 @@ const INTERNAL_STATUS_OPTIONS = [
   { value: "qualification", label: "Qualification" },
   { value: "instruction", label: "Instruction" },
   { value: "commission", label: "Commission" },
-  { value: "decision", label: "Decision" },
-  { value: "decision-finalisee", label: "Decision finalisee" },
+  { value: "decision", label: "Décision" },
+  { value: "decision-finalisee", label: "Décision finalisée" },
 ];
 
 const DOCUMENT_FIELDS = [
   { key: "copieBac", label: "Copie du bac" },
-  { key: "releveNotes", label: "Releve de notes" },
-  { key: "carteIdentite", label: "Carte d'identite" },
-  { key: "photo", label: "Photo d'identite" },
-  { key: "residence", label: "Justificatif de residence" },
+  { key: "releveNotes", label: "Relevé de notes" },
+  { key: "carteIdentite", label: "Carte d'identité" },
+  { key: "photo", label: "Photo d'identité" },
+  { key: "residence", label: "Justificatif de résidence" },
   { key: "cv", label: "CV" },
 ];
 
@@ -49,7 +49,7 @@ function getCompletenessLabel(level) {
     case "complet":
       return "Complet";
     case "avance":
-      return "Avance";
+      return "Avancé";
     case "partiel":
       return "Partiel";
     case "fragile":
@@ -60,7 +60,7 @@ function getCompletenessLabel(level) {
 
 function getProgressState(progressValue) {
   if (progressValue >= 100) {
-    return "Complete";
+    return "Complété";
   }
 
   if (progressValue >= 70) {
@@ -68,37 +68,49 @@ function getProgressState(progressValue) {
   }
 
   if (progressValue >= 40) {
-    return "A consolider";
+    return "À consolider";
   }
 
-  return "A completer";
+  return "À compléter";
 }
 
 function getFinalDecisionLabel(status) {
   if (status === "Acceptee") {
-    return "Decision favorable";
+    return "Décision favorable";
   }
 
   if (status === "Rejetee") {
-    return "Decision defavorable";
+    return "Décision défavorable";
   }
 
   return "En attente";
 }
 
+function getStatusDisplayLabel(status) {
+  if (status === "Acceptee") {
+    return "Acceptée";
+  }
+
+  if (status === "Rejetee") {
+    return "Refusée";
+  }
+
+  return status;
+}
+
 function getStatusConfirmationMessage(status) {
-  if (status === "Acceptée") {
+  if (status === "Acceptee") {
     return "Confirmer l'acceptation de cette candidature ?";
   }
 
-  if (status === "Refusée") {
+  if (status === "Rejetee") {
     return "Confirmer le refus de cette candidature ?";
   }
 
   return "Confirmer la remise en attente de cette candidature ?";
 }
 
-function getFieldValue(value, fallback = "Non renseigne") {
+function getFieldValue(value, fallback = "Non renseigné") {
   return value && String(value).trim() ? value : fallback;
 }
 
@@ -130,7 +142,7 @@ export default function DetailCandidaturesAdmin() {
       const token = getAuthToken();
 
       if (!token) {
-        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        const message = "Session absente ou expirée. Veuillez vous reconnecter.";
         clearAuthSession();
         navigate("/login", { state: { message } });
         return;
@@ -148,7 +160,7 @@ export default function DetailCandidaturesAdmin() {
         if (!isActive) return;
 
         if (error.status === 401) {
-          const message = "Session expiree. Veuillez vous reconnecter.";
+          const message = "Session expirée. Veuillez vous reconnecter.";
           clearAuthSession();
           navigate("/login", { state: { message } });
           return;
@@ -156,7 +168,7 @@ export default function DetailCandidaturesAdmin() {
 
         setApplicationError(
           error.status === 403
-            ? "Acces refuse. Cette page est reservee aux administrateurs."
+            ? "Accès refusé. Cette page est réservée aux administrateurs."
             : error.message || "Impossible de charger la candidature."
         );
       } finally {
@@ -208,7 +220,7 @@ export default function DetailCandidaturesAdmin() {
     return (
       <AdminLayout
         title="Dossier de candidature"
-        subtitle="Instruction et decision administrative"
+        subtitle="Instruction et décision administrative"
         showSearch={false}
       >
         <section className="campus-section-container">
@@ -222,7 +234,7 @@ export default function DetailCandidaturesAdmin() {
     return (
       <AdminLayout
         title="Dossier de candidature"
-        subtitle="Instruction et decision administrative"
+        subtitle="Instruction et décision administrative"
         showSearch={false}
       >
         <section className="campus-section-container">
@@ -242,7 +254,7 @@ export default function DetailCandidaturesAdmin() {
     return (
       <AdminLayout
         title="Dossier de candidature"
-        subtitle="Instruction et decision administrative"
+        subtitle="Instruction et décision administrative"
         showSearch={false}
       >
         <section className="campus-section-container">
@@ -272,30 +284,30 @@ export default function DetailCandidaturesAdmin() {
   const missingDocuments = documents.filter((document) => !document.provided);
   const personalInfo = [
     ["Nom", candidature.details.nom],
-    ["Prenom", candidature.details.prenom],
+    ["Prénom", candidature.details.prenom],
     ["Date de naissance", candidature.details.dateNaiss],
     ["Lieu de naissance", candidature.details.lieuNaiss],
-    ["Nationalite", candidature.details.nationalite],
+    ["Nationalité", candidature.details.nationalite],
     ["Email", candidature.details.email],
-    ["Telephone", candidature.details.telephone],
+    ["Téléphone", candidature.details.telephone],
     ["Adresse", candidature.details.adresse],
   ];
   const academicInfo = [
-    ["Diplome actuel", candidature.details.typeBac],
-    ["Etablissement", candidature.details.universite],
+    ["Diplôme actuel", candidature.details.typeBac],
+    ["Établissement", candidature.details.universite],
     ["Pays", candidature.details.pays],
-    ["Annee d'obtention", candidature.details.anneeBac],
+    ["Année d'obtention", candidature.details.anneeBac],
     ["Moyenne", candidature.details.moyenneBac],
     ["Mention", candidature.details.mention],
   ];
   const formationInfo = [
-    ["Universite demandee", candidature.universite],
-    ["Programme / specialite", candidature.specialite],
-    ["Niveau demande", candidature.details.niveauDemande || candidature.details.niveau],
+    ["Université demandée", candidature.universite],
+    ["Programme / spécialité", candidature.specialite],
+    ["Niveau demandé", candidature.details.niveauDemande || candidature.details.niveau],
   ];
   const motivationText = getFieldValue(
     candidature.details.motivation || candidature.details.lettreMotivation,
-    "Aucune lettre de motivation n'a ete fournie dans cette version de la candidature."
+    "Aucune lettre de motivation n'a été fournie dans cette version de la candidature."
   );
 
   const handleStatusChange = async (nextStatus) => {
@@ -317,9 +329,9 @@ export default function DetailCandidaturesAdmin() {
       }
 
       updateApplicationStatus(candidature.id, nextStatus);
-      showToast(`Statut mis a jour : ${nextStatus}`, "success");
+      showToast(`Statut mis à jour : ${getStatusDisplayLabel(nextStatus)}`, "success");
     } catch (error) {
-      const message = error.message || "Impossible de mettre a jour le statut.";
+      const message = error.message || "Impossible de mettre à jour le statut.";
 
       if (error.status === 401) {
         clearAuthSession();
@@ -329,7 +341,7 @@ export default function DetailCandidaturesAdmin() {
 
       setApplicationError(
         error.status === 403
-          ? "Acces refuse. Cette action est reservee aux administrateurs."
+          ? "Accès refusé. Cette action est réservée aux administrateurs."
           : message
       );
       showToast(message, "error");
@@ -348,7 +360,7 @@ export default function DetailCandidaturesAdmin() {
       nextAssignedTo !== candidature.adminMeta.assignedTo;
 
     if (!hasChanges) {
-      showToast("Aucune mise a jour a enregistrer.", "info");
+      showToast("Aucune mise à jour à enregistrer.", "info");
       return;
     }
 
@@ -357,7 +369,7 @@ export default function DetailCandidaturesAdmin() {
       internalStatus: metadataForm.internalStatus,
       assignedTo: nextAssignedTo,
     });
-    showToast("Pilotage interne mis a jour.", "success");
+    showToast("Pilotage interne mis à jour.", "success");
   };
 
   const handleAddNote = (event) => {
@@ -370,24 +382,24 @@ export default function DetailCandidaturesAdmin() {
     }
 
     setNoteDraft("");
-    showToast("Note interne ajoutee.", "success");
+    showToast("Note interne ajoutée.", "success");
   };
 
   const handleRequestDocument = () => {
     const createdNote = addApplicationNote(
       candidature.id,
-      "Demande de document complementaire envoyee au candidat."
+      "Demande de document complémentaire envoyée au candidat."
     );
 
     if (!createdNote) {
-      showToast("La demande de document n'a pas pu etre enregistree.", "info");
+      showToast("La demande de document n'a pas pu être enregistrée.", "info");
       return;
     }
 
     updateApplicationMetadata(candidature.id, {
       internalStatus: "qualification",
     });
-    showToast("Demande de document enregistree dans le suivi du dossier.", "success");
+    showToast("Demande de document enregistrée dans le suivi du dossier.", "success");
   };
 
   const handleDocumentAction = (document, mode) => {
@@ -397,17 +409,17 @@ export default function DetailCandidaturesAdmin() {
     }
 
     if (mode === "preview") {
-      showToast(`Apercu indisponible : ${document.value}`, "info");
+      showToast(`Aperçu indisponible : ${document.value}`, "info");
       return;
     }
 
-    showToast(`Telechargement simule : ${document.value}`, "info");
+    showToast(`Téléchargement simulé : ${document.value}`, "info");
   };
 
   return (
     <AdminLayout
       title="Dossier de candidature"
-      subtitle="Instruction et decision administrative"
+      subtitle="Instruction et décision administrative"
       showSearch={false}
     >
       {applicationError ? (
@@ -433,23 +445,23 @@ export default function DetailCandidaturesAdmin() {
             <div className="admin-application-hero-tags">
               <StatusBadge status={candidature.statut} />
               <span className="admin-page-context neutral">
-                Depose le {formatAdminDate(candidature.date)}
+                Déposé le {formatAdminDate(candidature.date)}
               </span>
               <span className="admin-page-context info">
-                {providedDocumentsCount}/{documents.length} documents recus
+                {providedDocumentsCount}/{documents.length} documents reçus
               </span>
               <span className={`admin-page-context ${candidature.adminMeta.internalPriorityTone}`}>
-                Priorite {candidature.adminMeta.internalPriorityLabel}
+                Priorité {candidature.adminMeta.internalPriorityLabel}
               </span>
             </div>
 
             <div className="admin-application-hero-grid">
               <div className="admin-application-hero-item">
-                <span>Universite</span>
+                <span>Université</span>
                 <strong>{candidature.universite}</strong>
               </div>
               <div className="admin-application-hero-item">
-                <span>Specialite</span>
+                <span>Spécialité</span>
                 <strong>{candidature.specialite}</strong>
               </div>
               <div className="admin-application-hero-item">
@@ -458,7 +470,7 @@ export default function DetailCandidaturesAdmin() {
               </div>
               <div className="admin-application-hero-item">
                 <span>Affectation</span>
-                <strong>{getFieldValue(candidature.adminMeta.assignedTo, "Non assigne")}</strong>
+                <strong>{getFieldValue(candidature.adminMeta.assignedTo, "Non assigné")}</strong>
               </div>
             </div>
           </div>
@@ -466,17 +478,17 @@ export default function DetailCandidaturesAdmin() {
           <div className="admin-application-hero-actions">
             <Button
               className="admin-detail-action admin-detail-action-primary"
-              onClick={() => handleStatusChange("Acceptée")}
+              onClick={() => handleStatusChange("Acceptee")}
               disabled={Boolean(statusActionLoading)}
             >
-              {statusActionLoading === "Acceptée" ? "Mise a jour..." : "Accepter"}
+              {statusActionLoading === "Acceptee" ? "Mise à jour..." : "Accepter"}
             </Button>
             <Button
               className="admin-detail-action admin-detail-action-danger"
-              onClick={() => handleStatusChange("Refusée")}
+              onClick={() => handleStatusChange("Rejetee")}
               disabled={Boolean(statusActionLoading)}
             >
-              {statusActionLoading === "Refusée" ? "Mise a jour..." : "Refuser"}
+              {statusActionLoading === "Rejetee" ? "Mise à jour..." : "Refuser"}
             </Button>
             <Button
               className="admin-detail-action admin-detail-action-warning"
@@ -489,7 +501,7 @@ export default function DetailCandidaturesAdmin() {
               onClick={() => handleStatusChange("En attente")}
               disabled={Boolean(statusActionLoading)}
             >
-              {statusActionLoading === "En attente" ? "Mise a jour..." : "Mettre en attente"}
+              {statusActionLoading === "En attente" ? "Mise à jour..." : "Mettre en attente"}
             </Button>
           </div>
         </div>
@@ -499,8 +511,8 @@ export default function DetailCandidaturesAdmin() {
         <article className="admin-meta-card admin-application-summary-banner">
           <div className="admin-meta-card-header">
             <div>
-              <h3>Resume rapide</h3>
-              <p>Lecture immediate de la maturite du dossier</p>
+              <h3>Résumé rapide</h3>
+              <p>Lecture immédiate de la maturité du dossier</p>
             </div>
           </div>
 
@@ -523,7 +535,7 @@ export default function DetailCandidaturesAdmin() {
               <ProgressBar value={progress.finale} label={`${progress.finale}%`} compact />
             </div>
             <div className="admin-application-summary-item">
-              <span>Completude globale</span>
+              <span>Complétude globale</span>
               <strong>{completenessLabel}</strong>
               <p>{candidature.adminMeta.processingDelay} jour(s) de traitement</p>
             </div>
@@ -555,8 +567,8 @@ export default function DetailCandidaturesAdmin() {
             <article className="admin-meta-card">
               <div className="admin-meta-card-header">
                 <div>
-                  <h3>Informations academiques</h3>
-                  <p>Resume scolaire disponible sur le dossier</p>
+                  <h3>Informations académiques</h3>
+                  <p>Résumé scolaire disponible sur le dossier</p>
                 </div>
               </div>
 
@@ -574,7 +586,7 @@ export default function DetailCandidaturesAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Choix de formation</h3>
-                  <p>Programme et orientation demandes par le candidat</p>
+                  <p>Programme et orientation demandés par le candidat</p>
                 </div>
               </div>
 
@@ -582,7 +594,7 @@ export default function DetailCandidaturesAdmin() {
                 {formationInfo.map(([label, value]) => (
                   <div key={label} className="admin-application-info-item">
                     <span>{label}</span>
-                    <strong>{getFieldValue(value, "Non precise")}</strong>
+                    <strong>{getFieldValue(value, "Non précisé")}</strong>
                   </div>
                 ))}
               </div>
@@ -605,7 +617,7 @@ export default function DetailCandidaturesAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Documents du dossier</h3>
-                  <p>{providedDocumentsCount} document(s) recu(s) sur {documents.length}</p>
+                  <p>{providedDocumentsCount} document(s) reçu(s) sur {documents.length}</p>
                 </div>
                 {missingDocuments.length > 0 ? (
                   <span className="admin-queue-pill warning">
@@ -618,7 +630,7 @@ export default function DetailCandidaturesAdmin() {
 
               {missingDocuments.length > 0 ? (
                 <div className="admin-application-doc-alert">
-                  <strong>Pieces a relancer :</strong> {missingDocuments.map((item) => item.label).join(", ")}
+                  <strong>Pièces à relancer :</strong> {missingDocuments.map((item) => item.label).join(", ")}
                 </div>
               ) : null}
 
@@ -641,7 +653,7 @@ export default function DetailCandidaturesAdmin() {
 
                     <div className="admin-application-document-side">
                       <span className={`admin-queue-pill ${document.provided ? "positive" : "warning"}`}>
-                        {document.provided ? "Recu" : "Manquant"}
+                        {document.provided ? "Reçu" : "Manquant"}
                       </span>
                       <div className="admin-application-document-actions">
                         <button
@@ -658,7 +670,7 @@ export default function DetailCandidaturesAdmin() {
                           disabled={!document.provided}
                           onClick={() => handleDocumentAction(document, "download")}
                         >
-                          Telecharger
+                          Télécharger
                         </button>
                       </div>
                     </div>
@@ -673,13 +685,13 @@ export default function DetailCandidaturesAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Pilotage interne</h3>
-                  <p>Affectation, priorite et suivi collaboratif</p>
+                  <p>Affectation, priorité et suivi collaboratif</p>
                 </div>
               </div>
 
               <div className="admin-meta-overview">
                 <div className="admin-meta-item">
-                  <span className="admin-meta-label">Priorite interne</span>
+                  <span className="admin-meta-label">Priorité interne</span>
                   <span className={`admin-queue-pill ${candidature.adminMeta.internalPriorityTone}`}>
                     {candidature.adminMeta.internalPriorityLabel}
                   </span>
@@ -691,15 +703,15 @@ export default function DetailCandidaturesAdmin() {
                   </span>
                 </div>
                 <div className="admin-meta-item">
-                  <span className="admin-meta-label">Derniere mise a jour</span>
+                  <span className="admin-meta-label">Dernière mise à jour</span>
                   <strong>{formatAdminDateTime(candidature.adminMeta.lastUpdatedAt)}</strong>
                 </div>
                 <div className="admin-meta-item">
-                  <span className="admin-meta-label">Decision finale</span>
+                  <span className="admin-meta-label">Décision finale</span>
                   <strong>
                     {candidature.adminMeta.decisionDate
                       ? formatAdminDateTime(candidature.adminMeta.decisionDate)
-                      : "Aucune decision finale"}
+                      : "Aucune décision finale"}
                   </strong>
                 </div>
               </div>
@@ -707,7 +719,7 @@ export default function DetailCandidaturesAdmin() {
               <form className="admin-control-form" onSubmit={handleMetadataSubmit}>
                 <div className="admin-control-grid">
                   <label className="admin-control-field" htmlFor="detailPriority">
-                    <span className="admin-toolbar-label">Priorite</span>
+                    <span className="admin-toolbar-label">Priorité</span>
                     <select
                       id="detailPriority"
                       className="admin-toolbar-select"
@@ -752,7 +764,7 @@ export default function DetailCandidaturesAdmin() {
                     className="admin-control-field admin-control-field-wide"
                     htmlFor="detailAssignedTo"
                   >
-                    <span className="admin-toolbar-label">Affecte a</span>
+                    <span className="admin-toolbar-label">Affecté à</span>
                     <input
                       id="detailAssignedTo"
                       className="admin-control-input"
@@ -781,12 +793,12 @@ export default function DetailCandidaturesAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Historique</h3>
-                  <p>Chronologie des actions effectuees sur ce dossier</p>
+                  <p>Chronologie des actions effectuées sur ce dossier</p>
                 </div>
               </div>
 
               {dossierHistory.length === 0 ? (
-                <p className="admin-note-empty">Aucun evenement n'est encore enregistre sur ce dossier.</p>
+                <p className="admin-note-empty">Aucun événement n'est encore enregistré sur ce dossier.</p>
               ) : (
                 <div className="admin-application-history">
                   {dossierHistory.map((entry) => (
