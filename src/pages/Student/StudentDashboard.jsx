@@ -5,7 +5,7 @@ import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { useAdmissions } from "../../context/AdmissionsContext";
-import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { clearAuthSession, getAuthSession, getAuthToken } from "../../services/authService";
 import { getStudentDashboard } from "../../services/studentService";
 import "../../index.css";
 
@@ -220,11 +220,11 @@ function getStatusTone(status) {
 }
 
 function normalizeDashboardStatus(status) {
-  if (["Acceptée", "Acceptee", "AcceptÃ©e"].includes(status)) {
+  if (["Acceptée", "Acceptee"].includes(status)) {
     return "Acceptee";
   }
 
-  if (["Refusée", "Refusee", "RefusÃ©e", "Rejetee"].includes(status)) {
+  if (["Refusée", "Refusee", "Rejetee"].includes(status)) {
     return "Rejetee";
   }
 
@@ -255,6 +255,29 @@ function mapDashboardApplication(application) {
       lastUpdatedAt: application.date_depot,
     },
     details: {},
+  };
+}
+
+function buildLocalDashboardFallback(sessionUser = {}) {
+  return {
+    user: {
+      id: sessionUser.id || "",
+      nom: sessionUser.nom || "",
+      prenom: sessionUser.prenom || "",
+      email: sessionUser.email || "",
+      role: sessionUser.role || "student",
+    },
+    profile: null,
+    applications: {
+      total: 0,
+      pending: 0,
+      accepted: 0,
+      rejected: 0,
+      latest: null,
+    },
+    documents: null,
+    globalStatus: "",
+    recentActivity: [],
   };
 }
 
@@ -522,7 +545,11 @@ export default function StudentDashboard() {
             return;
           }
 
-          setDashboardError(error.message || "Impossible de charger le tableau de bord.");
+          setDashboardData(buildLocalDashboardFallback(getAuthSession()?.user));
+          setDashboardError(
+            error.message ||
+              "Les données serveur sont indisponibles. Affichage temporaire des données locales."
+          );
         }
       } finally {
         if (isActive) {
@@ -1307,3 +1334,4 @@ export default function StudentDashboard() {
     </div>
   );
 }
+
