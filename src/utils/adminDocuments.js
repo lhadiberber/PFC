@@ -1,5 +1,10 @@
 function normalizeSearchValue(value) {
-  return (value ?? "").toString().toLowerCase().trim();
+  return (value ?? "")
+    .toString()
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 export function filterAdminDocumentRows(rows, searchQuery, statusFilter) {

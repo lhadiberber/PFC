@@ -111,11 +111,23 @@ function buildNumeroDossier(application) {
   return `CAND-${year}-${String(application.id).padStart(3, "0")}`;
 }
 
+function getDocumentDisplayStatus(status) {
+  if (status === "Valide") {
+    return "Validé";
+  }
+
+  if (status === "Refuse") {
+    return "Refusé";
+  }
+
+  return status;
+}
+
 function mapApiDocumentToRow(document) {
   const studentName =
     [document.student?.prenom, document.student?.nom].filter(Boolean).join(" ") ||
     document.student?.email ||
-    "Etudiant non renseigne";
+    "Étudiant non renseigné";
   const application = document.application || null;
 
   return {
@@ -124,7 +136,7 @@ function mapApiDocumentToRow(document) {
     applicationId: application?.id ? String(application.id) : "",
     documentKey: String(document.id),
     studentName,
-    university: application?.universite || "Candidature non liee",
+    university: application?.universite || "Candidature non liée",
     depositedAt: document.date_upload,
     depositedAtLabel: formatAdminDate(document.date_upload),
     status: document.statut || "En attente",
@@ -148,6 +160,7 @@ export default function DocumentsAdmin() {
   const [documentsData, setDocumentsData] = useState([]);
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
   const [documentsError, setDocumentsError] = useState("");
+  const [exportMessage, setExportMessage] = useState(null);
 
   useEffect(() => {
     setSearchQuery(searchParams.get("query") || "");
@@ -163,7 +176,7 @@ export default function DocumentsAdmin() {
       const token = getAuthToken();
 
       if (!token) {
-        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        const message = "Session absente ou expirée. Veuillez vous reconnecter.";
         clearAuthSession();
         navigate("/login", { state: { message } });
         return;
@@ -179,7 +192,7 @@ export default function DocumentsAdmin() {
         if (!isActive) return;
 
         if (error.status === 401) {
-          const message = "Session expiree. Veuillez vous reconnecter.";
+          const message = "Session expirée. Veuillez vous reconnecter.";
           clearAuthSession();
           navigate("/login", { state: { message } });
           return;
@@ -187,7 +200,7 @@ export default function DocumentsAdmin() {
 
         setDocumentsError(
           error.status === 403
-            ? "Acces refuse. Cette page est reservee aux administrateurs."
+            ? "Accès refusé. Cette page est réservée aux administrateurs."
             : error.message || "Impossible de charger les documents."
         );
       } finally {
@@ -261,49 +274,56 @@ export default function DocumentsAdmin() {
   const visiblePages = getVisiblePageNumbers(safePage, totalPages);
 
   const exportColumns = [
-    { label: "Etudiant", getValue: (item) => item.studentName },
+    { label: "Étudiant", getValue: (item) => item.studentName },
     { label: "Type de document", getValue: (item) => item.typeLabel },
-    { label: "Universite", getValue: (item) => item.university },
-    { label: "Date de depot", getValue: (item) => formatAdminDate(item.depositedAt) },
-    { label: "Statut", getValue: (item) => item.status },
+    { label: "Établissement", getValue: (item) => item.university },
+    { label: "Date de dépôt", getValue: (item) => formatAdminDate(item.depositedAt) },
+    { label: "Statut", getValue: (item) => getDocumentDisplayStatus(item.status) },
     { label: "Dossier", getValue: (item) => item.numeroDossier },
     { label: "Fichier", getValue: (item) => item.fileName },
   ];
 
   const handleExport = () => {
-    downloadCsv("documents-admin.csv", exportColumns, sortedRows);
+    try {
+      downloadCsv("documents-admin.csv", exportColumns, sortedRows);
+      setExportMessage({ type: "success", text: "Export CSV réussi." });
+      setTimeout(() => setExportMessage(null), 3000);
+    } catch (error) {
+      setExportMessage({ type: "error", text: "Erreur lors de l'export CSV." });
+      setTimeout(() => setExportMessage(null), 3000);
+    }
   };
 
   const statsCards = [
     {
       id: "submitted",
-      label: "Documents soumis",
+      label: "Documents reçus",
       value: stats.total,
-      detail: "Pieces disponibles pour verification",
+      detail: "Pièces soumises par les candidats",
       tone: "total",
       icon: "submitted",
     },
     {
       id: "validated",
-      label: "Documents valides",
+      label: "Documents validés",
       value: stats.valides,
-      detail: "Verification terminee favorablement",
+      detail: "Vérification terminée avec succès",
       tone: "acceptee",
       icon: "validated",
     },
     {
       id: "pending",
-      label: "Documents en attente",
+      label: "En attente de vérification",
       value: stats.attente,
-      detail: "Pieces a verifier par l'administration",
+      detail: "Pièces à examiner par l'administration",
       tone: "attente",
       icon: "pending",
     },
     {
       id: "refused",
-      label: "Documents refuses",
+      label: "Documents refusés",
       value: stats.refuses,
-      detail: "Pieces a verifier ou a redemander",
+      detail: "Pièces à corriger ou à redemander",
       tone: "refusee",
       icon: "refused",
     },
@@ -311,16 +331,26 @@ export default function DocumentsAdmin() {
 
   return (
     <AdminLayout
-      title="Gestion des documents"
-      subtitle="Verification et validation des pieces soumises par les candidats"
+      title="Vérification des documents"
+      subtitle="Contrôle et validation des pièces justificatives"
       showSearch={false}
       headerAction={
         <Button className="admin-header-secondary-action" onClick={handleExport}>
-          Telecharger la liste
+          Télécharger la liste
         </Button>
       }
     >
       <section className="campus-section-container">
+        {exportMessage ? (
+          <div
+            className={`student-profile-feedback ${
+              exportMessage.type === "error" ? "student-profile-feedback-error" : "student-profile-feedback-success"
+            }`}
+          >
+            {exportMessage.text}
+          </div>
+        ) : null}
+
         <div className="admin-primary-stats-grid admin-documents-stats-grid">
           {statsCards.map((card) => (
             <article
@@ -357,7 +387,7 @@ export default function DocumentsAdmin() {
           <div className="campus-section-header admin-documents-panel-header">
             <div>
               <h2>Liste des documents ({sortedRows.length})</h2>
-              <p>Controle documentaire par etudiant, type de piece et universite</p>
+              <p>Suivi documentaire par étudiant, type de pièce et établissement</p>
             </div>
             <span className="admin-page-context neutral">
               {startIndex}-{endIndex} sur {sortedRows.length} document(s)
@@ -382,7 +412,7 @@ export default function DocumentsAdmin() {
                   setPage(1);
                   updateRouteParams({ query: value, page: 1 });
                 }}
-                placeholder="Rechercher un etudiant ou un document..."
+                placeholder="Rechercher un étudiant, un type de document ou un établissement..."
                 className="admin-documents-search-input"
               />
             </div>
@@ -392,8 +422,8 @@ export default function DocumentsAdmin() {
             {[
               { id: "tous", label: "Tous", count: counters.total },
               { id: "attente", label: "En attente", count: counters.attente },
-              { id: "valides", label: "Valides", count: counters.valides },
-              { id: "refuses", label: "Refuses", count: counters.refuses },
+              { id: "valides", label: "Validés", count: counters.valides },
+              { id: "refuses", label: "Refusés", count: counters.refuses },
             ].map((tab) => (
               <Button
                 key={tab.id}
@@ -413,10 +443,10 @@ export default function DocumentsAdmin() {
             <table className="admin-table mobile-cards admin-documents-table">
               <thead>
                 <tr>
-                  <th>Etudiant</th>
+                  <th>Étudiant</th>
                   <th>Type de document</th>
-                  <th>Universite</th>
-                  <th>Date de depot</th>
+                  <th>Établissement</th>
+                  <th>Date de dépôt</th>
                   <th>Statut</th>
                   <th>Action</th>
                 </tr>
@@ -426,8 +456,12 @@ export default function DocumentsAdmin() {
                   <tr>
                     <td colSpan="6">
                       <EmptyState
-                        title="Aucun document trouve"
-                        description="Aucun document ne correspond a la recherche ou au filtre courant."
+                        title="Aucun document trouvé"
+                        description={
+                          searchQuery || filter !== "tous"
+                            ? "Essayez de modifier votre recherche ou vos filtres."
+                            : "Aucun document n'a été soumis pour le moment."
+                        }
                         className="admin-empty-state"
                       />
                     </td>
@@ -448,7 +482,7 @@ export default function DocumentsAdmin() {
                         }
                       }}
                     >
-                      <td data-label="Etudiant">
+                      <td data-label="Étudiant">
                         <div className="admin-table-meta">
                           <span className="admin-table-meta-text">{row.studentName}</span>
                           <span className="admin-table-meta-subtext">{row.numeroDossier}</span>
@@ -460,10 +494,10 @@ export default function DocumentsAdmin() {
                           <span className="admin-table-meta-subtext">{row.fileName}</span>
                         </div>
                       </td>
-                      <td data-label="Universite">{row.university}</td>
-                      <td data-label="Date de depot">{formatAdminDate(row.depositedAt)}</td>
+                      <td data-label="Établissement">{row.university}</td>
+                      <td data-label="Date de dépôt">{formatAdminDate(row.depositedAt)}</td>
                       <td data-label="Statut">
-                        <StatusBadge status={row.status} />
+                        <StatusBadge status={getDocumentDisplayStatus(row.status)} />
                       </td>
                       <td data-label="Action">
                         <Button
@@ -486,12 +520,12 @@ export default function DocumentsAdmin() {
           <div className="admin-documents-pagination">
             <div className="admin-documents-pagination-summary">
               <span className="admin-pagination-info">
-                Affichage {startIndex}-{endIndex} sur {sortedRows.length} document(s)
+                  Affichage {startIndex}-{endIndex} sur {sortedRows.length} document{sortedRows.length !== 1 ? "s" : ""}
               </span>
 
               <div className="admin-documents-page-size">
                 <label className="admin-toolbar-label" htmlFor="documentsPageSize">
-                  Afficher
+                  Afficher par page
                 </label>
                 <select
                   id="documentsPageSize"
@@ -521,7 +555,7 @@ export default function DocumentsAdmin() {
                 }}
                 disabled={safePage === 1}
               >
-                Precedent
+                Précédent
               </Button>
 
               {visiblePages.map((pageNumber) => (
