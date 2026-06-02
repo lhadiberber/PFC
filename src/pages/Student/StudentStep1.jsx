@@ -144,15 +144,14 @@ export default function StudentStep1() {
             <strong>Complétion</strong>
             <span>{completion}%</span>
           </div>
-          <ProgressBar value={completion} color="#2563eb" label={`${completion}%`} compact />
+          <ProgressBar value={completion} color="#00C9B1" label={`${completion}%`} compact />
         </div>
       </div>
 
       <div className="student-application-note">
-        <strong>Niveau de candidature</strong>
+        <strong>Niveau</strong>
         <p>
-          Le niveau est automatiquement fixé à la première année universitaire.
-          Il n'est pas modifiable pour les candidatures de bacheliers.
+          Première année universitaire — fixé automatiquement pour les bacheliers.
         </p>
       </div>
     </>
@@ -181,12 +180,12 @@ export default function StudentStep1() {
                 filtrer les établissements compatibles à l'étape suivante.
               </p>
             </div>
-            <span className="student-application-required-pill">Champs obligatoires</span>
+            <span className="student-application-required-pill">* Champ obligatoire</span>
           </div>
 
           <div className="student-application-form-grid">
             <div className="student-application-field">
-              <label htmlFor="application-domain">Domaine d'études *</label>
+              <label htmlFor="application-domain">Domaine d'études <abbr title="champ obligatoire">*</abbr></label>
               <select
                 id="application-domain"
                 name="domaine"
@@ -206,7 +205,7 @@ export default function StudentStep1() {
             </div>
 
             <div className="student-application-field">
-              <label htmlFor="application-filiere">Filière souhaitée *</label>
+              <label htmlFor="application-filiere">Filière souhaitée <abbr title="champ obligatoire">*</abbr></label>
               <select
                 id="application-filiere"
                 name="filiere"
@@ -236,7 +235,7 @@ export default function StudentStep1() {
             </div>
 
             <div className="student-application-field">
-              <label htmlFor="application-year">Année universitaire *</label>
+              <label htmlFor="application-year">Année universitaire <abbr title="champ obligatoire">*</abbr></label>
               <input
                 id="application-year"
                 type="text"

@@ -320,7 +320,7 @@ export default function StudentStep3() {
         [fieldName]: fileName,
         [LEGACY_FIELD_BY_DOCUMENT_FIELD[fieldName] || fieldName]: fileName,
       });
-      showToast(`${config.label} déposé avec succès.`, "success");
+      showToast(`Document déposé avec succès : ${config.label}.`, "success");
     } catch (error) {
       const message = error.message || "Impossible de déposer ce document.";
       if (error.status === 401) {
@@ -369,7 +369,7 @@ export default function StudentStep3() {
         [LEGACY_FIELD_BY_DOCUMENT_FIELD[fieldName] || fieldName]: "",
       });
       clearFieldError(fieldName);
-      showToast(`${documentConfig[fieldName].label} retiré avec succès.`, "success");
+      showToast(`Document supprimé : ${documentConfig[fieldName].label}.`, "success");
 
       if (fileInputRefs.current[fieldName]) {
         fileInputRefs.current[fieldName].value = "";
@@ -446,7 +446,7 @@ export default function StudentStep3() {
             <strong>Pièces obligatoires déposées</strong>
             <span>{uploadedRequiredCount}/{requiredDocumentKeys.length}</span>
           </div>
-          <ProgressBar value={uploadProgress} color="#2563eb" label={`${uploadProgress}%`} compact />
+          <ProgressBar value={uploadProgress} color="#00C9B1" label={`${uploadProgress}%`} compact />
         </div>
       </div>
 
@@ -529,7 +529,7 @@ export default function StudentStep3() {
                   : "Ajoutez les pièces obligatoires pour accéder à la validation finale."}
               </p>
             </div>
-            <ProgressBar value={uploadProgress} color="#2563eb" label={`${uploadProgress}%`} />
+            <ProgressBar value={uploadProgress} color="#00C9B1" label={`${uploadProgress}%`} />
           </div>
 
           <div className="student-application-upload-grid">
@@ -588,7 +588,7 @@ export default function StudentStep3() {
                             className="file-preview"
                           />
                         ) : (
-                          <span className="file-emoji">{config.icon}</span>
+                          <span className="file-emoji">Fichier</span>
                         )}
                       </div>
 
@@ -615,7 +615,6 @@ export default function StudentStep3() {
                     </div>
                   ) : (
                     <div className="upload-placeholder">
-                      <span className="upload-icon">{config.icon}</span>
                       <span className="upload-label">{config.label}</span>
                       <span className="upload-hint">
                         {uploadingFields[fieldName]

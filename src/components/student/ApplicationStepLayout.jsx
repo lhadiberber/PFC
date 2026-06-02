@@ -2,10 +2,10 @@ import React from "react";
 import PropTypes from "prop-types";
 
 const STEP_ITEMS = [
-  { number: 1, label: "Informations personnelles" },
-  { number: 2, label: "Parcours academique" },
+  { number: 1, label: "Choix de la filiere" },
+  { number: 2, label: "Choix de l'etablissement" },
   { number: 3, label: "Documents justificatifs" },
-  { number: 4, label: "Validation finale" },
+  { number: 4, label: "Recapitulatif" },
 ];
 
 export default function ApplicationStepLayout({
@@ -40,7 +40,7 @@ export default function ApplicationStepLayout({
           <div className="student-application-hero-stat is-soft">
             <span>Brouillon</span>
             <strong>Enregistre</strong>
-            <small>Vos informations sont sauvegardees automatiquement.</small>
+            <small>Vos informations sont conservees pendant votre parcours.</small>
           </div>
         </div>
       </header>

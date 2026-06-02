@@ -1123,3 +1123,753 @@ button:disabled,
     width: 100%;
   }
 }
+
+/* Corrections visuelles ciblees - Parcours de candidature etudiant */
+.student-application-shell {
+  max-width: 1120px;
+  padding: 16px 16px 30px;
+  gap: 16px;
+}
+
+.student-application-hero {
+  min-height: auto;
+  padding: 18px 22px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.student-application-hero .student-dashboard-hero-copy {
+  gap: 0;
+}
+
+.student-application-hero .student-dashboard-kicker {
+  margin-bottom: 6px;
+  font-size: 10px;
+}
+
+.student-application-hero h1 {
+  margin-bottom: 4px;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.student-application-hero .student-dashboard-subtitle,
+.student-application-hero .student-dashboard-welcome {
+  max-width: 600px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.student-application-hero-side {
+  gap: 8px;
+  align-self: center;
+}
+
+.student-application-hero-stat {
+  min-width: 132px;
+  padding: 10px 12px;
+  gap: 3px;
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+
+.student-application-hero-stat span {
+  font-size: 9px;
+}
+
+.student-application-hero-stat strong {
+  font-size: 16px;
+}
+
+.student-application-hero-stat small {
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.student-application-intro-card {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) 1fr;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.student-application-intro-copy h2 {
+  margin-bottom: 5px;
+  font-size: 15px;
+}
+
+.student-application-intro-copy p {
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.student-application-stepper {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-width: 0;
+  gap: 8px;
+}
+
+.student-application-step {
+  min-width: 0;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-soft);
+}
+
+.student-application-step.upcoming {
+  opacity: .62;
+}
+
+.student-application-step-node {
+  width: 26px;
+  height: 26px;
+  font-size: 11px;
+}
+
+.student-application-step-copy {
+  gap: 1px;
+}
+
+.student-application-step-copy strong {
+  font-size: 9px;
+}
+
+.student-application-step-copy span {
+  color: var(--color-text-secondary);
+  font-size: 10.5px;
+  line-height: 1.25;
+}
+
+.student-application-step.active {
+  border-color: rgba(0, 201, 177, .45);
+  background: var(--color-accent-light);
+}
+
+.student-application-step.active .student-application-step-node {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  border-color: var(--color-accent);
+  box-shadow: none;
+}
+
+.student-application-step.completed {
+  border-color: rgba(5, 150, 105, .25);
+}
+
+.student-application-step.completed .student-application-step-node {
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.student-application-step-line {
+  display: none;
+}
+
+.student-application-grid {
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 16px;
+}
+
+.student-application-main,
+.student-application-form-stack {
+  gap: 14px;
+}
+
+.student-application-form-card,
+.student-application-side {
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.student-application-section-head {
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.student-application-section-head h2 {
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+
+.student-application-section-head p {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.student-application-required-pill,
+.student-application-upload-tag {
+  min-height: 22px;
+  padding: 4px 8px;
+  border-color: rgba(0, 201, 177, .35);
+  font-size: 10px;
+}
+
+.student-application-required-pill::first-letter {
+  color: var(--color-danger);
+}
+
+.student-application-form-grid {
+  gap: 12px 14px;
+}
+
+.student-application-field {
+  gap: 5px;
+}
+
+.student-application-field label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.student-application-field abbr,
+.student-application-document-review-row h3 span {
+  color: var(--color-danger);
+  text-decoration: none;
+}
+
+.student-application-input,
+.student-application-textarea {
+  min-height: 38px;
+  height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px;
+  box-shadow: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+select.student-application-input {
+  appearance: none;
+  padding-right: 34px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%),
+    linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) 16px,
+    calc(100% - 11px) 16px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.student-application-textarea {
+  min-height: 86px;
+  height: auto;
+  padding: 10px 11px;
+  line-height: 1.45;
+}
+
+.student-application-input:focus,
+.student-application-textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(0, 201, 177, .14);
+}
+
+.student-application-input[readonly],
+.student-application-input:disabled,
+.student-application-textarea[readonly],
+.student-application-textarea:disabled {
+  background-color: var(--color-surface-soft);
+  color: var(--color-text-secondary);
+  cursor: default;
+  opacity: 1;
+}
+
+.student-application-hint,
+.student-application-field .error-message {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.student-application-progress-banner {
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-light);
+}
+
+.student-application-progress-banner strong {
+  margin-bottom: 3px;
+  font-size: 12px;
+}
+
+.student-application-progress-banner p {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.student-application-upload-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.student-application-upload-card {
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-soft);
+}
+
+.student-application-upload-head {
+  gap: 10px;
+}
+
+.student-application-upload-head h3 {
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.student-application-upload-head p {
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.student-application-upload-card .upload-zone {
+  min-height: 92px;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  background: #fff;
+  border: 1px dashed var(--color-border-strong);
+}
+
+.student-application-upload-card .upload-zone:hover,
+.student-application-upload-card .upload-zone.drag-over {
+  background: var(--color-accent-light);
+  border-color: var(--color-accent);
+}
+
+.student-application-upload-card .upload-placeholder {
+  gap: 4px;
+  text-align: center;
+}
+
+.student-application-upload-card .upload-icon {
+  display: none;
+}
+
+.student-application-upload-card .upload-label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.student-application-upload-card .upload-hint,
+.student-application-upload-card .upload-formats {
+  font-size: 10px;
+}
+
+.student-application-upload-card .uploaded-file {
+  align-items: center;
+  gap: 10px;
+}
+
+.student-application-upload-card .file-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.student-application-upload-card .file-name {
+  font-size: 12px;
+}
+
+.student-application-upload-card .file-status {
+  font-size: 10px;
+}
+
+.student-application-upload-card .remove-file-btn {
+  min-height: 30px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-soft);
+  font-size: 11px;
+}
+
+.student-application-side {
+  top: 14px;
+  gap: 12px;
+}
+
+.student-application-side-section h3 {
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.student-application-side-section p,
+.student-application-note p {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.student-application-side-metrics {
+  gap: 10px;
+}
+
+.student-application-side-metric {
+  padding: 11px;
+  border-radius: var(--radius-md);
+}
+
+.student-application-side-metric-head {
+  margin-bottom: 7px;
+}
+
+.student-application-side-metric-head strong,
+.student-application-side-metric-head span {
+  font-size: 11px;
+}
+
+.student-application-note {
+  padding: 11px 12px;
+  border-color: var(--color-info-border);
+  border-left: 3px solid var(--color-info);
+  border-radius: var(--radius-md);
+  background: var(--color-info-soft);
+}
+
+.student-application-note strong {
+  margin-bottom: 4px;
+  color: var(--color-info);
+  font-size: 12px;
+}
+
+.student-application-note p {
+  color: var(--color-text-secondary);
+}
+
+.student-application-side-list {
+  gap: 8px;
+}
+
+.student-application-side-list li {
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: var(--radius-md);
+}
+
+.student-application-side-list strong,
+.student-application-side-list span {
+  font-size: 10.5px;
+}
+
+.student-application-doc-status {
+  padding: 4px 7px;
+  font-size: 9.5px;
+}
+
+.student-application-actions {
+  gap: 10px;
+}
+
+.student-application-button {
+  min-height: 38px;
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+}
+
+.student-application-recap-grid {
+  gap: 12px;
+}
+
+.student-application-recap-card {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-soft);
+}
+
+.student-application-recap-head {
+  margin-bottom: 10px;
+}
+
+.student-application-recap-head h3 {
+  font-size: 14px;
+}
+
+.student-application-inline-link {
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--color-primary);
+  font-size: 11px;
+}
+
+.student-application-inline-link:hover {
+  background: var(--color-accent-light);
+  text-decoration: none;
+}
+
+.student-application-detail-list {
+  gap: 7px;
+}
+
+.student-application-detail-row {
+  gap: 10px;
+  padding-bottom: 7px;
+}
+
+.student-application-detail-row span,
+.student-application-detail-row strong {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.student-application-documents-review {
+  gap: 8px;
+}
+
+.student-application-document-review-row {
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: var(--radius-md);
+}
+
+.student-application-document-review-row h3 {
+  margin-bottom: 3px;
+  font-size: 12px;
+}
+
+.student-application-document-review-row p {
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.student-application-validation-card {
+  gap: 12px;
+}
+
+.student-application-validation-card h2 {
+  font-size: 16px;
+}
+
+.student-application-validation-card p {
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.student-application-validation-warning {
+  padding: 12px;
+  border-left: 3px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  background: var(--color-warning-soft);
+}
+
+.student-application-validation-warning strong {
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.student-application-validation-warning ul {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.confirm-dialog {
+  max-width: 420px;
+  padding: 22px;
+  border-radius: var(--radius-lg);
+}
+
+.confirm-dialog h3 {
+  font-size: 17px;
+}
+
+.confirm-dialog p {
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.toast-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 0;
+}
+
+.toast-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.toast-message {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.success-page-modern {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.success-main {
+  max-width: 720px;
+  padding: 26px 16px 34px;
+}
+
+.success-header {
+  padding: 20px 18px;
+  border-radius: var(--radius-lg);
+}
+
+.success-icon-wrapper {
+  width: 52px;
+  height: 52px;
+  margin-bottom: 12px;
+}
+
+.success-title {
+  margin-bottom: 8px;
+  font-size: 24px;
+}
+
+.success-subtitle {
+  max-width: 520px;
+  font-size: 13px;
+}
+
+.success-summary-card,
+.next-steps-section {
+  padding: 18px;
+  border-radius: var(--radius-lg);
+}
+
+.summary-card-title,
+.next-steps-title {
+  font-size: 16px;
+}
+
+.summary-row {
+  padding: 10px 0;
+}
+
+.summary-label,
+.summary-value,
+.dossier-number,
+.step-description {
+  font-size: 12px;
+}
+
+.next-steps-list {
+  gap: 8px;
+}
+
+.next-step-item {
+  padding: 10px;
+  border-radius: var(--radius-md);
+}
+
+.step-number,
+.step-icon-wrapper {
+  width: 28px;
+  height: 28px;
+}
+
+.step-title {
+  font-size: 13px;
+}
+
+.success-actions {
+  gap: 10px;
+}
+
+@media (max-width: 1160px) {
+  .student-application-intro-card {
+    grid-template-columns: 1fr;
+  }
+
+  .student-application-stepper {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-application-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .student-application-side {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .student-application-shell {
+    padding: 12px 12px 24px;
+  }
+
+  .student-application-hero,
+  .student-application-intro-card,
+  .student-application-form-card,
+  .student-application-side {
+    padding: 15px;
+  }
+
+  .student-application-hero,
+  .student-application-hero-side,
+  .student-application-actions,
+  .student-application-progress-banner,
+  .student-application-document-review-row,
+  .student-application-section-head,
+  .student-application-upload-head,
+  .success-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .student-application-hero-side {
+    width: 100%;
+  }
+
+  .student-application-hero-stat {
+    width: 100%;
+  }
+
+  .student-application-stepper,
+  .student-application-upload-grid,
+  .student-application-recap-grid,
+  .student-application-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .student-application-field-full {
+    grid-column: auto;
+  }
+
+  .student-application-actions > *,
+  .success-actions > * {
+    width: 100%;
+  }
+
+  .student-application-detail-row {
+    flex-direction: column;
+  }
+
+  .student-application-detail-row strong {
+    text-align: left;
+  }
+
+  .student-application-upload-card .uploaded-file {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -99,7 +99,7 @@ export default function StudentStep2() {
             <strong>Complétion</strong>
             <span>{completion}%</span>
           </div>
-          <ProgressBar value={completion} color="#0f766e" label={`${completion}%`} compact />
+          <ProgressBar value={completion} color="#00C9B1" label={`${completion}%`} compact />
         </div>
       </div>
 
@@ -140,7 +140,7 @@ export default function StudentStep2() {
                 <strong>{selectedFiliere || "non renseignée"}</strong>
               </p>
             </div>
-            <span className="student-application-required-pill">Choix obligatoire</span>
+            <span className="student-application-required-pill">* Champ obligatoire</span>
           </div>
 
           {!selectedFiliere ? (
@@ -165,7 +165,7 @@ export default function StudentStep2() {
 
           <div className="student-application-form-grid">
             <div className="student-application-field student-application-field-full">
-              <label htmlFor="application-establishment">Établissement *</label>
+              <label htmlFor="application-establishment">Établissement <abbr title="champ obligatoire">*</abbr></label>
               <select
                 id="application-establishment"
                 name="etablissement"

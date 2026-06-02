@@ -243,10 +243,10 @@ export default function StudentRecapitulatif() {
 
       <div className="student-application-side-metrics">
         {[
-          { label: "Informations personnelles", value: personalCompletion, color: "#2563eb" },
-          { label: "Baccalauréat", value: bacCompletion, color: "#0f766e" },
-          { label: "Choix universitaire", value: choiceCompletion, color: "#7c3aed" },
-          { label: "Pièces justificatives", value: documentsCompletion, color: "#d97706" },
+          { label: "Informations personnelles", value: personalCompletion, color: "#00C9B1" },
+          { label: "Baccalauréat", value: bacCompletion, color: "#059669" },
+          { label: "Choix universitaire", value: choiceCompletion, color: "#1E2D3D" },
+          { label: "Pièces justificatives", value: documentsCompletion, color: "#00A896" },
         ].map(({ label, value, color }) => (
           <div key={label} className="student-application-side-metric">
             <div className="student-application-side-metric-head">
