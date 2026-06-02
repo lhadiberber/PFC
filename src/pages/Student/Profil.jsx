@@ -379,6 +379,14 @@ export default function Profil() {
       ),
     [personalForm]
   );
+  const identityCompletion = useMemo(
+    () => toPercent(countCompleted(personalForm, PERSONAL_FIELDS), PERSONAL_FIELDS.length),
+    [personalForm]
+  );
+  const contactCompletion = useMemo(
+    () => toPercent(countCompleted(personalForm, CONTACT_FIELDS), CONTACT_FIELDS.length),
+    [personalForm]
+  );
   const academicCompletion = useMemo(
     () => toPercent(countCompleted(academicForm, BAC_FIELDS), BAC_FIELDS.length),
     [academicForm]
@@ -1141,10 +1149,19 @@ export default function Profil() {
               <div className="student-progress-row">
                 <div className="student-progress-head">
                   <h3>Informations personnelles</h3>
-                  <span>{personalCompletion}%</span>
+                  <span>{identityCompletion}%</span>
                 </div>
-                <p>Identité, coordonnées et informations de contact.</p>
-                <ProgressBar value={personalCompletion} color="#2563eb" label={`${personalCompletion}%`} />
+                <p>Nom, prénom, naissance, sexe et nationalité.</p>
+                <ProgressBar value={identityCompletion} color="#00C9B1" label={`${identityCompletion}%`} />
+              </div>
+
+              <div className="student-progress-row">
+                <div className="student-progress-head">
+                  <h3>Coordonnées</h3>
+                  <span>{contactCompletion}%</span>
+                </div>
+                <p>Email, téléphone, adresse, wilaya et commune.</p>
+                <ProgressBar value={contactCompletion} color="#1E2D3D" label={`${contactCompletion}%`} />
               </div>
 
               <div className="student-progress-row">
@@ -1153,16 +1170,7 @@ export default function Profil() {
                   <span>{academicCompletion}%</span>
                 </div>
                 <p>Série, moyenne et informations liées au baccalauréat.</p>
-                <ProgressBar value={academicCompletion} color="#0f766e" label={`${academicCompletion}%`} />
-              </div>
-
-              <div className="student-progress-row">
-                <div className="student-progress-head">
-                  <h3>Documents</h3>
-                  <span>{documentsCompletion}%</span>
-                </div>
-                <p>Pièces justificatives déposées sur votre dossier.</p>
-                <ProgressBar value={documentsCompletion} color="#d97706" label={`${documentsCompletion}%`} />
+                <ProgressBar value={academicCompletion} color="#059669" label={`${academicCompletion}%`} />
               </div>
             </div>
 
