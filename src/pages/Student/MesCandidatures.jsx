@@ -36,12 +36,14 @@ const ACADEMIC_FIELDS = [
 
 const DOCUMENT_FIELDS = [
   { key: "releveNotes", label: "Relevé de notes du baccalauréat", required: true },
-  { key: "attestationReussite", label: "Attestation de réussite au baccalauréat", required: true },
-  { key: "carteIdentite", label: "Pièce d'identité", required: true },
+  { key: "attestationReussite", label: "Attestation de réussite au bac", required: true },
+  { key: "carteIdentite", label: "Pièce d'identité nationale", required: true },
   { key: "photo", label: "Photo d'identité", required: true },
   { key: "residence", label: "Certificat de résidence", required: true },
   { key: "justificatifParticulier", label: "Justificatif particulier", required: false },
 ];
+
+const REQUIRED_DOCUMENT_FIELDS = DOCUMENT_FIELDS.filter((document) => document.required);
 
 const DOCUMENT_FIELD_BY_TYPE = {
   diplome: "attestationReussite",
@@ -73,23 +75,14 @@ function normalizeKey(value) {
 }
 
 function toPercent(completed, total) {
-  if (!total) {
-    return 0;
-  }
-
+  if (!total) return 0;
   return Math.round((completed / total) * 100);
 }
 
 function formatDate(value) {
-  if (!value) {
-    return "Non renseignee";
-  }
-
+  if (!value) return "Non renseignée";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
+  if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString("fr-FR", {
     day: "2-digit",
     month: "long",
@@ -98,15 +91,9 @@ function formatDate(value) {
 }
 
 function formatShortDate(value) {
-  if (!value) {
-    return "Non renseignee";
-  }
-
+  if (!value) return "-";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
+  if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString("fr-FR", {
     day: "2-digit",
     month: "2-digit",
@@ -145,6 +132,23 @@ function buildNumeroDossier(application) {
   return `CAND-${year}-${String(application.id).padStart(3, "0")}`;
 }
 
+function countCompleted(details, fields) {
+  return fields.filter((field) => hasValue(details?.[field])).length;
+}
+
+function getCompletionColor(percentage) {
+  if (percentage >= 90) return "#059669";
+  if (percentage >= 65) return "#2563eb";
+  if (percentage >= 40) return "#d97706";
+  return "#dc2626";
+}
+
+function getCompletionLabel(percentage) {
+  if (percentage >= 90) return "Dossier complet";
+  if (percentage >= 65) return "Dossier avancé";
+  return "Dossier à compléter";
+}
+
 function mapApiProfileToDetails(profile = {}) {
   return {
     nom: profile.nom || "",
@@ -164,7 +168,6 @@ function mapApiProfileToDetails(profile = {}) {
     anneeBac: profile.annee_bac || profile.annee_obtention || "",
     moyenneBac: profile.moyenne_bac || profile.moyenne || "",
     mention: profile.mention_bac || "",
-    specialiteActuelle: profile.serie_bac || profile.specialite_actuelle || "",
     serieBac: profile.serie_bac || profile.diplome_actuel || "",
     numeroInscriptionBac: profile.numero_inscription_bac || "",
     lyceeOrigine: profile.lycee_origine || profile.etablissement || "",
@@ -182,7 +185,6 @@ function mapApiDocumentsToDetails(documents = [], applicationId) {
     }
 
     const fieldName = DOCUMENT_FIELD_BY_TYPE[normalizeKey(document.type_document)];
-
     if (fieldName && !details[fieldName]) {
       details[fieldName] = document.nom_fichier || "";
     }
@@ -230,54 +232,18 @@ function mapApiApplication(application, profileDetails = {}, documentDetails = {
   };
 }
 
-function getCompletionColor(percentage) {
-  if (percentage >= 90) {
-    return "#059669";
-  }
-
-  if (percentage >= 65) {
-    return "#2563eb";
-  }
-
-  if (percentage >= 40) {
-    return "#d97706";
-  }
-
-  return "#dc2626";
-}
-
-function getCompletionLabel(percentage) {
-  if (percentage >= 90) {
-    return "Dossier complet";
-  }
-
-  if (percentage >= 65) {
-    return "Dossier avance";
-  }
-
-  return "Dossier a completer";
-}
-
-function countCompleted(details, fields) {
-  return fields.filter((field) => hasValue(details?.[field])).length;
-}
-
 function buildApplicationMetrics(application) {
   const details = application.details || {};
-  const profileCompletion = toPercent(
-    countCompleted(details, PROFILE_FIELDS),
-    PROFILE_FIELDS.length
-  );
+  const profileCompletion = toPercent(countCompleted(details, PROFILE_FIELDS), PROFILE_FIELDS.length);
   const academicCompletion = toPercent(
     countCompleted(details, ACADEMIC_FIELDS),
     ACADEMIC_FIELDS.length
   );
-  const requiredDocuments = DOCUMENT_FIELDS.filter((document) => document.required);
-  const requiredDocumentsCount = countCompleted(
+  const documentsCount = countCompleted(
     details,
-    requiredDocuments.map((document) => document.key)
+    REQUIRED_DOCUMENT_FIELDS.map((document) => document.key)
   );
-  const documentsCompletion = toPercent(requiredDocumentsCount, requiredDocuments.length);
+  const documentsCompletion = toPercent(documentsCount, REQUIRED_DOCUMENT_FIELDS.length);
 
   let finalCompletion = 45;
   if (application.statut === "Acceptee" || application.statut === "Rejetee") {
@@ -296,7 +262,7 @@ function buildApplicationMetrics(application) {
     profileCompletion,
     academicCompletion,
     documentsCompletion,
-    documentsCount: requiredDocumentsCount,
+    documentsCount,
     finalCompletion,
     overallCompletion,
     readinessLabel: getCompletionLabel(overallCompletion),
@@ -381,11 +347,10 @@ export default function MesCandidatures() {
 
     async function loadApplications() {
       const token = getAuthToken();
-
       if (!token) {
         navigate("/login", {
           replace: true,
-          state: { message: "Session absente ou expiree. Veuillez vous reconnecter." },
+          state: { message: "Session expirée. Veuillez vous reconnecter." },
         });
         return;
       }
@@ -414,23 +379,20 @@ export default function MesCandidatures() {
         }
       } catch (error) {
         if (isMounted) {
-          const message = error.message || "Impossible de charger vos candidatures.";
+          const message =
+            error.message || "Impossible de charger vos candidatures. Réessayez ultérieurement.";
           setLoadError(message);
-
           if (error.status === 401) {
             clearAuthSession();
             navigate("/login", { replace: true, state: { message } });
           }
         }
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        if (isMounted) setIsLoading(false);
       }
     }
 
     loadApplications();
-
     return () => {
       isMounted = false;
     };
@@ -490,10 +452,7 @@ export default function MesCandidatures() {
         .join(" ")
         .toLowerCase();
 
-      const matchesQuery =
-        normalizedQuery === "" || searchableText.includes(normalizedQuery);
-
-      return matchesStatus && matchesQuery;
+      return matchesStatus && (normalizedQuery === "" || searchableText.includes(normalizedQuery));
     });
   }, [applicationsWithMetrics, searchQuery, statusFilter]);
 
@@ -511,19 +470,19 @@ export default function MesCandidatures() {
   const statusTabs = [
     { id: "toutes", label: "Toutes", count: summary.total },
     { id: "attente", label: "En attente", count: summary.pending },
-    { id: "acceptee", label: "Acceptees", count: summary.accepted },
-    { id: "rejetee", label: "Refusees", count: summary.refused },
+    { id: "acceptee", label: "Acceptées", count: summary.accepted },
+    { id: "rejetee", label: "Refusées", count: summary.refused },
   ];
 
   const statCards = [
     {
       id: "total",
-      label: "Total des candidatures",
+      label: "Total",
       value: summary.total,
       detail:
         summary.total > 0
-          ? `${summary.incomplete} dossier(s) restent a consolider`
-          : "Aucune candidature deposee pour le moment",
+          ? `${summary.incomplete} dossier(s) à compléter`
+          : "Aucune candidature déposée",
       icon: "total",
       tone: "total",
       filter: "toutes",
@@ -532,83 +491,81 @@ export default function MesCandidatures() {
       id: "pending",
       label: "En attente",
       value: summary.pending,
-      detail: "Dossiers en cours de traitement administratif",
+      detail: "Dossiers en cours d'examen",
       icon: "pending",
       tone: "attente",
       filter: "attente",
     },
     {
       id: "accepted",
-      label: "Acceptees",
+      label: "Acceptées",
       value: summary.accepted,
-      detail: "Decisions favorables enregistrees",
+      detail: "Décisions favorables",
       icon: "accepted",
       tone: "acceptee",
       filter: "acceptee",
     },
     {
       id: "refused",
-      label: "Refusees",
+      label: "Refusées",
       value: summary.refused,
-      detail: "Decisions finales defavorables",
+      detail: "Décisions défavorables",
       icon: "refused",
       tone: "refusee",
       filter: "rejetee",
     },
   ];
 
-  const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
-
   return (
     <div className="student-candidatures-shell">
       <section className="student-dashboard-hero student-candidatures-hero">
         <div className="student-dashboard-hero-copy">
-          <span className="student-dashboard-kicker">Suivi des candidatures</span>
+          <span className="student-dashboard-kicker">Espace étudiant</span>
           <h1>Mes candidatures</h1>
           <p className="student-dashboard-subtitle">
-            Consultez et suivez l'etat de vos candidatures deposees.
+            Consultez et suivez l'état de vos dossiers de candidature.
           </p>
           <p className="student-dashboard-welcome">
-            Retrouvez ici l'ensemble de vos dossiers, leur niveau de completude et les actions
-            encore necessaires pour finaliser votre parcours d'admission.
+            Retrouvez ici l'ensemble de vos candidatures, leur niveau de complétude et les
+            actions nécessaires pour finaliser votre parcours d'admission.
           </p>
         </div>
 
         <div className="student-dashboard-hero-meta">
           <span className="admin-page-context info">
-            {summary.total} candidature(s)
+            {summary.total} candidature(s) déposée(s)
           </span>
           <span className={`admin-page-context ${summary.incomplete > 0 ? "warning" : "positive"}`}>
             {summary.incomplete > 0
-              ? `${summary.incomplete} dossier(s) a completer`
-              : "Tous les dossiers sont complets"}
+              ? `${summary.incomplete} dossier(s) à compléter`
+              : "Tous vos dossiers sont complets"}
           </span>
           <span className="admin-page-context neutral">
-            Dernier depot{" "}
+            Dernier dépôt :{" "}
             {latestApplication
               ? formatShortDate(latestApplication.submittedAt || latestApplication.dateDepot)
-              : "non disponible"}
+              : "-"}
           </span>
         </div>
       </section>
 
-      {isLoading ? (
+      {isLoading && (
         <div className="student-profile-feedback student-profile-feedback-info" role="status">
           Chargement de vos candidatures...
         </div>
-      ) : null}
+      )}
 
-      {loadError ? (
+      {loadError && (
         <div className="student-profile-feedback student-profile-feedback-error" role="alert">
           {loadError}
         </div>
-      ) : null}
+      )}
 
       <section className="campus-section-container student-dashboard-panel">
         <div className="campus-section-header student-dashboard-section-head">
           <div>
-            <h2>Resume rapide</h2>
-            <p>Les indicateurs essentiels pour comprendre la situation de vos candidatures.</p>
+            <h2>Vue d'ensemble</h2>
+            <p>Indicateurs clés de vos candidatures en cours.</p>
           </div>
         </div>
 
@@ -619,13 +576,13 @@ export default function MesCandidatures() {
               type="button"
               className={`admin-primary-stat-card admin-primary-stat-card-${card.tone} student-summary-card`}
               onClick={() => setStatusFilter(card.filter)}
+              aria-pressed={statusFilter === card.filter}
             >
               <div className="admin-primary-stat-head">
                 <span className="admin-primary-stat-icon">
                   <StudentApplicationsIcon name={card.icon} />
                 </span>
               </div>
-
               <div className="admin-primary-stat-body">
                 <strong className="admin-primary-stat-value">{card.value}</strong>
                 <h3 className="admin-primary-stat-label">{card.label}</h3>
@@ -640,7 +597,7 @@ export default function MesCandidatures() {
         <div className="student-candidatures-toolbar">
           <div className="student-candidatures-toolbar-copy">
             <h2>Liste des candidatures ({filteredApplications.length})</h2>
-            <p>Recherchez, filtrez et ouvrez le detail de chacun de vos dossiers.</p>
+            <p>Recherchez et consultez le détail de chacun de vos dossiers.</p>
           </div>
 
           <label className="admin-recent-search student-candidatures-search" htmlFor="studentApplicationsSearch">
@@ -652,16 +609,22 @@ export default function MesCandidatures() {
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Rechercher une candidature..."
+              placeholder="Rechercher par filière, établissement, numéro de dossier..."
             />
           </label>
         </div>
 
-        <div className="admin-filter-tabs student-candidatures-filter-tabs" role="tablist" aria-label="Filtrer mes candidatures par statut">
+        <div
+          className="admin-filter-tabs student-candidatures-filter-tabs"
+          role="tablist"
+          aria-label="Filtrer par statut"
+        >
           {statusTabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
+              role="tab"
+              aria-selected={statusFilter === tab.id}
               className={`admin-filter-tab ${statusFilter === tab.id ? "active" : ""}`}
               onClick={() => setStatusFilter(tab.id)}
             >
@@ -670,15 +633,19 @@ export default function MesCandidatures() {
           ))}
         </div>
 
-        {isLoading || loadError ? null : filteredApplications.length === 0 ? (
+        {!isLoading && !loadError && filteredApplications.length === 0 ? (
           <EmptyState
-            title={applicationsWithMetrics.length === 0 ? "Aucune candidature pour le moment" : "Aucun resultat"}
+            title={
+              applicationsWithMetrics.length === 0
+                ? "Aucune candidature pour le moment"
+                : "Aucun résultat"
+            }
             description={
               applicationsWithMetrics.length === 0
-                ? "Vous n'avez encore depose aucune candidature. Commencez votre premier dossier pour lancer votre parcours d'admission."
-                : "Aucune candidature ne correspond a votre recherche ou au filtre selectionne."
+                ? "Vous n'avez encore déposé aucune candidature. Commencez votre premier dossier pour lancer votre parcours d'admission."
+                : "Aucune candidature ne correspond à votre recherche ou au filtre sélectionné."
             }
-            actionLabel={applicationsWithMetrics.length === 0 ? "Deposer ma premiere candidature" : "Deposer une candidature"}
+            actionLabel="Déposer une candidature"
             actionTo="/student-step1"
             className="admin-empty-state student-candidatures-empty-state"
           />
@@ -693,15 +660,16 @@ export default function MesCandidatures() {
                     <div className="student-candidature-card-main">
                       <div className="student-candidature-card-header">
                         <div className="student-candidature-title-block">
-                          <h3>{application.specialite}</h3>
-                          <p>{application.universite}</p>
+                          <h3>{application.specialite || "Filière non renseignée"}</h3>
+                          <p>{application.universite || "Établissement non renseigné"}</p>
                         </div>
-
                         <div className="student-candidature-status-block">
                           <StatusBadge status={application.statut} />
                           <span
                             className={`student-candidature-readiness ${
-                              application.metrics.overallCompletion >= 90 ? "is-complete" : "is-incomplete"
+                              application.metrics.overallCompletion >= 90
+                                ? "is-complete"
+                                : "is-incomplete"
                             }`}
                           >
                             {application.metrics.readinessLabel}
@@ -711,71 +679,51 @@ export default function MesCandidatures() {
 
                       <div className="student-candidature-meta-grid">
                         <div className="student-candidature-meta-item">
-                          <span>Universite</span>
-                          <strong>{application.universite}</strong>
+                          <span>Numéro de dossier</span>
+                          <strong>{application.numeroDossier}</strong>
                         </div>
                         <div className="student-candidature-meta-item">
-                          <span>Formation</span>
-                          <strong>{application.specialite}</strong>
+                          <span>Filière</span>
+                          <strong>{application.specialite || "-"}</strong>
                         </div>
                         <div className="student-candidature-meta-item">
-                          <span>Date de depot</span>
+                          <span>Date de dépôt</span>
                           <strong>{formatDate(application.submittedAt || application.dateDepot)}</strong>
                         </div>
                         <div className="student-candidature-meta-item">
-                          <span>Niveau</span>
-                          <strong>{application.niveauDemande || "Non renseigne"}</strong>
+                          <span>Niveau demandé</span>
+                          <strong>{application.niveauDemande || "-"}</strong>
                         </div>
                       </div>
 
                       <div className="student-candidature-progress-grid">
-                        <div className="student-candidature-progress-card">
-                          <div className="student-candidature-progress-head">
-                            <span>Profil</span>
-                            <strong>{application.metrics.profileCompletion}%</strong>
+                        {[
+                          { label: "Profil personnel", value: application.metrics.profileCompletion },
+                          { label: "Pièces justificatives", value: application.metrics.documentsCompletion },
+                          { label: "Validation finale", value: application.metrics.finalCompletion },
+                        ].map(({ label, value }) => (
+                          <div key={label} className="student-candidature-progress-card">
+                            <div className="student-candidature-progress-head">
+                              <span>{label}</span>
+                              <strong>{value}%</strong>
+                            </div>
+                            <ProgressBar
+                              value={value}
+                              color={getCompletionColor(value)}
+                              label={`${value}%`}
+                              compact
+                            />
                           </div>
-                          <ProgressBar
-                            value={application.metrics.profileCompletion}
-                            color={getCompletionColor(application.metrics.profileCompletion)}
-                            label={`${application.metrics.profileCompletion}%`}
-                            compact
-                          />
-                        </div>
-
-                        <div className="student-candidature-progress-card">
-                          <div className="student-candidature-progress-head">
-                            <span>Documents</span>
-                            <strong>{application.metrics.documentsCompletion}%</strong>
-                          </div>
-                          <ProgressBar
-                            value={application.metrics.documentsCompletion}
-                            color={getCompletionColor(application.metrics.documentsCompletion)}
-                            label={`${application.metrics.documentsCompletion}%`}
-                            compact
-                          />
-                        </div>
-
-                        <div className="student-candidature-progress-card">
-                          <div className="student-candidature-progress-head">
-                            <span>Validation finale</span>
-                            <strong>{application.metrics.finalCompletion}%</strong>
-                          </div>
-                          <ProgressBar
-                            value={application.metrics.finalCompletion}
-                            color={getCompletionColor(application.metrics.finalCompletion)}
-                            label={`${application.metrics.finalCompletion}%`}
-                            compact
-                          />
-                        </div>
+                        ))}
                       </div>
                     </div>
 
                     <div className="student-candidature-card-side">
                       <div className="student-candidature-side-summary">
-                        <span>Completude globale</span>
+                        <span>Complétude globale</span>
                         <strong>{application.metrics.overallCompletion}%</strong>
                         <small>
-                          {application.metrics.documentsCount}/{DOCUMENT_FIELDS.filter((document) => document.required).length} document(s) déposés
+                          {application.metrics.documentsCount}/{REQUIRED_DOCUMENT_FIELDS.length} pièce(s) déposée(s)
                         </small>
                       </div>
 
@@ -786,73 +734,113 @@ export default function MesCandidatures() {
                             currentId === application.id ? null : application.id
                           )
                         }
+                        aria-expanded={isExpanded}
                       >
-                        {isExpanded ? "Fermer" : "Consulter"}
+                        {isExpanded ? "Réduire" : "Voir le détail"}
                       </Button>
                     </div>
 
-                    {isExpanded ? (
+                    {isExpanded && (
                       <div className="student-candidature-detail-panel">
                         <div className="student-candidature-detail-grid">
                           <section className="student-candidature-detail-card">
                             <h4>Informations personnelles</h4>
                             <div className="student-candidature-detail-list">
-                              <div><span>Nom</span><strong>{application.details.nom || "Non renseigne"}</strong></div>
-                              <div><span>Prenom</span><strong>{application.details.prenom || "Non renseigne"}</strong></div>
-                              <div><span>Date de naissance</span><strong>{application.details.dateNaiss || "Non renseignee"}</strong></div>
-                              <div><span>Lieu de naissance</span><strong>{application.details.lieuNaiss || "Non renseigne"}</strong></div>
-                              <div><span>Nationalite</span><strong>{application.details.nationalite || "Non renseignee"}</strong></div>
-                              <div><span>Telephone</span><strong>{application.details.telephone || "Non renseigne"}</strong></div>
-                              <div><span>Email</span><strong>{application.details.email || "Non renseigne"}</strong></div>
+                              {[
+                                ["Nom", application.details.nom],
+                                ["Prénom", application.details.prenom],
+                                ["Date de naissance", application.details.dateNaiss],
+                                ["Lieu de naissance", application.details.lieuNaiss],
+                                ["Nationalité", application.details.nationalite],
+                                ["Téléphone", application.details.telephone],
+                                ["Adresse e-mail", application.details.email],
+                              ].map(([label, value]) => (
+                                <div key={label}>
+                                  <span>{label}</span>
+                                  <strong>{value || "Non renseigné"}</strong>
+                                </div>
+                              ))}
                             </div>
                           </section>
 
                           <section className="student-candidature-detail-card">
-                            <h4>Informations academiques</h4>
+                            <h4>Informations académiques</h4>
                             <div className="student-candidature-detail-list">
-                              <div><span>Série du bac</span><strong>{application.details.serieBac || application.details.typeBac || "Non renseignée"}</strong></div>
-                              <div><span>Annee du bac</span><strong>{application.details.anneeBac || "Non renseignee"}</strong></div>
-                              <div><span>Moyenne generale</span><strong>{application.details.moyenneBac || "Non renseignee"}</strong></div>
-                              <div><span>Mention</span><strong>{application.details.mention || "Non precisee"}</strong></div>
-                              <div><span>Filière</span><strong>{application.filiere || application.specialite || "Non renseignée"}</strong></div>
-                              <div><span>Établissement</span><strong>{application.etablissement || application.universite || "Non renseigné"}</strong></div>
-                              <div><span>Niveau</span><strong>{application.niveauDemande || "Non renseigné"}</strong></div>
+                              {[
+                                ["Série du baccalauréat", application.details.serieBac || application.details.typeBac],
+                                ["Année d'obtention", application.details.anneeBac],
+                                [
+                                  "Moyenne générale",
+                                  application.details.moyenneBac
+                                    ? `${application.details.moyenneBac} / 20`
+                                    : null,
+                                ],
+                                ["Mention", application.details.mention],
+                                ["Filière souhaitée", application.filiere || application.specialite],
+                                ["Établissement choisi", application.etablissement || application.universite],
+                                ["Niveau demandé", application.niveauDemande],
+                              ].map(([label, value]) => (
+                                <div key={label}>
+                                  <span>{label}</span>
+                                  <strong>{value || "Non renseigné"}</strong>
+                                </div>
+                              ))}
                             </div>
                           </section>
                         </div>
 
+                        {application.commentaireAdmin ? (
+                          <section className="student-candidature-detail-card student-candidature-documents-card">
+                            <h4>Remarque de l'administration</h4>
+                            <p>{application.commentaireAdmin}</p>
+                          </section>
+                        ) : null}
+
                         {application.motivation ? (
                           <section className="student-candidature-detail-card student-candidature-documents-card">
-                            <h4>Motivation</h4>
+                            <h4>Observations / Motivation</h4>
                             <p>{application.motivation}</p>
                           </section>
                         ) : null}
 
                         <section className="student-candidature-detail-card student-candidature-documents-card">
                           <div className="student-candidature-documents-head">
-                            <h4>Documents du dossier</h4>
-                            <span className={`admin-page-context ${application.metrics.documentsCompletion === 100 ? "positive" : "warning"}`}>
-                              {application.metrics.documentsCount}/{DOCUMENT_FIELDS.filter((document) => document.required).length} pièces obligatoires
+                            <h4>Pièces justificatives</h4>
+                            <span
+                              className={`admin-page-context ${
+                                application.metrics.documentsCompletion === 100
+                                  ? "positive"
+                                  : "warning"
+                              }`}
+                            >
+                              {application.metrics.documentsCount}/{REQUIRED_DOCUMENT_FIELDS.length} pièces obligatoires déposées
                             </span>
                           </div>
 
                           <div className="student-candidature-documents-list">
                             {DOCUMENT_FIELDS.map((document) => {
-                              const fileName = application.details[document.key];
-                              const isSubmitted = hasValue(fileName);
-
+                              const isSubmitted = hasValue(application.details[document.key]);
                               return (
                                 <div key={document.key} className="student-candidature-document-row">
                                   <div className="student-candidature-document-copy">
-                                    <strong>{document.label}</strong>
-                                    <span>{isSubmitted ? fileName : "Document non fourni"}</span>
+                                    <strong>
+                                      {document.label}
+                                      {document.required && <span aria-label="Obligatoire"> *</span>}
+                                    </strong>
+                                    <span>
+                                      {isSubmitted
+                                        ? "Document déposé."
+                                        : document.required
+                                          ? "Document obligatoire manquant."
+                                          : "Document optionnel non fourni."}
+                                    </span>
                                   </div>
                                   <span
                                     className={`student-document-status ${
                                       isSubmitted ? "is-submitted" : "is-missing"
                                     }`}
                                   >
-                                    {isSubmitted ? "Depose" : "Manquant"}
+                                    {isSubmitted ? "Déposé" : "Manquant"}
                                   </span>
                                 </div>
                               );
@@ -860,7 +848,7 @@ export default function MesCandidatures() {
                           </div>
                         </section>
                       </div>
-                    ) : null}
+                    )}
                   </article>
                 );
               })}
@@ -868,12 +856,13 @@ export default function MesCandidatures() {
 
             <div className="admin-pagination student-candidatures-pagination">
               <span className="admin-pagination-info">
-                Affichage de {paginatedApplications.length} candidature(s) sur {filteredApplications.length}.
+                {paginatedApplications.length} candidature(s) affichée(s) sur{" "}
+                {filteredApplications.length}
               </span>
 
               <div className="student-candidatures-pagination-controls">
                 <label className="student-candidatures-page-size">
-                  <span>Afficher</span>
+                  <span>Par page :</span>
                   <select
                     value={itemsPerPage}
                     onChange={(event) => setItemsPerPage(Number(event.target.value))}
@@ -887,9 +876,9 @@ export default function MesCandidatures() {
                   </select>
                 </label>
 
-                {totalPages > 1 ? (
+                {totalPages > 1 && (
                   <div className="admin-pagination-buttons">
-                    {pageNumbers.map((pageNumber) => (
+                    {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
                       <button
                         key={pageNumber}
                         type="button"
@@ -897,12 +886,13 @@ export default function MesCandidatures() {
                           currentPageSafe === pageNumber ? "active" : ""
                         }`}
                         onClick={() => setCurrentPage(pageNumber)}
+                        aria-current={currentPageSafe === pageNumber ? "page" : undefined}
                       >
                         {pageNumber}
                       </button>
                     ))}
                   </div>
-                ) : null}
+                )}
               </div>
             </div>
           </>
@@ -911,7 +901,7 @@ export default function MesCandidatures() {
 
       <div className="student-candidatures-footer-action">
         <Link to="/student-step1" className="student-dashboard-link">
-          Deposer une nouvelle candidature
+          Déposer une nouvelle candidature
         </Link>
       </div>
     </div>
