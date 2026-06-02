@@ -11,6 +11,41 @@ import {
 import { showToast } from "../../utils/toast";
 import "../../index.css";
 
+function IconEdit() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path d="M11 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-6" />
+      <path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z" />
+    </svg>
+  );
+}
+
+function IconCheck() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
+function IconX() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
+function IconLock() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <rect x="4" y="11" width="16" height="10" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
+}
+
 function buildInitials(firstName, lastName, fullName) {
   const source = [firstName, lastName].filter(Boolean).join(" ").trim() || fullName || "AD";
   return source
@@ -29,6 +64,15 @@ function isEmailValid(email) {
   return /\S+@\S+\.\S+/.test(email);
 }
 
+function getPasswordStrength(password) {
+  if (!password) return { label: "Aucun mot de passe", tone: "neutral" };
+  if (password.length < 6) return { label: "Faible", tone: "warning" };
+  if (password.length >= 10 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
+    return { label: "Fort", tone: "positive" };
+  }
+  return { label: "Moyen", tone: "info" };
+}
+
 export default function ProfilAdmin() {
   const [profileData, setProfileData] = useState(readProfileSnapshot);
   const [securityData, setSecurityData] = useState(() => readAdminSecurity());
@@ -38,6 +82,7 @@ export default function ProfilAdmin() {
     newPassword: "",
     confirmPassword: "",
   });
+  const [passwordMessage, setPasswordMessage] = useState(null);
 
   useEffect(() => {
     const syncAccount = () => {
@@ -66,6 +111,10 @@ export default function ProfilAdmin() {
       profileData.fullName,
     [profileData.firstName, profileData.fullName, profileData.lastName]
   );
+  const passwordStrength = useMemo(
+    () => getPasswordStrength(passwordData.newPassword),
+    [passwordData.newPassword]
+  );
 
   const handleProfileChange = (event) => {
     const { name, value, type, checked } = event.target;
@@ -87,7 +136,7 @@ export default function ProfilAdmin() {
     };
 
     if (!nextProfile.firstName || !nextProfile.lastName) {
-      showToast("Veuillez renseigner le nom et le prenom.", "error");
+      showToast("Veuillez renseigner le nom et le prénom.", "error");
       return;
     }
 
@@ -99,7 +148,7 @@ export default function ProfilAdmin() {
     const savedProfile = writeStoredAdminProfile(nextProfile);
     setProfileData(savedProfile);
     setIsEditing(false);
-    showToast("Profil administrateur mis a jour.", "success");
+    showToast("Profil administrateur mis à jour.", "success");
   };
 
   const handleResetProfile = () => {
@@ -117,23 +166,30 @@ export default function ProfilAdmin() {
 
   const handlePasswordSubmit = (event) => {
     event.preventDefault();
+    setPasswordMessage(null);
 
     if (
       !passwordData.currentPassword.trim() ||
       !passwordData.newPassword.trim() ||
       !passwordData.confirmPassword.trim()
     ) {
-      showToast("Veuillez completer tous les champs de securite.", "error");
+      setPasswordMessage({ type: "error", text: "Veuillez compléter tous les champs de sécurité." });
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      showToast("Le nouveau mot de passe doit contenir au moins 6 caracteres.", "error");
+      setPasswordMessage({
+        type: "error",
+        text: "Le nouveau mot de passe doit contenir au moins 6 caractères.",
+      });
       return;
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showToast("La confirmation du mot de passe ne correspond pas.", "error");
+      setPasswordMessage({
+        type: "error",
+        text: "La confirmation du mot de passe ne correspond pas.",
+      });
       return;
     }
 
@@ -143,7 +199,7 @@ export default function ProfilAdmin() {
     );
 
     if (!passwordUpdate.success) {
-      showToast(passwordUpdate.message, "error");
+      setPasswordMessage({ type: "error", text: passwordUpdate.message });
       return;
     }
 
@@ -153,20 +209,32 @@ export default function ProfilAdmin() {
       newPassword: "",
       confirmPassword: "",
     });
-    showToast("Mot de passe mis a jour.", "success");
+    setPasswordMessage({ type: "success", text: "Mot de passe mis à jour avec succès." });
+    showToast("Mot de passe mis à jour.", "success");
+    setTimeout(() => setPasswordMessage(null), 3000);
   };
 
   return (
     <AdminLayout
-      title="Profil administrateur"
-      subtitle="Consultez et mettez a jour les informations de votre compte administrateur"
+      title="Mon profil"
+      subtitle="Gérez vos informations personnelles et la sécurité de votre compte"
       showSearch={false}
       headerAction={
         <Button
           className="admin-header-primary-action"
           onClick={isEditing ? handleSaveProfile : () => setIsEditing(true)}
         >
-          {isEditing ? "Enregistrer les modifications" : "Modifier le profil"}
+          {isEditing ? (
+            <>
+              <IconCheck />
+              Enregistrer les modifications
+            </>
+          ) : (
+            <>
+              <IconEdit />
+              Modifier le profil
+            </>
+          )}
         </Button>
       }
     >
@@ -192,15 +260,15 @@ export default function ProfilAdmin() {
 
           <div className="admin-profile-hero-side">
             <div className="admin-profile-hero-side-item">
-              <span>Compte cree</span>
+              <span>Compte créé</span>
               <strong>{formatAdminDate(profileData.accountCreatedAt)}</strong>
             </div>
             <div className="admin-profile-hero-side-item">
-              <span>Derniere connexion</span>
+              <span>Dernière connexion</span>
               <strong>
                 {securityData.lastLoginAt
                   ? formatAdminDateTime(securityData.lastLoginAt)
-                  : "Non renseignee"}
+                  : "Non renseignée"}
               </strong>
             </div>
           </div>
@@ -214,7 +282,7 @@ export default function ProfilAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Informations personnelles</h3>
-                  <p>Consultez et mettez a jour les informations de votre compte</p>
+                  <p>Vos données de contact et d'identification</p>
                 </div>
               </div>
 
@@ -228,11 +296,11 @@ export default function ProfilAdmin() {
                     placeholder: "Nom",
                   },
                   {
-                    label: "Prenom",
+                    label: "Prénom",
                     name: "firstName",
                     value: profileData.firstName,
                     type: "text",
-                    placeholder: "Prenom",
+                    placeholder: "Prénom",
                   },
                   {
                     label: "Adresse e-mail",
@@ -242,14 +310,14 @@ export default function ProfilAdmin() {
                     placeholder: "adresse@universite.dz",
                   },
                   {
-                    label: "Numero de telephone",
+                    label: "Numéro de téléphone",
                     name: "phone",
                     value: profileData.phone,
                     type: "text",
                     placeholder: "+213 ...",
                   },
                   {
-                    label: "Date de creation du compte",
+                    label: "Date de création du compte",
                     name: "accountCreatedAt",
                     value: formatAdminDate(profileData.accountCreatedAt),
                     readOnly: true,
@@ -279,9 +347,11 @@ export default function ProfilAdmin() {
               {isEditing ? (
                 <div className="admin-profile-card-actions">
                   <Button className="admin-filter-tab" onClick={handleResetProfile}>
+                    <IconX />
                     Annuler
                   </Button>
                   <Button className="admin-header-primary-action" onClick={handleSaveProfile}>
+                    <IconCheck />
                     Enregistrer les modifications
                   </Button>
                 </div>
@@ -291,13 +361,23 @@ export default function ProfilAdmin() {
             <article className="admin-meta-card">
               <div className="admin-meta-card-header">
                 <div>
-                  <h3>Securite du compte</h3>
-                  <p>Mettez a jour votre mot de passe et gardez un acces protege</p>
+                  <h3>Sécurité du compte</h3>
+                  <p>Changez votre mot de passe et protégez votre accès</p>
                 </div>
                 <span className="admin-page-context neutral">
-                  Mis a jour le {formatAdminDate(securityData.lastPasswordUpdatedAt)}
+                  Mis à jour le {formatAdminDate(securityData.lastPasswordUpdatedAt)}
                 </span>
               </div>
+
+              {passwordMessage ? (
+                <div
+                  className={`student-profile-feedback ${
+                    passwordMessage.type === "error" ? "student-profile-feedback-error" : "student-profile-feedback-success"
+                  }`}
+                >
+                  {passwordMessage.text}
+                </div>
+              ) : null}
 
               <form className="admin-profile-security-form" onSubmit={handlePasswordSubmit}>
                 <label className="admin-profile-field">
@@ -318,8 +398,13 @@ export default function ProfilAdmin() {
                     name="newPassword"
                     value={passwordData.newPassword}
                     onChange={handlePasswordChange}
-                    placeholder="Minimum 6 caracteres"
+                    placeholder="Minimum 6 caractères"
                   />
+                  {passwordData.newPassword ? (
+                    <span className={`admin-page-context ${passwordStrength.tone}`}>
+                      Robustesse : {passwordStrength.label}
+                    </span>
+                  ) : null}
                 </label>
 
                 <label className="admin-profile-field">
@@ -335,7 +420,8 @@ export default function ProfilAdmin() {
 
                 <div className="admin-profile-card-actions">
                   <Button className="admin-header-primary-action" type="submit">
-                    Mettre a jour le mot de passe
+                    <IconLock />
+                    Mettre à jour le mot de passe
                   </Button>
                 </div>
               </form>
@@ -347,17 +433,17 @@ export default function ProfilAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Informations de connexion</h3>
-                  <p>Elements utiles sur votre session et votre compte</p>
+                  <p>Éléments utiles sur votre session et votre compte</p>
                 </div>
               </div>
 
               <div className="admin-profile-info-list">
                 {[
                   [
-                    "Derniere connexion",
+                    "Dernière connexion",
                     securityData.lastLoginAt
                       ? formatAdminDateTime(securityData.lastLoginAt)
-                      : "Non renseignee",
+                      : "Non renseignée",
                   ],
                   ["Compte", securityData.accountStatus],
                   ["Role", "Administrateur"],
@@ -365,7 +451,7 @@ export default function ProfilAdmin() {
                     "Navigateur",
                     securityData.lastLoginBrowser
                       ? securityData.lastLoginBrowser
-                      : "Navigateur non detecte",
+                      : "Navigateur non détecté",
                   ],
                 ].map(([label, value]) => (
                   <div key={label} className="admin-profile-info-row">
@@ -379,14 +465,14 @@ export default function ProfilAdmin() {
             <article className="admin-meta-card">
               <div className="admin-meta-card-header">
                 <div>
-                  <h3>Preferences</h3>
-                  <p>Reglez l'affichage et les notifications de l'espace admin</p>
+                  <h3>Préférences</h3>
+                  <p>Réglez l'affichage et les notifications de l'espace admin</p>
                 </div>
               </div>
 
               <div className="admin-profile-preferences">
                 <label className="admin-profile-field">
-                  <span>Theme</span>
+                  <span>Thème</span>
                   <select
                     name="themePreference"
                     value={profileData.themePreference}
@@ -406,7 +492,7 @@ export default function ProfilAdmin() {
                     onChange={handleProfileChange}
                     disabled={!isEditing}
                   />
-                  <span>Notifications administrateur activees</span>
+                  <span>Notifications administrateur activées</span>
                 </label>
 
                 <label className="admin-preference-card">
@@ -417,7 +503,7 @@ export default function ProfilAdmin() {
                     onChange={handleProfileChange}
                     disabled={!isEditing}
                   />
-                  <span>Recevoir un recapitulatif quotidien</span>
+                  <span>Recevoir un récapitulatif quotidien</span>
                 </label>
               </div>
             </article>
