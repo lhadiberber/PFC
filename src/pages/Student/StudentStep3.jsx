@@ -622,8 +622,8 @@ export default function StudentStep3() {
                             <>
                               <span className="file-status-icon" aria-hidden="true">
                                 {normalizeKey(documentStatuses[fieldName]).startsWith("valid")
-                                  ? "✅"
-                                  : "⏳"}
+                                  ? "\u2705"
+                                  : "\u23F3"}
                               </span>
                               {`Statut : ${
                                 documentStatuses[fieldName] || "En attente de validation"
@@ -670,7 +670,7 @@ export default function StudentStep3() {
         </section>
 
         <details className="info-accordion">
-          <summary>Avant de continuer</summary>
+          <summary>{"\u26A0\uFE0F"} Avant de continuer</summary>
           <div className="content">
             <p>
               Vérifiez que chaque document déposé est lisible, complet et correspond
