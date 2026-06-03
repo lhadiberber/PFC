@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import ProgressBar from "../../components/ui/ProgressBar";
+import CustomSelect from "../../components/ui/CustomSelect";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { useAdmissions } from "../../context/AdmissionsContext";
 import { getAuthToken } from "../../services/authService";
@@ -229,6 +229,16 @@ function EyeClosed() {
   );
 }
 
+function getPasswordStrengthPercent(password) {
+  let score = 0;
+  if (password.length >= 8) score += 25;
+  if (password.length >= 12) score += 20;
+  if (/[A-Z]/.test(password)) score += 20;
+  if (/[0-9]/.test(password)) score += 20;
+  if (/[^A-Za-z0-9]/.test(password)) score += 15;
+  return Math.min(score, 100);
+}
+
 export default function Profil() {
   const navigate = useNavigate();
   const {
@@ -255,6 +265,7 @@ export default function Profil() {
     newPassword: "",
     confirmPassword: "",
   });
+  const [activeTab, setActiveTab] = useState("infos");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -414,6 +425,9 @@ export default function Profil() {
     : "Aucune candidature soumise pour le moment";
   const completionTone =
     overallCompletion >= 90 ? "Complet" : overallCompletion >= 60 ? "En progression" : "À compléter";
+  const passwordStrength = getPasswordStrengthPercent(passwordData.newPassword);
+  const securityStatus = accountInfo.password ? "Initialisée" : "À initialiser";
+  const latestApplicationLabel = latestApplication?.statut || "Aucune candidature";
 
   const handlePersonalChange = (event) => {
     const { name, value } = event.target;
@@ -642,20 +656,156 @@ export default function Profil() {
     </div>
   );
 
-  return (
-    <div className="student-profile-shell">
-      <header className="student-dashboard-hero student-profile-hero">
-        <div className="student-dashboard-hero-copy">
-          <span className="student-dashboard-kicker">Espace candidat</span>
-          <h1>Mon profil</h1>
-          <p className="student-dashboard-subtitle">
-            Complétez vos informations pour faciliter le traitement de votre dossier d'admission.
-          </p>
-          <p className="student-dashboard-welcome">
-            Vérifiez votre identité, vos coordonnées et les informations de votre baccalauréat.
-          </p>
-        </div>
+  const renderInputField = ({
+    label,
+    name,
+    value,
+    onChange,
+    type = "text",
+    required = false,
+    readOnly = false,
+    placeholder = "",
+    hint = "",
+    icon = "-",
+    full = false,
+    rows = 0,
+    extraProps = {},
+  }) => (
+    <label className={`profile-field ${full ? "profile-field-full" : ""}`.trim()}>
+      <span className="profile-field-label">
+        {label} {required ? <abbr title="obligatoire">*</abbr> : null}
+      </span>
+      <div className={`profile-input-wrap ${readOnly ? "is-readonly" : ""}`.trim()}>
+        <span className="profile-field-icon" aria-hidden="true">{icon}</span>
+        {rows > 0 ? (
+          <textarea
+            name={name}
+            rows={rows}
+            value={value}
+            onChange={onChange}
+            readOnly={readOnly}
+            placeholder={placeholder}
+            {...extraProps}
+          />
+        ) : (
+          <input
+            type={type}
+            name={name}
+            value={value}
+            onChange={onChange}
+            readOnly={readOnly}
+            placeholder={placeholder}
+            {...extraProps}
+          />
+        )}
+      </div>
+      {hint ? <small className="profile-field-hint">{hint}</small> : null}
+      {errors[name] ? <small className="error-message">{errors[name]}</small> : null}
+    </label>
+  );
 
+  const renderSelectField = ({
+    label,
+    name,
+    value,
+    onChange,
+    required = false,
+    disabled = false,
+    icon = "-",
+    children,
+  }) => (
+    <label className="profile-field">
+      <span className="profile-field-label">
+        {label} {required ? <abbr title="obligatoire">*</abbr> : null}
+      </span>
+      <div className={`profile-input-wrap ${disabled ? "is-readonly" : ""}`.trim()}>
+        <span className="profile-field-icon" aria-hidden="true">{icon}</span>
+        <CustomSelect
+          name={name}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          className={disabled ? "is-readonly" : ""}
+        >
+          {children}
+        </CustomSelect>
+      </div>
+      {errors[name] ? <small className="error-message">{errors[name]}</small> : null}
+    </label>
+  );
+
+  const renderPasswordField = ({
+    label,
+    name,
+    value,
+    ref,
+    show,
+    toggle,
+    placeholder,
+    hint,
+    required = false,
+  }) => (
+    <label className="profile-field">
+      <span className="profile-field-label">
+        {label} {required ? <abbr title="obligatoire">*</abbr> : null}
+      </span>
+      <div className="profile-input-wrap profile-password-wrap">
+        <span className="profile-field-icon" aria-hidden="true">SEC</span>
+        <input
+          ref={ref}
+          type={show ? "text" : "password"}
+          name={name}
+          value={value}
+          onChange={handlePasswordChange}
+          placeholder={placeholder}
+        />
+        <button
+          type="button"
+          className="profile-password-toggle"
+          onClick={() => {
+            toggle((current) => !current);
+            ref.current?.focus();
+          }}
+          aria-label={show ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+        >
+          {show ? <EyeClosed /> : <EyeOpen />}
+        </button>
+      </div>
+      {hint ? <small className="profile-field-hint">{hint}</small> : null}
+    </label>
+  );
+
+  const renderProgressItem = (label, value) => (
+    <div className="profile-state-row" key={label}>
+      <div className="profile-state-row-head">
+        <span>{label}</span>
+        <strong>{value}%</strong>
+      </div>
+      <div className="profile-state-track" aria-hidden="true">
+        <span style={{ width: `${value}%` }} />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="student-profile-shell profile-page">
+      <nav className="profile-breadcrumb" aria-label="Fil d'Ariane">
+        <Link to="/dashboard">Accueil</Link>
+        <span>/</span>
+        <strong>Profil</strong>
+      </nav>
+
+      <header className="profile-header">
+        <div className="profile-header-main">
+          <div className="profile-avatar">
+            {buildInitials(personalForm.nom, personalForm.prenom, personalForm.email)}
+          </div>
+          <div>
+            <span className="profile-kicker">Espace candidat</span>
+            <h1>Mon Profil</h1>
+            <p>Gérez vos informations personnelles et la sécurité de votre compte.</p>
+          </div>
+        </div>
         {renderActions()}
       </header>
 
@@ -674,543 +824,200 @@ export default function Profil() {
         </div>
       ) : null}
 
-      <section className="student-dashboard-panel student-profile-identity-card">
-        <div className="student-profile-identity-main">
-          <div className="student-profile-avatar">
-            {buildInitials(personalForm.nom, personalForm.prenom, personalForm.email)}
-          </div>
-
-          <div className="student-profile-identity-copy">
-            <span className="student-profile-kicker">Profil étudiant</span>
-            <h2>{displayName}</h2>
-            <p>{personalForm.email || "Aucune adresse e-mail renseignée"}</p>
-
-            <div className="student-profile-badges">
-              <StatusBadge status={profileStatus} />
-              <span className="student-profile-completion-pill">{completionTone}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="student-profile-identity-side">
-          <div className="student-profile-meta-item">
-            <span>Profil complété</span>
+      <section className="profile-summary-grid" aria-label="Résumé du profil">
+        <article className="profile-summary-card">
+          <span className="profile-summary-icon">PRO</span>
+          <div>
             <strong>{overallCompletion}%</strong>
+            <p>Profil complété</p>
           </div>
-          <div className="student-profile-meta-item">
-            <span>État du dossier</span>
-            <strong>{statusDescription}</strong>
+        </article>
+        <article className="profile-summary-card">
+          <span className="profile-summary-icon">DOS</span>
+          <div>
+            <strong>{latestApplicationLabel}</strong>
+            <p>Dossier</p>
           </div>
-          <div className="student-profile-meta-item">
-            <span>Dernière connexion</span>
-            <strong>{formatDateTime(accountInfo.lastLoginAt)}</strong>
+        </article>
+        <article className="profile-summary-card">
+          <span className="profile-summary-icon">SEC</span>
+          <div>
+            <strong>{securityStatus}</strong>
+            <p>Sécurité du compte</p>
           </div>
-        </div>
+        </article>
       </section>
 
-      <div className="student-profile-layout">
-        <div className="student-profile-main">
-          <section className="student-dashboard-panel student-profile-section">
-            <div className="student-dashboard-section-head">
-              <h2>Informations personnelles</h2>
-              <p>
-                Ces informations permettent d'identifier clairement votre dossier d'admission.
-                Les champs marqués <abbr title="obligatoire">*</abbr> sont obligatoires.
-              </p>
+      <div className="profile-container">
+        <main className="profile-main">
+          <section className="profile-card">
+            <div className="profile-card-header">
+              <div>
+                <h2>{displayName}</h2>
+                <p>{personalForm.email || "Aucune adresse e-mail renseignée"}</p>
+              </div>
+              <div className="profile-card-status">
+                <StatusBadge status={profileStatus} />
+                <span>{completionTone}</span>
+              </div>
             </div>
 
-            <div className="student-profile-form-grid">
-              <label className="student-profile-field">
-                <span>Nom <abbr title="obligatoire">*</abbr></span>
-                <input
-                  type="text"
-                  name="nom"
-                  value={personalForm.nom}
-                  onChange={handlePersonalChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                  autoComplete="family-name"
-                />
-                {errors.nom ? <small className="error-message">{errors.nom}</small> : null}
-              </label>
-
-              <label className="student-profile-field">
-                <span>Prénom <abbr title="obligatoire">*</abbr></span>
-                <input
-                  type="text"
-                  name="prenom"
-                  value={personalForm.prenom}
-                  onChange={handlePersonalChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                  autoComplete="given-name"
-                />
-                {errors.prenom ? <small className="error-message">{errors.prenom}</small> : null}
-              </label>
-
-              <label className="student-profile-field">
-                <span>Date de naissance <abbr title="obligatoire">*</abbr></span>
-                <input
-                  type="date"
-                  name="dateNaiss"
-                  value={personalForm.dateNaiss}
-                  onChange={handlePersonalChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                />
-                {errors.dateNaiss ? <small className="error-message">{errors.dateNaiss}</small> : null}
-              </label>
-
-              <label className="student-profile-field">
-                <span>Lieu de naissance <abbr title="obligatoire">*</abbr></span>
-                <input
-                  type="text"
-                  name="lieuNaiss"
-                  value={personalForm.lieuNaiss}
-                  onChange={handlePersonalChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                />
-                {errors.lieuNaiss ? <small className="error-message">{errors.lieuNaiss}</small> : null}
-              </label>
-
-              <label className="student-profile-field">
-                <span>Sexe <abbr title="obligatoire">*</abbr></span>
-                <select
-                  name="sexe"
-                  value={personalForm.sexe}
-                  onChange={handlePersonalChange}
-                  disabled={!isEditing}
-                  className={!isEditing ? "is-readonly" : ""}
-                >
-                  <option value="">Sélectionner</option>
-                  <option value="Homme">Homme</option>
-                  <option value="Femme">Femme</option>
-                </select>
-                {errors.sexe ? <small className="error-message">{errors.sexe}</small> : null}
-              </label>
-
-              <label className="student-profile-field">
-                <span>Nationalité <abbr title="obligatoire">*</abbr></span>
-                <select
-                  name="nationalite"
-                  value={personalForm.nationalite}
-                  onChange={handlePersonalChange}
-                  disabled={!isEditing}
-                  className={!isEditing ? "is-readonly" : ""}
-                >
-                  <option value="">Sélectionner une nationalité</option>
-                  {nationalities.map((country) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  ))}
-                </select>
-                {errors.nationalite ? (
-                  <small className="error-message">{errors.nationalite}</small>
-                ) : null}
-              </label>
-
-            </div>
-          </section>
-
-          <section className="student-dashboard-panel student-profile-section">
-            <div className="student-dashboard-section-head">
-              <h2>Coordonnées</h2>
-              <p>Ces informations permettent à l'administration de vous contacter pendant le suivi de votre dossier.</p>
+            <div className="profile-tabs" role="tablist" aria-label="Sections du profil">
+              <button
+                type="button"
+                className={`profile-tab ${activeTab === "infos" ? "active" : ""}`.trim()}
+                onClick={() => setActiveTab("infos")}
+                role="tab"
+                aria-selected={activeTab === "infos"}
+              >
+                Informations personnelles
+              </button>
+              <button
+                type="button"
+                className={`profile-tab ${activeTab === "bac" ? "active" : ""}`.trim()}
+                onClick={() => setActiveTab("bac")}
+                role="tab"
+                aria-selected={activeTab === "bac"}
+              >
+                Baccalauréat
+              </button>
+              <button
+                type="button"
+                className={`profile-tab ${activeTab === "securite" ? "active" : ""}`.trim()}
+                onClick={() => setActiveTab("securite")}
+                role="tab"
+                aria-selected={activeTab === "securite"}
+              >
+                Sécurité du compte
+              </button>
             </div>
 
-            <div className="student-profile-form-grid">
-              <label className="student-profile-field">
-                <span>Adresse e-mail</span>
-                <input
-                  type="email"
-                  name="email"
-                  value={personalForm.email}
-                  readOnly
-                  className="is-readonly"
-                  autoComplete="email"
-                />
-                <small className="student-profile-field-hint">
-                  L'adresse e-mail ne peut pas être modifiée depuis cette page.
-                </small>
-                {errors.email ? <small className="error-message">{errors.email}</small> : null}
-              </label>
+            {activeTab === "infos" ? (
+              <div className="profile-tab-panel" role="tabpanel">
+                <div className="profile-section-title">
+                  <h3>Identité</h3>
+                  <p>Les champs marqués <abbr title="obligatoire">*</abbr> sont obligatoires.</p>
+                </div>
+                <div className="profile-form-grid">
+                  {renderInputField({ label: "Nom", name: "nom", value: personalForm.nom, onChange: handlePersonalChange, required: true, readOnly: !isEditing, icon: "ID" })}
+                  {renderInputField({ label: "Prénom", name: "prenom", value: personalForm.prenom, onChange: handlePersonalChange, required: true, readOnly: !isEditing, icon: "ID" })}
+                  {renderInputField({ label: "Date de naissance", name: "dateNaiss", value: personalForm.dateNaiss, onChange: handlePersonalChange, type: "date", required: true, readOnly: !isEditing, icon: "DT" })}
+                  {renderInputField({ label: "Lieu de naissance", name: "lieuNaiss", value: personalForm.lieuNaiss, onChange: handlePersonalChange, required: true, readOnly: !isEditing, icon: "LOC" })}
+                  {renderSelectField({ label: "Sexe", name: "sexe", value: personalForm.sexe, onChange: handlePersonalChange, required: true, disabled: !isEditing, icon: "SX", children: <><option value="">Sélectionner</option><option value="Homme">Homme</option><option value="Femme">Femme</option></> })}
+                  {renderSelectField({ label: "Nationalité", name: "nationalite", value: personalForm.nationalite, onChange: handlePersonalChange, required: true, disabled: !isEditing, icon: "NAT", children: <><option value="">Sélectionner une nationalité</option>{nationalities.map((country) => (<option key={country} value={country}>{country}</option>))}</> })}
+                </div>
 
-              <label className="student-profile-field">
-                <span>Téléphone <abbr title="obligatoire">*</abbr></span>
-                <input
-                  type="tel"
-                  name="telephone"
-                  value={personalForm.telephone}
-                  onChange={handlePersonalChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                  autoComplete="tel"
-                />
-                {errors.telephone ? (
-                  <small className="error-message">{errors.telephone}</small>
-                ) : null}
-              </label>
-
-              <label className="student-profile-field student-profile-field-full">
-                <span>Adresse postale <abbr title="obligatoire">*</abbr></span>
-                <textarea
-                  name="adresse"
-                  rows={3}
-                  value={personalForm.adresse}
-                  onChange={handlePersonalChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                />
-                {errors.adresse ? <small className="error-message">{errors.adresse}</small> : null}
-              </label>
-
-              <label className="student-profile-field">
-                <span>Wilaya <abbr title="obligatoire">*</abbr></span>
-                <input
-                  type="text"
-                  name="wilaya"
-                  value={personalForm.wilaya}
-                  onChange={handlePersonalChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                />
-                {errors.wilaya ? <small className="error-message">{errors.wilaya}</small> : null}
-              </label>
-
-              <label className="student-profile-field">
-                <span>Commune <abbr title="obligatoire">*</abbr></span>
-                <input
-                  type="text"
-                  name="commune"
-                  value={personalForm.commune}
-                  onChange={handlePersonalChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                />
-                {errors.commune ? <small className="error-message">{errors.commune}</small> : null}
-              </label>
-            </div>
-          </section>
-
-          <section className="student-dashboard-panel student-profile-section">
-            <div className="student-dashboard-section-head">
-              <h2>Baccalauréat</h2>
-              <p>Renseignez les informations relatives à votre baccalauréat pour préparer l'étude de votre candidature.</p>
-            </div>
-
-            <div className="student-profile-form-grid">
-              <label className="student-profile-field">
-                <span>Année d'obtention <abbr title="obligatoire">*</abbr></span>
-                <input
-                  type="number"
-                  min="1980"
-                  max={new Date().getFullYear() + 1}
-                  name="anneeBac"
-                  value={academicForm.anneeBac}
-                  onChange={handleAcademicChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                  placeholder="Ex. 2024"
-                />
-                {errors.anneeBac ? <small className="error-message">{errors.anneeBac}</small> : null}
-              </label>
-
-              <label className="student-profile-field">
-                <span>Série du baccalauréat <abbr title="obligatoire">*</abbr></span>
-                <select
-                  name="serieBac"
-                  value={academicForm.serieBac}
-                  onChange={handleAcademicChange}
-                  disabled={!isEditing}
-                  className={!isEditing ? "is-readonly" : ""}
-                >
-                  <option value="">Sélectionner une série</option>
-                  {BAC_SERIES.map((serie) => (
-                    <option key={serie} value={serie}>
-                      {serie}
-                    </option>
-                  ))}
-                </select>
-                {errors.serieBac ? <small className="error-message">{errors.serieBac}</small> : null}
-              </label>
-
-              <label className="student-profile-field">
-                <span>Moyenne générale <abbr title="obligatoire">*</abbr></span>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="20"
-                  name="moyenneBac"
-                  value={academicForm.moyenneBac}
-                  onChange={handleAcademicChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                  placeholder="Ex. 14.50"
-                />
-                {errors.moyenneBac ? (
-                  <small className="error-message">{errors.moyenneBac}</small>
-                ) : null}
-              </label>
-
-              <label className="student-profile-field">
-                <span>Mention</span>
-                <select
-                  name="mentionBac"
-                  value={academicForm.mentionBac}
-                  onChange={handleAcademicChange}
-                  disabled={!isEditing}
-                  className={!isEditing ? "is-readonly" : ""}
-                >
-                  <option value="">Sélectionner une mention</option>
-                  {BAC_MENTIONS.map((mention) => (
-                    <option key={mention} value={mention}>
-                      {mention}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="student-profile-field">
-                <span>Numéro d'inscription au baccalauréat <abbr title="obligatoire">*</abbr></span>
-                <input
-                  type="text"
-                  name="numeroInscriptionBac"
-                  value={academicForm.numeroInscriptionBac}
-                  onChange={handleAcademicChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                  placeholder="Ex. 12345678"
-                />
-                {errors.numeroInscriptionBac ? (
-                  <small className="error-message">{errors.numeroInscriptionBac}</small>
-                ) : null}
-              </label>
-
-              <label className="student-profile-field">
-                <span>Lycée d'origine</span>
-                <input
-                  type="text"
-                  name="lyceeOrigine"
-                  value={academicForm.lyceeOrigine}
-                  onChange={handleAcademicChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                  placeholder="Nom de votre lycée"
-                />
-              </label>
-
-              <label className="student-profile-field">
-                <span>Wilaya du lycée</span>
-                <input
-                  type="text"
-                  name="wilayaLycee"
-                  value={academicForm.wilayaLycee}
-                  onChange={handleAcademicChange}
-                  readOnly={!isEditing}
-                  className={isEditing ? "" : "is-readonly"}
-                />
-              </label>
-            </div>
-          </section>
-
-          <div className="student-profile-bottom-actions">
-            {renderActions()}
-          </div>
-
-          <section className="student-dashboard-panel student-profile-section">
-            <div className="student-dashboard-section-head">
-              <h2>Sécurité du compte</h2>
-              <p>Mettez à jour votre mot de passe pour garder un accès sécurisé à votre espace.</p>
-            </div>
-
-            {!accountInfo.password ? (
-              <div className="student-application-note student-profile-inline-note">
-                <strong>Sécurité à initialiser</strong>
-                <p>
-                  Aucun mot de passe local n'est encore configuré pour ce compte.
-                  Enregistrez-en un pour renforcer l'accès à votre espace étudiant.
-                </p>
+                <div className="profile-section-title profile-section-spaced">
+                  <h3>Coordonnées</h3>
+                  <p>Ces informations permettent à l'administration de vous contacter.</p>
+                </div>
+                <div className="profile-form-grid">
+                  {renderInputField({ label: "Adresse e-mail", name: "email", value: personalForm.email, onChange: handlePersonalChange, type: "email", readOnly: true, icon: "@", hint: "L'adresse e-mail ne peut pas être modifiée depuis cette page.", extraProps: { autoComplete: "email" } })}
+                  {renderInputField({ label: "Téléphone", name: "telephone", value: personalForm.telephone, onChange: handlePersonalChange, type: "tel", required: true, readOnly: !isEditing, icon: "TEL", extraProps: { autoComplete: "tel" } })}
+                  {renderInputField({ label: "Adresse postale", name: "adresse", value: personalForm.adresse, onChange: handlePersonalChange, required: true, readOnly: !isEditing, icon: "ADR", full: true, rows: 3 })}
+                  {renderInputField({ label: "Wilaya", name: "wilaya", value: personalForm.wilaya, onChange: handlePersonalChange, required: true, readOnly: !isEditing, icon: "W" })}
+                  {renderInputField({ label: "Commune", name: "commune", value: personalForm.commune, onChange: handlePersonalChange, required: true, readOnly: !isEditing, icon: "C" })}
+                </div>
               </div>
             ) : null}
 
-            <form className="student-profile-form-grid" onSubmit={handlePasswordSubmit} noValidate>
-              <label className="student-profile-field">
-                <span>Mot de passe actuel</span>
-                <div className="login-password-wrap">
-                  <input
-                    ref={currentPasswordRef}
-                    type={showCurrentPassword ? "text" : "password"}
-                    name="currentPassword"
-                    value={passwordData.currentPassword}
-                    onChange={handlePasswordChange}
-                    placeholder={accountInfo.password ? "Saisir le mot de passe actuel" : "Non requis si aucun mot de passe n'est configuré"}
-                  />
-                  <button
-                    type="button"
-                    className="login-toggle-password"
-                    onClick={() => {
-                      setShowCurrentPassword((current) => !current);
-                      currentPasswordRef.current?.focus();
-                    }}
-                    aria-label={showCurrentPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                  >
-                    {showCurrentPassword ? <EyeClosed /> : <EyeOpen />}
-                  </button>
-                </div>
-              </label>
-
-              <label className="student-profile-field">
-                <span>Nouveau mot de passe</span>
-                <div className="login-password-wrap">
-                  <input
-                    ref={newPasswordRef}
-                    type={showNewPassword ? "text" : "password"}
-                    name="newPassword"
-                    value={passwordData.newPassword}
-                    onChange={handlePasswordChange}
-                    placeholder="Minimum 8 caractères"
-                  />
-                  <button
-                    type="button"
-                    className="login-toggle-password"
-                    onClick={() => {
-                      setShowNewPassword((current) => !current);
-                      newPasswordRef.current?.focus();
-                    }}
-                    aria-label={showNewPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                  >
-                    {showNewPassword ? <EyeClosed /> : <EyeOpen />}
-                  </button>
-                </div>
-              </label>
-
-              <label className="student-profile-field student-profile-field-full">
-                <span>Confirmation du nouveau mot de passe</span>
-                <div className="login-password-wrap">
-                  <input
-                    ref={confirmPasswordRef}
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    value={passwordData.confirmPassword}
-                    onChange={handlePasswordChange}
-                    placeholder="Confirmez le nouveau mot de passe"
-                  />
-                  <button
-                    type="button"
-                    className="login-toggle-password"
-                    onClick={() => {
-                      setShowConfirmPassword((current) => !current);
-                      confirmPasswordRef.current?.focus();
-                    }}
-                    aria-label={showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                  >
-                    {showConfirmPassword ? <EyeClosed /> : <EyeOpen />}
-                  </button>
-                </div>
-                {passwordData.confirmPassword.length > 0 ? (
-                  <small
-                    className={
-                      passwordData.newPassword === passwordData.confirmPassword
-                        ? "student-profile-match-ok"
-                        : "student-profile-match-error"
-                    }
-                    aria-live="polite"
-                  >
-                    {passwordData.newPassword === passwordData.confirmPassword
-                      ? "Les mots de passe correspondent."
-                      : "Les mots de passe ne correspondent pas."}
-                  </small>
-                ) : null}
-              </label>
-
-              <div className="student-profile-security-actions">
-                <button
-                  type="submit"
-                  className="student-application-button student-application-button-primary"
-                >
-                  Mettre à jour le mot de passe
-                </button>
-              </div>
-            </form>
-          </section>
-        </div>
-
-        <aside className="student-profile-side">
-          <section className="student-dashboard-panel student-profile-side-card">
-            <div className="student-dashboard-section-head">
-              <h2>État du profil</h2>
-              <p>Visualisez ce qui est déjà renseigné et ce qu'il reste à compléter avant de soumettre votre candidature.</p>
-            </div>
-
-            <div className="student-profile-progress-list">
-              <div className="student-progress-row">
-                <div className="student-progress-head">
-                  <h3>Informations personnelles</h3>
-                  <span>{identityCompletion}%</span>
-                </div>
-                <p>Nom, prénom, naissance, sexe et nationalité.</p>
-                <ProgressBar value={identityCompletion} color="#00C9B1" label={`${identityCompletion}%`} />
-              </div>
-
-              <div className="student-progress-row">
-                <div className="student-progress-head">
-                  <h3>Coordonnées</h3>
-                  <span>{contactCompletion}%</span>
-                </div>
-                <p>Email, téléphone, adresse, wilaya et commune.</p>
-                <ProgressBar value={contactCompletion} color="#1E2D3D" label={`${contactCompletion}%`} />
-              </div>
-
-              <div className="student-progress-row">
-                <div className="student-progress-head">
+            {activeTab === "bac" ? (
+              <div className="profile-tab-panel" role="tabpanel">
+                <div className="profile-section-title">
                   <h3>Baccalauréat</h3>
-                  <span>{academicCompletion}%</span>
+                  <p>Renseignez les informations utilisées pour préparer l'étude de votre candidature.</p>
                 </div>
-                <p>Série, moyenne et informations liées au baccalauréat.</p>
-                <ProgressBar value={academicCompletion} color="#059669" label={`${academicCompletion}%`} />
+                <div className="profile-form-grid">
+                  {renderInputField({ label: "Année d'obtention", name: "anneeBac", value: academicForm.anneeBac, onChange: handleAcademicChange, type: "number", required: true, readOnly: !isEditing, icon: "AN", placeholder: "Ex. 2024", extraProps: { min: "1980", max: new Date().getFullYear() + 1 } })}
+                  {renderSelectField({ label: "Série du baccalauréat", name: "serieBac", value: academicForm.serieBac, onChange: handleAcademicChange, required: true, disabled: !isEditing, icon: "SR", children: <><option value="">Sélectionner une série</option>{BAC_SERIES.map((serie) => (<option key={serie} value={serie}>{serie}</option>))}</> })}
+                  {renderInputField({ label: "Moyenne générale", name: "moyenneBac", value: academicForm.moyenneBac, onChange: handleAcademicChange, type: "number", required: true, readOnly: !isEditing, icon: "MOY", placeholder: "Ex. 14.50", extraProps: { step: "0.01", min: "0", max: "20" } })}
+                  {renderSelectField({ label: "Mention", name: "mentionBac", value: academicForm.mentionBac, onChange: handleAcademicChange, disabled: !isEditing, icon: "MEN", children: <><option value="">Sélectionner une mention</option>{BAC_MENTIONS.map((mention) => (<option key={mention} value={mention}>{mention}</option>))}</> })}
+                  {renderInputField({ label: "Numéro d'inscription", name: "numeroInscriptionBac", value: academicForm.numeroInscriptionBac, onChange: handleAcademicChange, required: true, readOnly: !isEditing, icon: "NUM", placeholder: "Ex. 12345678" })}
+                  {renderInputField({ label: "Lycée d'origine", name: "lyceeOrigine", value: academicForm.lyceeOrigine, onChange: handleAcademicChange, readOnly: !isEditing, icon: "LYC", placeholder: "Nom de votre lycée" })}
+                  {renderInputField({ label: "Wilaya du lycée", name: "wilayaLycee", value: academicForm.wilayaLycee, onChange: handleAcademicChange, readOnly: !isEditing, icon: "W" })}
+                </div>
               </div>
-            </div>
+            ) : null}
 
-            <div className="student-dashboard-panel-actions">
-              <Link to="/student-step1" className="student-dashboard-link">
-                Compléter mon dossier
-              </Link>
-              <Link to="/mes-candidatures" className="student-dashboard-ghost-link">
-                Voir mes candidatures
-              </Link>
+            {activeTab === "securite" ? (
+              <div className="profile-tab-panel" role="tabpanel">
+                {!accountInfo.password ? (
+                  <div className="profile-security-alert">
+                    <span aria-hidden="true">SEC</span>
+                    <div>
+                      <strong>Sécurité à initialiser</strong>
+                      <p>Aucun mot de passe local n'est encore configuré pour ce compte. Enregistrez-en un pour renforcer l'accès à votre espace étudiant.</p>
+                    </div>
+                  </div>
+                ) : null}
+
+                <form className="profile-form-grid" onSubmit={handlePasswordSubmit} noValidate>
+                  {renderPasswordField({ label: "Mot de passe actuel", name: "currentPassword", value: passwordData.currentPassword, ref: currentPasswordRef, show: showCurrentPassword, toggle: setShowCurrentPassword, placeholder: accountInfo.password ? "Saisir le mot de passe actuel" : "Non requis si aucun mot de passe n'est configuré", hint: accountInfo.password ? "Requis pour confirmer le changement." : "Vous pouvez créer directement un nouveau mot de passe." })}
+                  <div>
+                    {renderPasswordField({ label: "Nouveau mot de passe", name: "newPassword", value: passwordData.newPassword, ref: newPasswordRef, show: showNewPassword, toggle: setShowNewPassword, placeholder: "Minimum 8 caractères", hint: "Utilisez au moins 8 caractères, avec chiffres et majuscules si possible.", required: true })}
+                    <div className="profile-password-strength" aria-hidden="true">
+                      <span style={{ width: `${passwordStrength}%` }} />
+                    </div>
+                  </div>
+                  <div className="profile-field-full">
+                    {renderPasswordField({ label: "Confirmation du nouveau mot de passe", name: "confirmPassword", value: passwordData.confirmPassword, ref: confirmPasswordRef, show: showConfirmPassword, toggle: setShowConfirmPassword, placeholder: "Confirmez le nouveau mot de passe", required: true })}
+                    {passwordData.confirmPassword.length > 0 ? (
+                      <small className={passwordData.newPassword === passwordData.confirmPassword ? "student-profile-match-ok" : "student-profile-match-error"} aria-live="polite">
+                        {passwordData.newPassword === passwordData.confirmPassword ? "Les mots de passe correspondent." : "Les mots de passe ne correspondent pas."}
+                      </small>
+                    ) : null}
+                  </div>
+                  <div className="profile-field-full profile-security-submit">
+                    <button type="submit" className="student-application-button student-application-button-primary">
+                      Mettre à jour le mot de passe
+                    </button>
+                  </div>
+                </form>
+              </div>
+            ) : null}
+
+            <div className="student-profile-bottom-actions">
+              {renderActions()}
             </div>
           </section>
+        </main>
 
-          <section className="student-dashboard-panel student-profile-side-card">
-            <div className="student-dashboard-section-head">
-              <h2>Informations du compte</h2>
-              <p>Informations de connexion et état général de votre compte étudiant.</p>
+        <aside className="profile-sidebar-right" aria-label="État du profil">
+          <section className="profile-state-card">
+            <div className="profile-state-header">
+              <h2>État du profil</h2>
+              <p>Visualisez votre progression</p>
             </div>
 
-            <div className="student-profile-account-list">
-              <div className="student-profile-account-row">
-                <span>Adresse e-mail</span>
-                <strong>{accountInfo.email || personalForm.email || "Non renseignée"}</strong>
+            <div className="profile-state-score">
+              <strong>{overallCompletion}%</strong>
+              <span>{completionTone}</span>
+            </div>
+
+            <div className="profile-state-list">
+              {renderProgressItem("Informations personnelles", identityCompletion)}
+              {renderProgressItem("Coordonnées", contactCompletion)}
+              {renderProgressItem("Baccalauréat", academicCompletion)}
+            </div>
+
+            <div className="profile-account-list">
+              <div>
+                <span>Dossier</span>
+                <strong>{latestApplicationLabel}</strong>
               </div>
-              <div className="student-profile-account-row">
-                <span>Date de création du compte</span>
-                <strong>{formatDate(accountInfo.accountCreatedAt)}</strong>
-              </div>
-              <div className="student-profile-account-row">
+              <div>
                 <span>Dernière connexion</span>
                 <strong>{formatDateTime(accountInfo.lastLoginAt)}</strong>
               </div>
-              <div className="student-profile-account-row">
-                <span>Statut du compte</span>
-                <strong>{accountInfo.accountStatus || "Actif"}</strong>
+              <div>
+                <span>Mot de passe</span>
+                <strong>{securityStatus}</strong>
               </div>
-              <div className="student-profile-account-row">
-                <span>Dernière mise à jour du mot de passe</span>
-                <strong>{formatDateTime(accountInfo.lastPasswordUpdatedAt)}</strong>
-              </div>
+            </div>
+
+            <div className="profile-state-actions">
+              <Link to="/student-step1" className="profile-primary-action">Compléter mon dossier</Link>
+              <Link to="/mes-candidatures" className="profile-secondary-action">Voir mes candidatures</Link>
             </div>
           </section>
         </aside>

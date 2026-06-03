@@ -73,6 +73,161 @@
   text-align: right;
 }
 
+.custom-select {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+  min-width: 0;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 38px 0 12px;
+  border: 1px solid var(--color-border-strong, #B8CCDA);
+  border-radius: var(--radius-lg, 8px);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #0D1B27);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.custom-select-trigger:hover {
+  background: var(--color-surface-soft, #F7FAFB);
+  border-color: rgba(30, 45, 61, .22);
+}
+
+.custom-select-trigger:focus-visible {
+  outline: none;
+  border-color: var(--color-accent, #00C9B1);
+  box-shadow: 0 0 0 3px rgba(0, 201, 177, .16);
+}
+
+.custom-select-trigger:disabled,
+.custom-select.is-disabled .custom-select-trigger {
+  cursor: not-allowed;
+  opacity: .72;
+  background: var(--color-surface-soft, #F7FAFB);
+  color: var(--color-text-secondary, #4A6275);
+}
+
+.custom-select-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-select-chevron {
+  position: absolute;
+  right: 12px;
+  width: 14px;
+  height: 14px;
+  opacity: .55;
+  pointer-events: none;
+  transition: transform .2s ease;
+}
+
+.custom-select-chevron.open {
+  transform: rotate(180deg);
+}
+
+.custom-select-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  min-width: 100%;
+  max-height: 260px;
+  margin: 0;
+  padding: 5px;
+  display: none;
+  overflow-y: auto;
+  background: var(--color-primary, #1E2D3D);
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: var(--radius-xl, 12px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .28);
+  z-index: 400;
+  animation: customSelectFadeIn .15s ease;
+}
+
+.custom-select-menu.open {
+  display: block;
+}
+
+.custom-select-menu li {
+  list-style: none;
+  padding: 8px 12px;
+  color: rgba(255, 255, 255, .68);
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  transition: background .15s ease, color .15s ease;
+}
+
+.custom-select-menu li:hover,
+.custom-select-menu li:focus-visible {
+  background: rgba(255, 255, 255, .07);
+  color: #fff;
+  outline: none;
+}
+
+.custom-select-menu li.active {
+  color: var(--color-accent, #00C9B1);
+  font-weight: 700;
+}
+
+.custom-select-menu li.is-disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.admin-toolbar .custom-select,
+.student-candidatures-page-size .custom-select {
+  width: auto;
+  min-width: 132px;
+}
+
+.student-profile-field .custom-select,
+.student-application-field .custom-select,
+.auth-register-field .custom-select,
+.admin-profile-field .custom-select {
+  width: 100%;
+}
+
+html[dir="rtl"] .custom-select-trigger {
+  padding: 0 12px 0 38px;
+  text-align: right;
+}
+
+html[dir="rtl"] .custom-select-chevron {
+  right: auto;
+  left: 12px;
+}
+
+@keyframes customSelectFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Design system Ardoise + Cyan Menthe - UI */
 
 .ui-button,
