@@ -1,15 +1,29 @@
 export const API_BASE_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/+$/, "");
+const API_REQUEST_TIMEOUT_MS = 12000;
 
 function normalizeApiUrl(url) {
   return String(url || "").replace(/\/+$/, "");
 }
 
+function isBrowserRuntime() {
+  return typeof window !== "undefined";
+}
+
+function isLocalHostname(hostname) {
+  return ["localhost", "127.0.0.1", "::1"].includes(hostname);
+}
+
+function normalizeEndpoint(endpoint) {
+  const normalizedEndpoint = String(endpoint || "").trim();
+  return normalizedEndpoint.startsWith("/") ? normalizedEndpoint : `/${normalizedEndpoint}`;
+}
+
 function getRuntimeApiUrls() {
-  if (typeof window === "undefined") {
+  if (!isBrowserRuntime()) {
     return [];
   }
 
-  const { protocol, hostname } = window.location;
+  const { protocol, hostname, origin } = window.location;
 
   if (!hostname) {
     return [];
@@ -17,31 +31,39 @@ function getRuntimeApiUrls() {
 
   const urls = [];
 
-  if (!["localhost", "127.0.0.1"].includes(hostname)) {
-    urls.push(`http://${hostname}:5000/api`);
-
-    if (protocol !== "http:") {
-      urls.push(`${protocol}//${hostname}:5000/api`);
-    }
+  if (!API_BASE_URL.startsWith("http")) {
+    urls.push(`${origin}${API_BASE_URL}`);
   }
 
-  if (hostname === "localhost") {
+  if (isLocalHostname(hostname)) {
     urls.push("http://127.0.0.1:5000/api");
+    urls.push("http://localhost:5000/api");
+    return urls;
   }
 
-  if (hostname === "127.0.0.1") {
-    urls.push("http://localhost:5000/api");
+  if (protocol === "https:") {
+    urls.push(`https://${hostname}:5000/api`);
+    return urls;
   }
+
+  urls.push(`http://${hostname}:5000/api`);
 
   return urls;
+}
+
+function getLocalApiFallbackUrls() {
+  if (isBrowserRuntime() && !isLocalHostname(window.location.hostname)) {
+    return [];
+  }
+
+  return ["http://127.0.0.1:5000/api", "http://localhost:5000/api"];
 }
 
 export function getApiFallbackUrls() {
   return [
     API_BASE_URL,
     ...getRuntimeApiUrls(),
-    "http://localhost:5000/api",
-    "http://127.0.0.1:5000/api",
+    ...getLocalApiFallbackUrls(),
   ]
     .map(normalizeApiUrl)
     .filter((url, index, urls) => url && urls.indexOf(url) === index);
@@ -84,18 +106,49 @@ export async function readJsonResponse(response) {
   }
 }
 
+async function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS);
+  const { signal, ...requestOptions } = options;
+
+  if (signal) {
+    if (signal.aborted) {
+      controller.abort();
+    } else {
+      signal.addEventListener("abort", () => controller.abort(), { once: true });
+    }
+  }
+
+  try {
+    return await fetch(url, {
+      ...requestOptions,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export async function fetchApi(endpoint, options = {}) {
   let lastNetworkError = null;
+  let lastInvalidResponse = null;
   const triedUrls = [];
+  const normalizedEndpoint = normalizeEndpoint(endpoint);
 
   for (const baseUrl of getApiFallbackUrls()) {
-    triedUrls.push(baseUrl);
+    const requestUrl = `${baseUrl}${normalizedEndpoint}`;
+    triedUrls.push(requestUrl);
 
     try {
-      const response = await fetch(`${baseUrl}${endpoint}`, options);
+      const response = await fetchWithTimeout(requestUrl, options);
       const contentType = response.headers.get("content-type") || "";
 
       if (!contentType.includes("application/json") && response.status !== 204) {
+        lastInvalidResponse = {
+          url: requestUrl,
+          status: response.status,
+          contentType,
+        };
         continue;
       }
 
@@ -105,14 +158,24 @@ export async function fetchApi(endpoint, options = {}) {
     }
   }
 
-  throw new ApiError(
-    "Backend indisponible. Lancez le serveur backend sur le port 5000 puis réessayez.",
-    0,
-    {
-      triedUrls,
-      error: lastNetworkError?.message || "Network error",
-    }
-  );
+  if (lastInvalidResponse && !lastNetworkError) {
+    throw new ApiError(
+      "Reponse API invalide. Verifiez que le frontend pointe vers le backend Express.",
+      lastInvalidResponse.status,
+      {
+        triedUrls,
+        lastInvalidResponse,
+      }
+    );
+  }
+
+  throw new ApiError("Backend indisponible. Lancez le serveur backend sur le port 5000 puis reessayez.", 0, {
+    triedUrls,
+    error:
+      lastNetworkError?.name === "AbortError"
+        ? `Timeout apres ${API_REQUEST_TIMEOUT_MS / 1000}s`
+        : lastNetworkError?.message || "Network error",
+  });
 }
 
 export async function apiRequest(endpoint, options = {}) {
