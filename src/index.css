@@ -2633,3 +2633,85 @@ select.student-application-input {
     text-align: left;
   }
 }
+
+/* Harmonisation typographique profil avec le parcours candidature */
+.profile-page .profile-kicker {
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.profile-page .profile-header h1 {
+  margin-bottom: 4px;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.profile-page .profile-header p,
+.profile-page .profile-card-header p,
+.profile-page .profile-section-title p,
+.profile-page .profile-state-header p,
+.profile-page .profile-security-alert p {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.profile-page .profile-card-header h2,
+.profile-page .profile-section-title h3 {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.profile-page .profile-tab {
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.profile-page .profile-tab.active {
+  font-weight: 700;
+}
+
+.profile-page .profile-field-label,
+.profile-page .profile-state-row-head span,
+.profile-page .profile-state-row-head strong {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profile-page .profile-input-wrap input,
+.profile-page .profile-input-wrap textarea,
+.profile-page .profile-input-wrap .custom-select-trigger {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.profile-page .profile-summary-card strong {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.profile-page .profile-summary-card p,
+.profile-page .profile-field-hint,
+.profile-page .profile-field .error-message,
+.profile-page .profile-account-list span,
+.profile-page .profile-account-list strong {
+  font-size: 11px;
+}
+
+.profile-page .profile-state-header h2 {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.profile-page .profile-state-score strong {
+  font-size: 26px;
+}
+
+.profile-page .profile-primary-action,
+.profile-page .profile-secondary-action,
+.profile-page .student-application-button {
+  font-size: 13px;
+  font-weight: 600;
+}
