@@ -1,10 +1,47 @@
 export const API_BASE_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/+$/, "");
 
-const API_FALLBACK_URLS = [
-  API_BASE_URL,
-  "http://localhost:5000/api",
-  "http://127.0.0.1:5000/api",
-].filter((url, index, urls) => url && urls.indexOf(url) === index);
+function normalizeApiUrl(url) {
+  return String(url || "").replace(/\/+$/, "");
+}
+
+function getRuntimeApiUrls() {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  const { protocol, hostname } = window.location;
+
+  if (!hostname) {
+    return [];
+  }
+
+  const urls = [];
+
+  if (!["localhost", "127.0.0.1"].includes(hostname)) {
+    urls.push(`${protocol}//${hostname}:5000/api`);
+  }
+
+  if (hostname === "localhost") {
+    urls.push("http://127.0.0.1:5000/api");
+  }
+
+  if (hostname === "127.0.0.1") {
+    urls.push("http://localhost:5000/api");
+  }
+
+  return urls;
+}
+
+export function getApiFallbackUrls() {
+  return [
+    API_BASE_URL,
+    ...getRuntimeApiUrls(),
+    "http://localhost:5000/api",
+    "http://127.0.0.1:5000/api",
+  ]
+    .map(normalizeApiUrl)
+    .filter((url, index, urls) => url && urls.indexOf(url) === index);
+}
 
 const AUTH_STORAGE_KEYS = {
   token: "token",
@@ -45,13 +82,16 @@ export async function readJsonResponse(response) {
 
 export async function fetchApi(endpoint, options = {}) {
   let lastNetworkError = null;
+  const triedUrls = [];
 
-  for (const baseUrl of API_FALLBACK_URLS) {
+  for (const baseUrl of getApiFallbackUrls()) {
+    triedUrls.push(baseUrl);
+
     try {
       const response = await fetch(`${baseUrl}${endpoint}`, options);
       const contentType = response.headers.get("content-type") || "";
 
-      if (!contentType.includes("application/json")) {
+      if (!contentType.includes("application/json") && response.status !== 204) {
         continue;
       }
 
@@ -62,9 +102,12 @@ export async function fetchApi(endpoint, options = {}) {
   }
 
   throw new ApiError(
-    lastNetworkError?.message === "Failed to fetch"
-      ? "Backend indisponible. Vérifiez que le serveur est lancé."
-      : "Backend indisponible. Vérifiez que le serveur est lancé."
+    "Backend indisponible. Lancez le serveur backend sur le port 5000 puis réessayez.",
+    0,
+    {
+      triedUrls,
+      error: lastNetworkError?.message || "Network error",
+    }
   );
 }
 
