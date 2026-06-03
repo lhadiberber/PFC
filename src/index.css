@@ -2715,3 +2715,251 @@ select.student-application-input {
   font-size: 13px;
   font-weight: 600;
 }
+
+/* Step 3 - depot des fichiers */
+.student-step3-page {
+  gap: 24px;
+  padding-bottom: 8px;
+}
+
+.student-step3-page .student-application-form-card {
+  padding: 16px;
+}
+
+.student-step3-page .student-application-section-head {
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+}
+
+.student-step3-page .student-application-progress-banner {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+}
+
+.student-step3-page .upload-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.student-step3-page .upload-card {
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.student-step3-page .upload-card.completed {
+  border-left: 3px solid #00C9B1;
+  background: #fafafa;
+}
+
+.student-step3-page .student-application-upload-head {
+  gap: 12px;
+}
+
+.student-step3-page .student-application-upload-head h3 {
+  margin-bottom: 4px;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.student-step3-page .student-application-upload-head p {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.student-step3-page .upload-card .upload-zone {
+  min-height: 154px;
+  border: 1.5px solid #e2e8f0;
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.student-step3-page .upload-card .upload-zone:hover,
+.student-step3-page .upload-card .upload-zone.drag-over {
+  background: rgba(0, 201, 177, 0.04);
+  border-color: #00C9B1;
+  transform: none;
+}
+
+.student-step3-page .upload-card .upload-zone.has-file {
+  min-height: 118px;
+  padding: 16px;
+  border-color: #dbe7e5;
+  background: #fff;
+}
+
+.student-step3-page .upload-card .upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.student-step3-page .upload-svg-icon {
+  width: 32px;
+  height: 32px;
+  color: #94a3b8;
+}
+
+.student-step3-page .upload-card .upload-label {
+  color: #1E2D3D;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.student-step3-page .upload-card .upload-hint {
+  color: #6B7280;
+  font-size: 13px;
+}
+
+.student-step3-page .upload-card .upload-formats {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.student-step3-page .upload-card .uploaded-file {
+  width: 100%;
+  padding: 0;
+  gap: 10px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.student-step3-page .upload-card .file-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #E0F7F4;
+  color: #1E2D3D;
+}
+
+.student-step3-page .upload-card .file-info {
+  min-width: 0;
+  flex: 1;
+  font-size: 13px;
+  color: #64748b;
+  margin: 4px 0 8px;
+}
+
+.student-step3-page .upload-card .file-name {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: #1E2D3D;
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-step3-page .upload-card .file-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.student-step3-page .upload-card .file-status-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.student-step3-page .upload-card .btn-retirer {
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: all 0.15s ease;
+}
+
+.student-step3-page .upload-card .btn-retirer:hover {
+  color: #dc2626;
+  text-decoration: underline;
+}
+
+.student-step3-page .info-accordion {
+  margin-bottom: 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.student-step3-page .info-accordion summary {
+  padding: 12px 16px;
+  background: #f8fafc;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  color: #1E2D3D;
+}
+
+.student-step3-page .info-accordion .content {
+  padding: 12px 16px 16px;
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.student-step3-page .info-accordion .content p {
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.student-step3-page .form-actions {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.04);
+}
+
+@media (max-width: 900px) {
+  .student-step3-page .upload-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .student-step3-page .form-actions {
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .student-step3-page .form-actions > * {
+    width: 100%;
+  }
+
+  .student-step3-page .upload-card .uploaded-file {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

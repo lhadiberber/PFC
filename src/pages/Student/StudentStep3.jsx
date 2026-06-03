@@ -9,7 +9,6 @@ import {
   listMyDocuments,
   uploadStudentDocument,
 } from "../../services/documentService";
-import { showToast } from "../../utils/toast";
 import "../../index.css";
 
 const documentConfig = {
@@ -152,6 +151,25 @@ function buildInitialFiles(documents = {}) {
     residence: documents.residence || "",
     justificatifParticulier: documents.justificatifParticulier || documents.cv || "",
   };
+}
+
+function UploadIcon() {
+  return (
+    <svg
+      className="upload-svg-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 16V4" />
+      <path d="m7 9 5-5 5 5" />
+      <path d="M20 16.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.5" />
+    </svg>
+  );
 }
 
 export default function StudentStep3() {
@@ -320,7 +338,6 @@ export default function StudentStep3() {
         [fieldName]: fileName,
         [LEGACY_FIELD_BY_DOCUMENT_FIELD[fieldName] || fieldName]: fileName,
       });
-      showToast(`Document déposé avec succès : ${config.label}.`, "success");
     } catch (error) {
       const message = error.message || "Impossible de déposer ce document.";
       if (error.status === 401) {
@@ -369,7 +386,6 @@ export default function StudentStep3() {
         [LEGACY_FIELD_BY_DOCUMENT_FIELD[fieldName] || fieldName]: "",
       });
       clearFieldError(fieldName);
-      showToast(`Document supprimé : ${documentConfig[fieldName].label}.`, "success");
 
       if (fileInputRefs.current[fieldName]) {
         fileInputRefs.current[fieldName].value = "";
@@ -490,7 +506,7 @@ export default function StudentStep3() {
       introText="Les pièces obligatoires permettent de vérifier votre baccalauréat, votre identité et votre résidence. Le justificatif particulier est facultatif."
       sidebar={sidebar}
     >
-      <div className="student-application-form-stack">
+      <div className="student-application-form-stack student-step3-page">
         <section className="student-dashboard-panel student-application-form-card">
           <div className="student-application-section-head">
             <div>
@@ -532,9 +548,14 @@ export default function StudentStep3() {
             <ProgressBar value={uploadProgress} color="#00C9B1" label={`${uploadProgress}%`} />
           </div>
 
-          <div className="student-application-upload-grid">
+          <div className="student-application-upload-grid upload-grid">
             {Object.entries(documentConfig).map(([fieldName, config]) => (
-              <div key={fieldName} className="student-application-upload-card">
+              <div
+                key={fieldName}
+                className={`student-application-upload-card upload-card ${
+                  files[fieldName] ? "completed" : ""
+                }`.trim()}
+              >
                 <div className="student-application-upload-head">
                   <div>
                     <h3>{config.label}</h3>
@@ -595,15 +616,26 @@ export default function StudentStep3() {
                       <div className="file-info">
                         <span className="file-name">{files[fieldName]}</span>
                         <span className="file-status">
-                          {uploadingFields[fieldName]
-                            ? "Envoi en cours..."
-                            : `Statut : ${documentStatuses[fieldName] || "En attente de validation"}`}
+                          {uploadingFields[fieldName] ? (
+                            "Envoi en cours..."
+                          ) : (
+                            <>
+                              <span className="file-status-icon" aria-hidden="true">
+                                {normalizeKey(documentStatuses[fieldName]).startsWith("valid")
+                                  ? "✅"
+                                  : "⏳"}
+                              </span>
+                              {`Statut : ${
+                                documentStatuses[fieldName] || "En attente de validation"
+                              }`}
+                            </>
+                          )}
                         </span>
                       </div>
 
                       <button
                         type="button"
-                        className="remove-file-btn"
+                        className="remove-file-btn btn-retirer"
                         disabled={uploadingFields[fieldName]}
                         onClick={(event) => {
                           event.stopPropagation();
@@ -615,6 +647,7 @@ export default function StudentStep3() {
                     </div>
                   ) : (
                     <div className="upload-placeholder">
+                      <UploadIcon />
                       <span className="upload-label">{config.label}</span>
                       <span className="upload-hint">
                         {uploadingFields[fieldName]
@@ -636,18 +669,18 @@ export default function StudentStep3() {
           </div>
         </section>
 
-        <section className="student-dashboard-panel student-application-form-card">
-          <div className="student-application-note">
-            <strong>Avant de continuer</strong>
+        <details className="info-accordion">
+          <summary>Avant de continuer</summary>
+          <div className="content">
             <p>
               Vérifiez que chaque document déposé est lisible, complet et correspond
               bien à la pièce demandée. Un document illisible ou incorrect peut
               entraîner un retard dans l'instruction de votre dossier.
             </p>
           </div>
-        </section>
+        </details>
 
-        <div className="student-application-actions">
+        <div className="student-application-actions form-actions">
           <button
             type="button"
             className="student-application-button student-application-button-secondary"
