@@ -64,7 +64,13 @@ const BAC_FIELDS = [
   "wilayaLycee",
 ];
 
-const DOCUMENT_FIELDS = ["copieBac", "releveNotes", "carteIdentite", "photo", "residence"];
+const DOCUMENT_FIELDS = [
+  "attestationReussite",
+  "releveNotes",
+  "carteIdentite",
+  "photo",
+  "residence",
+];
 
 const BAC_SERIES = [
   "Sciences expérimentales",

@@ -11,14 +11,47 @@ import {
   updateAdminDocumentStatus,
 } from "../models/admin.model.js";
 
-const REQUIRED_DOCUMENT_TYPES = [
-  { type: "Diplome", key: "copieBac" },
-  { type: "Releve de notes", key: "releveNotes" },
-  { type: "Passeport / Carte d'identite", key: "carteIdentite" },
-  { type: "Lettre de motivation", key: "photo" },
-  { type: "Certificat de langue", key: "residence" },
-  { type: "CV", key: "cv" },
+const DOCUMENT_TYPES = [
+  {
+    type: "Relevé de notes du baccalauréat",
+    key: "releveNotes",
+    aliases: ["Releve de notes"],
+    required: true,
+  },
+  {
+    type: "Attestation de réussite au baccalauréat",
+    key: "attestationReussite",
+    legacyKey: "copieBac",
+    aliases: ["Diplome", "Copie du bac ou diplome"],
+    required: true,
+  },
+  {
+    type: "Pièce d'identité",
+    key: "carteIdentite",
+    aliases: ["Passeport / Carte d'identite", "Carte d'identite ou passeport"],
+    required: true,
+  },
+  {
+    type: "Photo d'identité",
+    key: "photo",
+    aliases: ["Lettre de motivation"],
+    required: true,
+  },
+  {
+    type: "Certificat de résidence",
+    key: "residence",
+    aliases: ["Certificat de langue"],
+    required: true,
+  },
+  {
+    type: "Justificatif particulier",
+    key: "justificatifParticulier",
+    legacyKey: "cv",
+    aliases: ["CV"],
+    required: false,
+  },
 ];
+const REQUIRED_DOCUMENT_TYPES = DOCUMENT_TYPES.filter((document) => document.required);
 
 const PROFILE_FIELDS = [
   "nom",
@@ -129,8 +162,12 @@ function buildNumeroDossier(application) {
   return `CAND-${year}-${String(application.id).padStart(3, "0")}`;
 }
 
-function documentKeyForType(typeDocument) {
-  return REQUIRED_DOCUMENT_TYPES.find((document) => document.type === typeDocument)?.key;
+function normalizeDocumentType(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function buildDocumentsByStudent(documents) {
@@ -143,9 +180,20 @@ function buildDocumentsByStudent(documents) {
 
 function buildApplicationDetails(application, documentsByStudent) {
   const studentDocuments = documentsByStudent.get(String(application.student_id)) || [];
-  const documentDetails = REQUIRED_DOCUMENT_TYPES.reduce((details, requiredDocument) => {
-    const document = studentDocuments.find((item) => item.type_document === requiredDocument.type);
-    details[requiredDocument.key] = document?.nom_fichier || "";
+  const documentDetails = DOCUMENT_TYPES.reduce((details, requiredDocument) => {
+    const acceptedTypes = [requiredDocument.type, ...(requiredDocument.aliases || [])].map(
+      normalizeDocumentType
+    );
+    const document = studentDocuments.find((item) =>
+      acceptedTypes.includes(normalizeDocumentType(item.type_document))
+    );
+    const fileName = document?.nom_fichier || "";
+    details[requiredDocument.key] = fileName;
+
+    if (requiredDocument.legacyKey) {
+      details[requiredDocument.legacyKey] = fileName;
+    }
+
     return details;
   }, {});
 
@@ -506,8 +554,8 @@ export async function getAdminOverview(_request, response, next) {
       SELECT
         COUNT(*) AS totalCandidatures,
         SUM(statut = 'En attente') AS enAttente,
-        SUM(statut = 'Acceptee') AS acceptees,
-        SUM(statut = 'Rejetee') AS rejetees
+        SUM(statut IN ('Acceptée', 'Acceptee')) AS acceptees,
+        SUM(statut IN ('Refusée', 'Refusee', 'Rejetee')) AS rejetees
       FROM applications
     `);
 

@@ -37,12 +37,11 @@ const INTERNAL_STATUS_OPTIONS = [
 ];
 
 const DOCUMENT_FIELDS = [
-  { key: "copieBac", label: "Copie du bac" },
-  { key: "releveNotes", label: "Relevé de notes" },
-  { key: "carteIdentite", label: "Carte d'identité" },
+  { key: "releveNotes", label: "Relevé de notes du baccalauréat" },
+  { key: "attestationReussite", label: "Attestation de réussite au bac" },
+  { key: "carteIdentite", label: "Pièce d'identité" },
   { key: "photo", label: "Photo d'identité" },
-  { key: "residence", label: "Justificatif de résidence" },
-  { key: "cv", label: "CV" },
+  { key: "residence", label: "Certificat de résidence" },
 ];
 
 function getCompletenessLabel(level) {

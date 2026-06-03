@@ -9,21 +9,19 @@ const PROFILE_FIELDS = [
 ];
 
 const DOCUMENT_FIELDS = [
-  "copieBac",
   "releveNotes",
+  "attestationReussite",
   "carteIdentite",
   "photo",
   "residence",
-  "cv",
 ];
 
 const DOCUMENT_LABELS = {
-  copieBac: "Copie du bac",
-  releveNotes: "Releve de notes",
-  carteIdentite: "Carte d'identite",
-  photo: "Photo",
-  residence: "Residence",
-  cv: "CV",
+  releveNotes: "Releve de notes du baccalaureat",
+  attestationReussite: "Attestation de reussite au bac",
+  carteIdentite: "Piece d'identite",
+  photo: "Photo d'identite",
+  residence: "Certificat de residence",
 };
 
 const ACADEMIC_FIELDS = ["typeBac", "anneeBac", "moyenneBac", "specialite", "universite"];

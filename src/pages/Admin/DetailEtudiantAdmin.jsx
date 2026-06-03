@@ -13,11 +13,11 @@ import {
 import "../../index.css";
 
 const DOCUMENT_FIELDS = [
-  { key: "carteIdentite", label: "Passeport / carte d'identite" },
-  { key: "releveNotes", label: "Releve de notes" },
-  { key: "cv", label: "CV" },
-  { key: "copieBac", label: "Diplome" },
-  { key: "lettreMotivation", label: "Lettre de motivation" },
+  { key: "releveNotes", label: "Releve de notes du baccalaureat" },
+  { key: "attestationReussite", label: "Attestation de reussite au bac" },
+  { key: "carteIdentite", label: "Piece d'identite" },
+  { key: "photo", label: "Photo d'identite" },
+  { key: "residence", label: "Certificat de residence" },
 ];
 
 function getFieldValue(value, fallback = "Non renseigne") {
@@ -235,10 +235,7 @@ export default function DetailEtudiantAdmin() {
           provided: Boolean(document.nom_fichier),
         }))
       : DOCUMENT_FIELDS.map((documentField) => {
-          const value =
-            documentField.key === "lettreMotivation"
-              ? latestApplication.details?.motivation || latestApplication.details?.lettreMotivation
-              : latestApplication.details?.[documentField.key];
+          const value = latestApplication.details?.[documentField.key];
 
           return {
             ...documentField,

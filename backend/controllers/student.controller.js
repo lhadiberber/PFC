@@ -19,12 +19,26 @@ const PROFILE_FIELDS = [
 ];
 
 const REQUIRED_DOCUMENT_TYPES = [
-  "Diplome",
-  "Releve de notes",
-  "Passeport / Carte d'identite",
-  "Lettre de motivation",
-  "Certificat de langue",
-  "CV",
+  {
+    type: "Relevé de notes du baccalauréat",
+    aliases: ["Releve de notes"],
+  },
+  {
+    type: "Attestation de réussite au baccalauréat",
+    aliases: ["Diplome", "Copie du bac ou diplome"],
+  },
+  {
+    type: "Pièce d'identité",
+    aliases: ["Passeport / Carte d'identite", "Carte d'identite ou passeport"],
+  },
+  {
+    type: "Photo d'identité",
+    aliases: ["Lettre de motivation"],
+  },
+  {
+    type: "Certificat de résidence",
+    aliases: ["Certificat de langue"],
+  },
 ];
 
 function hasValue(value) {
@@ -59,6 +73,14 @@ function normalizeStatus(status) {
   }
 
   return "En attente";
+}
+
+function normalizeDocumentType(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function buildProfileSummary(student) {
@@ -99,8 +121,16 @@ function buildDocumentsSummary(documents) {
     ...document,
     statut: normalizeStatus(document.statut),
   }));
-  const uploadedTypes = new Set(normalizedDocuments.map((document) => document.type_document));
-  const missing = REQUIRED_DOCUMENT_TYPES.filter((type) => !uploadedTypes.has(type));
+  const uploadedTypes = new Set(
+    normalizedDocuments.map((document) => normalizeDocumentType(document.type_document))
+  );
+  const missing = REQUIRED_DOCUMENT_TYPES.filter((requiredDocument) => {
+    const acceptedTypes = [requiredDocument.type, ...(requiredDocument.aliases || [])].map(
+      normalizeDocumentType
+    );
+
+    return !acceptedTypes.some((type) => uploadedTypes.has(type));
+  }).map((requiredDocument) => requiredDocument.type);
 
   return {
     total: normalizedDocuments.length,
