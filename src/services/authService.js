@@ -18,7 +18,11 @@ function getRuntimeApiUrls() {
   const urls = [];
 
   if (!["localhost", "127.0.0.1"].includes(hostname)) {
-    urls.push(`${protocol}//${hostname}:5000/api`);
+    urls.push(`http://${hostname}:5000/api`);
+
+    if (protocol !== "http:") {
+      urls.push(`${protocol}//${hostname}:5000/api`);
+    }
   }
 
   if (hostname === "localhost") {
