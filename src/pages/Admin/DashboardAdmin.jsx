@@ -2158,7 +2158,7 @@ export default function DashboardAdmin() {
               <small>Dossiers complets à arbitrer</small>
             </div>
             <div className="admin-worklist-overview-card">
-              <span>Âge moyen</span>
+              <span>Age moyen</span>
               <strong>{adminWorkQueue.summary.averageAge} j</strong>
               <small>Ancienneté moyenne des dossiers ouverts</small>
             </div>

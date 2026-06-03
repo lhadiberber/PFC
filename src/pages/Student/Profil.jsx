@@ -103,23 +103,6 @@ function buildInitials(nom, prenom, email) {
     .join("");
 }
 
-function formatDate(value) {
-  if (!value) {
-    return "Non renseignée";
-  }
-
-  const parsedDate = new Date(value);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return value;
-  }
-
-  return parsedDate.toLocaleDateString("fr-FR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-}
-
 function formatDateTime(value) {
   if (!value) {
     return "Non renseignée";
@@ -420,9 +403,6 @@ export default function Profil() {
   );
 
   const profileStatus = latestApplication?.statut || "Actif";
-  const statusDescription = latestApplication
-    ? `Dernière candidature - ${latestApplication.numeroDossier || ""}`.trim()
-    : "Aucune candidature soumise pour le moment";
   const completionTone =
     overallCompletion >= 90 ? "Complet" : overallCompletion >= 60 ? "En progression" : "À compléter";
   const passwordStrength = getPasswordStrengthPercent(passwordData.newPassword);

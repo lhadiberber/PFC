@@ -25,8 +25,8 @@ function getFieldValue(value, fallback = "Non renseigne") {
 }
 
 function normalizeStatus(status) {
-  if (["Acceptée", "Acceptee", "AcceptÃ©e"].includes(status)) return "Acceptee";
-  if (["Refusée", "Refusee", "RefusÃ©e", "Rejetee"].includes(status)) return "Rejetee";
+  if (["Acceptée", "Acceptee"].includes(status)) return "Acceptee";
+  if (["Refusée", "Refusee", "Rejetee"].includes(status)) return "Rejetee";
   return "En attente";
 }
 

@@ -42,19 +42,19 @@ function toPercent(completed, total) {
 function normalizeStatus(status) {
   const cleanStatus = String(status || "").trim();
 
-  if (["Acceptée", "Acceptee", "AcceptÃ©e"].includes(cleanStatus)) {
+  if (["Acceptée", "Acceptee"].includes(cleanStatus)) {
     return "Acceptée";
   }
 
-  if (["Refusée", "Refusee", "RefusÃ©e", "Rejetee", "Rejetée"].includes(cleanStatus)) {
+  if (["Refusée", "Refusee", "Rejetee", "Rejetée"].includes(cleanStatus)) {
     return "Refusée";
   }
 
-  if (["Validé", "Valide", "ValidÃ©"].includes(cleanStatus)) {
+  if (["Validé", "Valide"].includes(cleanStatus)) {
     return "Validé";
   }
 
-  if (["Refusé", "Refuse", "RefusÃ©"].includes(cleanStatus)) {
+  if (["Refusé", "Refuse"].includes(cleanStatus)) {
     return "Refusé";
   }
 

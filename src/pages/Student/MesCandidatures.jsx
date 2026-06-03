@@ -106,21 +106,11 @@ function normalizeStatus(status) {
   const cleanStatus = String(status || "").trim();
   const normalizedStatus = normalizeKey(cleanStatus);
 
-  if (
-    normalizedStatus.startsWith("accept") ||
-    cleanStatus.includes("AcceptÃ") ||
-    cleanStatus.includes("AcceptÃƒ")
-  ) {
+  if (normalizedStatus.startsWith("accept")) {
     return "Acceptee";
   }
 
-  if (
-    normalizedStatus.startsWith("refus") ||
-    normalizedStatus.startsWith("rejet") ||
-    cleanStatus.includes("RefusÃ") ||
-    cleanStatus.includes("RejetÃ") ||
-    cleanStatus.includes("RefusÃƒ")
-  ) {
+  if (normalizedStatus.startsWith("refus") || normalizedStatus.startsWith("rejet")) {
     return "Rejetee";
   }
 
