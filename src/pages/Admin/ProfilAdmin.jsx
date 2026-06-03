@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Button from "../../components/ui/Button";
+import CustomSelect from "../../components/ui/CustomSelect";
 import AdminLayout from "../../components/admin/AdminLayout";
 import { formatAdminDate, formatAdminDateTime } from "../../utils/adminApplications";
 import {
@@ -473,7 +474,7 @@ export default function ProfilAdmin() {
               <div className="admin-profile-preferences">
                 <label className="admin-profile-field">
                   <span>Thème</span>
-                  <select
+                  <CustomSelect
                     name="themePreference"
                     value={profileData.themePreference}
                     onChange={handleProfileChange}
@@ -481,7 +482,7 @@ export default function ProfilAdmin() {
                   >
                     <option value="light">Clair</option>
                     <option value="dark">Sombre</option>
-                  </select>
+                  </CustomSelect>
                 </label>
 
                 <label className="admin-preference-card">

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ApplicationStepLayout from "../../components/student/ApplicationStepLayout";
+import CustomSelect from "../../components/ui/CustomSelect";
 import ProgressBar from "../../components/ui/ProgressBar";
 import { useAdmissions } from "../../context/AdmissionsContext";
 import { findFiliereByName } from "../../data/formationsBachelier";
@@ -166,7 +167,7 @@ export default function StudentStep2() {
           <div className="student-application-form-grid">
             <div className="student-application-field student-application-field-full">
               <label htmlFor="application-establishment">Établissement <abbr title="champ obligatoire">*</abbr></label>
-              <select
+              <CustomSelect
                 id="application-establishment"
                 name="etablissement"
                 value={formData.etablissement}
@@ -181,7 +182,7 @@ export default function StudentStep2() {
                     {etablissement.nom}
                   </option>
                 ))}
-              </select>
+              </CustomSelect>
               {errors.etablissement ? (
                 <span className="error-message">{errors.etablissement}</span>
               ) : null}

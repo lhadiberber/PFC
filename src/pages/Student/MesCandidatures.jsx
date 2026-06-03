@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
+import CustomSelect from "../../components/ui/CustomSelect";
 import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
@@ -863,7 +864,7 @@ export default function MesCandidatures() {
               <div className="student-candidatures-pagination-controls">
                 <label className="student-candidatures-page-size">
                   <span>Par page :</span>
-                  <select
+                  <CustomSelect
                     value={itemsPerPage}
                     onChange={(event) => setItemsPerPage(Number(event.target.value))}
                     className="student-candidatures-page-size-select"
@@ -873,7 +874,7 @@ export default function MesCandidatures() {
                         {option}
                       </option>
                     ))}
-                  </select>
+                  </CustomSelect>
                 </label>
 
                 {totalPages > 1 && (

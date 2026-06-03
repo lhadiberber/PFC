@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ApplicationStepLayout from "../../components/student/ApplicationStepLayout";
+import CustomSelect from "../../components/ui/CustomSelect";
 import ProgressBar from "../../components/ui/ProgressBar";
 import { useAdmissions } from "../../context/AdmissionsContext";
 import {
@@ -186,7 +187,7 @@ export default function StudentStep1() {
           <div className="student-application-form-grid">
             <div className="student-application-field">
               <label htmlFor="application-domain">Domaine d'études <abbr title="champ obligatoire">*</abbr></label>
-              <select
+              <CustomSelect
                 id="application-domain"
                 name="domaine"
                 value={formData.domaine}
@@ -200,13 +201,13 @@ export default function StudentStep1() {
                     {domaine}
                   </option>
                 ))}
-              </select>
+              </CustomSelect>
               {errors.domaine ? <span className="error-message">{errors.domaine}</span> : null}
             </div>
 
             <div className="student-application-field">
               <label htmlFor="application-filiere">Filière souhaitée <abbr title="champ obligatoire">*</abbr></label>
-              <select
+              <CustomSelect
                 id="application-filiere"
                 name="filiere"
                 value={formData.filiere}
@@ -225,7 +226,7 @@ export default function StudentStep1() {
                     {filiere.nom}
                   </option>
                 ))}
-              </select>
+              </CustomSelect>
               {!formData.domaine ? (
                 <span className="student-application-hint">
                   Sélectionnez un domaine pour afficher les filières disponibles.

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import LanguageSelector from "../LanguageSelector";
+import { useNavigate } from "react-router-dom";
+import Sidebar from "../Sidebar";
 import Button from "../ui/Button";
 import PageHeader from "../ui/PageHeader";
 import { useLanguage } from "../../context/LanguageContext";
@@ -15,26 +15,6 @@ function getStoredAdminProfile() {
   } catch (error) {
     return null;
   }
-}
-
-function getStoredSidebarCollapsed() {
-  try {
-    return localStorage.getItem("adminSidebarCollapsed") === "true";
-  } catch (error) {
-    return false;
-  }
-}
-
-function getActiveMenu(pathname) {
-  if (pathname.startsWith("/super-admin/admins")) return "super-admin-admins";
-  if (pathname.startsWith("/super-admin/users")) return "super-admin-users";
-  if (pathname.startsWith("/super-admin/profil")) return "super-admin-profile";
-  if (pathname.startsWith("/super-admin")) return "super-admin-dashboard";
-  if (pathname.startsWith("/admin/candidatures")) return "candidatures";
-  if (pathname.startsWith("/admin/etudiants")) return "etudiants";
-  if (pathname.startsWith("/admin/documents")) return "documents";
-  if (pathname.startsWith("/admin/profil")) return "profil";
-  return "dashboard";
 }
 
 function buildInitials(fullName) {
@@ -184,30 +164,35 @@ function getMenuItems(t, role) {
           label: t("adminLayout.menu.dashboard"),
           icon: "dashboard",
           path: "/admin",
+          activePaths: ["/admin"],
         },
         {
           id: "candidatures",
           label: t("adminLayout.menu.candidatures"),
-          icon: "folder",
+          icon: "file",
           path: "/admin/candidatures",
+          activePrefixes: ["/admin/candidatures"],
         },
         {
           id: "etudiants",
           label: t("adminLayout.menu.students"),
-          icon: "students",
+          icon: "users",
           path: "/admin/etudiants",
+          activePrefixes: ["/admin/etudiants"],
         },
         {
           id: "documents",
           label: t("adminLayout.menu.documents"),
-          icon: "document",
+          icon: "file",
           path: "/admin/documents",
+          activePrefixes: ["/admin/documents"],
         },
         {
           id: "profil",
           label: t("adminLayout.menu.profile"),
-          icon: "profile",
+          icon: "user",
           path: "/admin/profil",
+          activePrefixes: ["/admin/profil"],
         },
       ],
     },
@@ -236,24 +221,28 @@ function getMenuItems(t, role) {
           label: "Tableau de bord super admin",
           icon: "shield",
           path: "/super-admin",
+          activePaths: ["/super-admin"],
         },
         {
           id: "super-admin-admins",
           label: "Gestion des administrateurs",
-          icon: "students",
+          icon: "users",
           path: "/super-admin/admins",
+          activePrefixes: ["/super-admin/admins"],
         },
         {
           id: "super-admin-users",
           label: "Utilisateurs",
-          icon: "students",
+          icon: "users",
           path: "/super-admin/users",
+          activePrefixes: ["/super-admin/users"],
         },
         {
           id: "super-admin-profile",
           label: "Profil",
-          icon: "profile",
+          icon: "user",
           path: "/super-admin/profil",
+          activePrefixes: ["/super-admin/profil"],
         },
       ],
     },
@@ -277,10 +266,8 @@ export default function AdminLayout({
 }) {
   const { locale, t } = useLanguage();
   const navigate = useNavigate();
-  const location = useLocation();
   const notifRef = useRef(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("adminDarkMode") === "true");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => getStoredSidebarCollapsed());
   const [showNotif, setShowNotif] = useState(false);
   const [adminProfile, setAdminProfile] = useState(() => getStoredAdminProfile());
   const [currentTime, setCurrentTime] = useState(() => new Date());
@@ -295,7 +282,6 @@ export default function AdminLayout({
   const sessionName = `${sessionUser.prenom || ""} ${sessionUser.nom || ""}`.trim();
   const userRole = session?.role || "";
   const menuItems = useMemo(() => getMenuItems(t, userRole), [t, userRole]);
-  const activeMenu = getActiveMenu(location.pathname);
 
   const operatorName = adminProfile?.fullName || sessionName || t("adminLayout.defaultOperator");
   const operatorRole =
@@ -312,10 +298,6 @@ export default function AdminLayout({
     localStorage.setItem("adminDarkMode", darkMode ? "true" : "false");
     return () => document.body.classList.remove("dark");
   }, [darkMode]);
-
-  useEffect(() => {
-    localStorage.setItem("adminSidebarCollapsed", sidebarCollapsed ? "true" : "false");
-  }, [sidebarCollapsed]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -393,69 +375,18 @@ export default function AdminLayout({
   };
 
   return (
-    <div
-      className={`admin-layout ${darkMode ? "theme-dark" : ""} ${
-        sidebarCollapsed ? "sidebar-collapsed" : ""
-      }`}
-    >
-      <aside className="admin-sidebar">
-        <div className="admin-sidebar-header">
-          <div className="admin-sidebar-brand">
-            <div className="admin-brand-mark">PFC</div>
-            <div className="admin-brand-copy">
-              <h2 className="admin-logo">{t("common.portalAdmissions")}</h2>
-              <p className="admin-logo-subtitle">{t("adminLayout.sidebarSubtitle")}</p>
-            </div>
-          </div>
-
-          <Button
-            className="admin-sidebar-toggle"
-            onClick={() => setSidebarCollapsed((current) => !current)}
-            title={sidebarCollapsed ? "Developper la navigation" : "Replier la navigation"}
-          >
-            <AdminIcon name={sidebarCollapsed ? "collapse-right" : "collapse-left"} />
-          </Button>
-        </div>
-
-        <nav className="admin-sidebar-nav">
-          {menuItems.map((group) => (
-            <div key={group.section} className="admin-nav-group">
-              {group.section ? (
-                <span className="admin-nav-group-title">{group.section}</span>
-              ) : null}
-
-              {group.items.map((item) => (
-                <Link
-                  key={item.id}
-                  to={item.path}
-                  className={`admin-nav-item ${activeMenu === item.id ? "active" : ""}`}
-                  title={sidebarCollapsed ? item.label : undefined}
-                  aria-label={item.label}
-                >
-                  <span className="admin-nav-icon">
-                    <AdminIcon name={item.icon} />
-                  </span>
-                  <span className="admin-nav-label">{item.label}</span>
-                </Link>
-              ))}
-            </div>
-          ))}
-        </nav>
-
-        <div className="admin-sidebar-footer">
-          <Button
-            className="admin-nav-item admin-logout-btn"
-            onClick={handleLogout}
-            title={sidebarCollapsed ? "Deconnexion" : undefined}
-            aria-label="Deconnexion"
-          >
-            <span className="admin-nav-icon">
-              <AdminIcon name="logout" />
-            </span>
-            <span className="admin-nav-label">Deconnexion</span>
-          </Button>
-        </div>
-      </aside>
+    <div className={`admin-layout ${darkMode ? "theme-dark" : ""}`}>
+      <Sidebar
+        brandHref={userRole === "super_admin" ? "/super-admin" : "/admin"}
+        brandTitle={t("common.portalAdmissions")}
+        brandSubtitle={t("adminLayout.sidebarSubtitle")}
+        className="app-sidebar-admin"
+        navGroups={menuItems}
+        onLogout={handleLogout}
+        userInitials={operatorInitials}
+        userName={operatorName}
+        userSubtitle={operatorRole}
+      />
 
       <main className="admin-main">
         <header className="admin-header admin-header-focused">
@@ -472,8 +403,6 @@ export default function AdminLayout({
             {headerAction ? <div className="admin-header-top-actions">{headerAction}</div> : null}
 
             <div className="admin-header-meta">
-              <LanguageSelector compact className="admin-language-selector" />
-
               <div className="admin-header-date">
                 <span className="admin-header-meta-label">{t("adminLayout.dateLabel")}</span>
                 <strong>{formattedDate}</strong>

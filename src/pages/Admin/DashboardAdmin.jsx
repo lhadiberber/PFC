@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
+import CustomSelect from "../../components/ui/CustomSelect";
 import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
@@ -1174,7 +1175,7 @@ export default function DashboardAdmin() {
               <label className="admin-toolbar-label" htmlFor="dashboardPeriod">
                 Période
               </label>
-              <select
+              <CustomSelect
                 id="dashboardPeriod"
                 className="admin-toolbar-select"
                 value={dashboardPeriod}
@@ -1189,14 +1190,14 @@ export default function DashboardAdmin() {
                     {option.label}
                   </option>
                 ))}
-              </select>
+              </CustomSelect>
             </div>
 
             <div className="admin-toolbar-group">
               <label className="admin-toolbar-label" htmlFor="dashboardStatus">
                 Statut
               </label>
-              <select
+              <CustomSelect
                 id="dashboardStatus"
                 className="admin-toolbar-select"
                 value={dashboardStatus}
@@ -1211,14 +1212,14 @@ export default function DashboardAdmin() {
                     {option.label}
                   </option>
                 ))}
-              </select>
+              </CustomSelect>
             </div>
 
             <div className="admin-toolbar-group">
               <label className="admin-toolbar-label" htmlFor="dashboardUniversity">
                 Université
               </label>
-              <select
+              <CustomSelect
                 id="dashboardUniversity"
                 className="admin-toolbar-select"
                 value={dashboardUniversity}
@@ -1234,14 +1235,14 @@ export default function DashboardAdmin() {
                     {option}
                   </option>
                 ))}
-              </select>
+              </CustomSelect>
             </div>
 
             <div className="admin-toolbar-group">
               <label className="admin-toolbar-label" htmlFor="dashboardSpecialite">
                 Spécialité
               </label>
-              <select
+              <CustomSelect
                 id="dashboardSpecialite"
                 className="admin-toolbar-select"
                 value={dashboardSpecialite}
@@ -1257,7 +1258,7 @@ export default function DashboardAdmin() {
                     {option}
                   </option>
                 ))}
-              </select>
+              </CustomSelect>
             </div>
 
             <div className="admin-toolbar-actions">
@@ -1280,7 +1281,7 @@ export default function DashboardAdmin() {
                   <label className="admin-toolbar-label" htmlFor="dashboardPriority">
                     Priorité
                   </label>
-                  <select
+                  <CustomSelect
                     id="dashboardPriority"
                     className="admin-toolbar-select"
                     value={dashboardPriority}
@@ -1295,14 +1296,14 @@ export default function DashboardAdmin() {
                         {option.label}
                       </option>
                     ))}
-                  </select>
+                  </CustomSelect>
                 </div>
 
                 <div className="admin-toolbar-group">
                   <label className="admin-toolbar-label" htmlFor="dashboardManualPriority">
                     Priorité manuelle
                   </label>
-                  <select
+                  <CustomSelect
                     id="dashboardManualPriority"
                     className="admin-toolbar-select"
                     value={dashboardManualPriority}
@@ -1317,14 +1318,14 @@ export default function DashboardAdmin() {
                         {option.label}
                       </option>
                     ))}
-                  </select>
+                  </CustomSelect>
                 </div>
 
                 <div className="admin-toolbar-group">
                   <label className="admin-toolbar-label" htmlFor="dashboardAssignedTo">
                     Affectation
                   </label>
-                  <select
+                  <CustomSelect
                     id="dashboardAssignedTo"
                     className="admin-toolbar-select"
                     value={dashboardAssignedTo}
@@ -1341,14 +1342,14 @@ export default function DashboardAdmin() {
                         {option}
                       </option>
                     ))}
-                  </select>
+                  </CustomSelect>
                 </div>
 
                 <div className="admin-toolbar-group">
                   <label className="admin-toolbar-label" htmlFor="dashboardInternalStatus">
                     Statut interne
                   </label>
-                  <select
+                  <CustomSelect
                     id="dashboardInternalStatus"
                     className="admin-toolbar-select"
                     value={dashboardInternalStatus}
@@ -1363,7 +1364,7 @@ export default function DashboardAdmin() {
                         {option.label}
                       </option>
                     ))}
-                  </select>
+                  </CustomSelect>
                 </div>
               </div>
             </div>

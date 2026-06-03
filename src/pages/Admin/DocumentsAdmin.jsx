@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
+import CustomSelect from "../../components/ui/CustomSelect";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
@@ -527,7 +528,7 @@ export default function DocumentsAdmin() {
                 <label className="admin-toolbar-label" htmlFor="documentsPageSize">
                   Afficher par page
                 </label>
-                <select
+                <CustomSelect
                   id="documentsPageSize"
                   className="admin-toolbar-select"
                   value={pageSize}
@@ -541,7 +542,7 @@ export default function DocumentsAdmin() {
                   <option value={10}>10</option>
                   <option value={25}>25</option>
                   <option value={50}>50</option>
-                </select>
+                </CustomSelect>
               </div>
             </div>
 

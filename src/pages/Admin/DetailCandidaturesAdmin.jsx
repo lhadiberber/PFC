@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
+import CustomSelect from "../../components/ui/CustomSelect";
 import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
@@ -720,7 +721,7 @@ export default function DetailCandidaturesAdmin() {
                 <div className="admin-control-grid">
                   <label className="admin-control-field" htmlFor="detailPriority">
                     <span className="admin-toolbar-label">Priorité</span>
-                    <select
+                    <CustomSelect
                       id="detailPriority"
                       className="admin-toolbar-select"
                       value={metadataForm.internalPriority}
@@ -736,12 +737,12 @@ export default function DetailCandidaturesAdmin() {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </CustomSelect>
                   </label>
 
                   <label className="admin-control-field" htmlFor="detailInternalStatus">
                     <span className="admin-toolbar-label">Statut interne</span>
-                    <select
+                    <CustomSelect
                       id="detailInternalStatus"
                       className="admin-toolbar-select"
                       value={metadataForm.internalStatus}
@@ -757,7 +758,7 @@ export default function DetailCandidaturesAdmin() {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </CustomSelect>
                   </label>
 
                   <label

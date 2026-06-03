@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
+import CustomSelect from "../../components/ui/CustomSelect";
 import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
@@ -593,7 +594,7 @@ export default function CandidaturesAdmin() {
                 <label className="admin-toolbar-label" htmlFor="candidaturesUniversity">
                   Université
                 </label>
-                <select
+                <CustomSelect
                   id="candidaturesUniversity"
                   className="admin-toolbar-select"
                   value={filterUniversity}
@@ -609,14 +610,14 @@ export default function CandidaturesAdmin() {
                       {option}
                     </option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="candidaturesSpecialite">
                   Spécialité
                 </label>
-                <select
+                <CustomSelect
                   id="candidaturesSpecialite"
                   className="admin-toolbar-select"
                   value={filterSpecialite}
@@ -632,14 +633,14 @@ export default function CandidaturesAdmin() {
                       {option}
                     </option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="candidaturesCompletion">
                   Complétude
                 </label>
-                <select
+                <CustomSelect
                   id="candidaturesCompletion"
                   className="admin-toolbar-select"
                   value={filterCompletion}
@@ -652,14 +653,14 @@ export default function CandidaturesAdmin() {
                   <option value="tous">Tous</option>
                   <option value="complets">Complets</option>
                   <option value="incomplets">Incomplets</option>
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="candidaturesQueue">
                   File
                 </label>
-                <select
+                <CustomSelect
                   id="candidaturesQueue"
                   className="admin-toolbar-select"
                   value={filterQueue}
@@ -675,14 +676,14 @@ export default function CandidaturesAdmin() {
                   <option value="retard">Retard {'>'} 7 j</option>
                   <option value="pret">Prêts à décider</option>
                   <option value="today">Soumissions du jour</option>
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="candidaturesManualPriority">
                   Priorité manuelle
                 </label>
-                <select
+                <CustomSelect
                   id="candidaturesManualPriority"
                   className="admin-toolbar-select"
                   value={filterManualPriority}
@@ -697,14 +698,14 @@ export default function CandidaturesAdmin() {
                   <option value="moyenne">Moyenne</option>
                   <option value="haute">Haute</option>
                   <option value="critique">Critique</option>
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="candidaturesAssignedTo">
                   Affectation
                 </label>
-                <select
+                <CustomSelect
                   id="candidaturesAssignedTo"
                   className="admin-toolbar-select"
                   value={filterAssignedTo}
@@ -721,14 +722,14 @@ export default function CandidaturesAdmin() {
                       {option}
                     </option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="candidaturesInternalStatus">
                   Statut interne
                 </label>
-                <select
+                <CustomSelect
                   id="candidaturesInternalStatus"
                   className="admin-toolbar-select"
                   value={filterInternalStatus}
@@ -744,14 +745,14 @@ export default function CandidaturesAdmin() {
                   <option value="commission">Commission</option>
                   <option value="decision">Décision</option>
                   <option value="decision-finalisee">Décision finalisée</option>
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="sortField">
                   Trier par
                 </label>
-                <select
+                <CustomSelect
                   id="sortField"
                   className="admin-toolbar-select"
                   value={sortField}
@@ -764,14 +765,14 @@ export default function CandidaturesAdmin() {
                   <option value="statut">Statut</option>
                   <option value="priorite">Priorité interne</option>
                   <option value="miseajour">Dernière mise à jour</option>
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="sortDirection">
                   Ordre
                 </label>
-                <select
+                <CustomSelect
                   id="sortDirection"
                   className="admin-toolbar-select"
                   value={sortDirection}
@@ -779,14 +780,14 @@ export default function CandidaturesAdmin() {
                 >
                   <option value="desc">Décroissant</option>
                   <option value="asc">Croissant</option>
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="pageSize">
                   Par page
                 </label>
-                <select
+                <CustomSelect
                   id="pageSize"
                   className="admin-toolbar-select"
                   value={pageSize}
@@ -795,7 +796,7 @@ export default function CandidaturesAdmin() {
                   <option value={5}>5</option>
                   <option value={10}>10</option>
                   <option value={20}>20</option>
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-actions">

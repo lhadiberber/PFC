@@ -2951,3 +2951,83 @@
     border-bottom: 0;
   }
 }
+
+/* Corrections ciblees page d'accueil */
+.campus-landing .campus-header-actions {
+  align-items: center;
+}
+
+.campus-landing .language-selector-control {
+  height: 26px;
+  min-height: 26px;
+  min-width: 38px;
+  padding: 0 18px 0 6px;
+  border-radius: var(--radius-lg);
+  background-position: right 5px center;
+  background-size: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.campus-landing .campus-nav-link.active::after {
+  right: auto;
+  left: 50%;
+  width: calc(100% - 4px);
+  transform: translateX(-50%);
+  border-radius: 999px;
+}
+
+.campus-hero .campus-btn-secondary {
+  background: rgba(255, 255, 255, .06);
+  border-color: rgba(255, 255, 255, .3);
+  color: #fff;
+  border-radius: var(--radius-lg);
+}
+
+.campus-hero .campus-btn-secondary:hover,
+.campus-hero .campus-btn-secondary:focus-visible {
+  background: rgba(255, 255, 255, .13);
+  border-color: rgba(255, 255, 255, .48);
+  color: #fff;
+}
+
+.campus-hero .campus-btn-primary,
+.campus-hero .campus-btn-secondary,
+.campus-landing .campus-btn-header-cta,
+.campus-landing .campus-btn-login {
+  border-radius: var(--radius-lg);
+}
+
+.campus-steps {
+  padding-top: 60px;
+}
+
+.campus-hero-visual,
+.campus-university-card,
+.campus-program-card,
+.campus-feature-card,
+.campus-faq-item,
+.campus-footer-info-card {
+  border-radius: var(--radius-xl);
+}
+
+.campus-hero-img {
+  border-radius: var(--radius-xl);
+  object-fit: cover;
+  object-position: 35% center;
+}
+
+@media (max-width: 768px) {
+  .campus-landing .language-selector-control {
+    height: 24px;
+    min-height: 24px;
+    min-width: 36px;
+    padding: 0 18px 0 5px;
+    font-size: 9px;
+  }
+
+  .campus-steps {
+    padding-top: 48px;
+  }
+}

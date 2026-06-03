@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
+import CustomSelect from "../../components/ui/CustomSelect";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
@@ -661,7 +662,7 @@ export default function EtudiantsAdmin() {
                 <label className="admin-toolbar-label" htmlFor="studentsUniversity">
                   Université
                 </label>
-                <select
+                <CustomSelect
                   id="studentsUniversity"
                   className="admin-toolbar-select"
                   value={filterUniversity}
@@ -677,14 +678,14 @@ export default function EtudiantsAdmin() {
                       {option}
                     </option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="studentsProgramme">
                   Programme
                 </label>
-                <select
+                <CustomSelect
                   id="studentsProgramme"
                   className="admin-toolbar-select"
                   value={filterSpecialite}
@@ -700,14 +701,14 @@ export default function EtudiantsAdmin() {
                       {option}
                     </option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="studentsAssignedTo">
                   Affectation
                 </label>
-                <select
+                <CustomSelect
                   id="studentsAssignedTo"
                   className="admin-toolbar-select"
                   value={filterAssignedTo}
@@ -724,14 +725,14 @@ export default function EtudiantsAdmin() {
                       {option}
                     </option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="studentsInternalStatus">
                   Statut interne
                 </label>
-                <select
+                <CustomSelect
                   id="studentsInternalStatus"
                   className="admin-toolbar-select"
                   value={filterInternalStatus}
@@ -747,14 +748,14 @@ export default function EtudiantsAdmin() {
                   <option value="commission">Commission</option>
                   <option value="decision">Décision</option>
                   <option value="decision-finalisee">Décision finalisée</option>
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="studentsSortField">
                   Trier par
                 </label>
-                <select
+                <CustomSelect
                   id="studentsSortField"
                   className="admin-toolbar-select"
                   value={sortField}
@@ -765,14 +766,14 @@ export default function EtudiantsAdmin() {
                   <option value="universite">Université</option>
                   <option value="programme">Programme</option>
                   <option value="statut">Statut</option>
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="studentsSortDirection">
                   Ordre
                 </label>
-                <select
+                <CustomSelect
                   id="studentsSortDirection"
                   className="admin-toolbar-select"
                   value={sortDirection}
@@ -780,14 +781,14 @@ export default function EtudiantsAdmin() {
                 >
                   <option value="desc">Décroissant</option>
                   <option value="asc">Croissant</option>
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-group">
                 <label className="admin-toolbar-label" htmlFor="studentsPageSize">
                   Afficher
                 </label>
-                <select
+                <CustomSelect
                   id="studentsPageSize"
                   className="admin-toolbar-select"
                   value={pageSize}
@@ -796,7 +797,7 @@ export default function EtudiantsAdmin() {
                   <option value={10}>10</option>
                   <option value={25}>25</option>
                   <option value={50}>50</option>
-                </select>
+                </CustomSelect>
               </div>
 
               <div className="admin-toolbar-actions">
