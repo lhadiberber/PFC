@@ -153,7 +153,7 @@ function buildDocumentFileUrl(request, cheminFichier) {
     return "";
   }
 
-  return `${request.protocol}://${request.get("host")}/${normalizedPath}`;
+  return `/${normalizedPath}`;
 }
 
 function buildNumeroDossier(application) {
