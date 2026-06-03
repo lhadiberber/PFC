@@ -2974,3 +2974,528 @@ select.student-application-input {
     flex-direction: column;
   }
 }
+
+/* Harmonisation globale des pages internes avec le parcours candidature */
+.student-dashboard-shell,
+.student-candidatures-shell,
+.student-profile-shell,
+.student-application-shell {
+  width: min(100%, 1120px);
+  margin-inline: auto;
+  padding: 16px 16px 30px;
+  gap: 16px;
+}
+
+.student-dashboard-hero,
+.student-candidatures-hero,
+.student-profile-hero,
+.profile-page .profile-header,
+.success-page-modern .success-header {
+  min-height: auto;
+  padding: 18px 22px;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-page .profile-header {
+  align-items: center;
+}
+
+.student-dashboard-hero h1,
+.student-candidatures-hero h1,
+.student-profile-hero h1,
+.profile-page .profile-header h1,
+.success-page-modern .success-title {
+  margin-bottom: 4px;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.student-dashboard-hero p,
+.student-candidatures-hero p,
+.student-profile-hero p,
+.profile-page .profile-header p,
+.success-page-modern .success-subtitle {
+  max-width: 640px;
+  margin: 0;
+  color: rgba(255, 255, 255, .68);
+  font-size: 12px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.student-dashboard-kicker,
+.student-profile-kicker,
+.profile-page .profile-kicker {
+  margin-bottom: 6px;
+  color: var(--color-accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.student-dashboard-hero-meta {
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.student-dashboard-panel,
+.student-candidature-card-v2,
+.student-candidature-detail-card,
+.student-candidature-progress-card,
+.profile-card,
+.profile-state-card,
+.profile-summary-card,
+.success-summary-card,
+.next-steps-section,
+.next-step-item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.student-dashboard-panel,
+.profile-card,
+.profile-state-card,
+.success-summary-card,
+.next-steps-section {
+  padding: 18px;
+}
+
+.student-dashboard-section-head,
+.student-candidatures-toolbar,
+.profile-card-header,
+.profile-section-title {
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.student-dashboard-section-head h2,
+.student-candidatures-toolbar h2,
+.profile-card-header h2,
+.profile-section-title h3,
+.summary-card-title,
+.next-steps-title {
+  margin-bottom: 4px;
+  color: var(--color-primary);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.student-dashboard-section-head p,
+.student-candidatures-toolbar p,
+.profile-card-header p,
+.profile-section-title p,
+.step-description {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.admin-primary-stats-grid,
+.student-dashboard-stats,
+.student-candidatures-stats,
+.profile-summary-grid,
+.admin-quick-actions-grid {
+  gap: 12px;
+}
+
+.admin-primary-stat-card,
+.admin-quick-action-card,
+.student-candidature-progress-card {
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.student-dashboard-split-grid,
+.student-candidature-detail-grid,
+.profile-container {
+  gap: 16px;
+}
+
+.student-document-row,
+.student-candidature-document-row,
+.profile-account-list div,
+.summary-row {
+  border-color: var(--color-border);
+}
+
+.student-dashboard-link,
+.student-dashboard-ghost-link,
+.profile-primary-action,
+.profile-secondary-action,
+.success-actions .btn-primary,
+.success-actions .btn-secondary,
+.copy-btn {
+  min-height: 38px;
+  padding: 9px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.student-dashboard-link,
+.profile-primary-action,
+.success-actions .btn-primary {
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: none;
+}
+
+.student-dashboard-link:hover,
+.profile-primary-action:hover,
+.success-actions .btn-primary:hover {
+  background: var(--color-primary-light);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.student-dashboard-ghost-link,
+.profile-secondary-action,
+.success-actions .btn-secondary,
+.copy-btn {
+  border: 1px solid var(--color-border-strong);
+  background: #fff;
+  color: var(--color-primary);
+  box-shadow: none;
+}
+
+.student-dashboard-ghost-link:hover,
+.profile-secondary-action:hover,
+.success-actions .btn-secondary:hover,
+.copy-btn:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.profile-input-wrap,
+.admin-recent-search,
+.admin-search.admin-search-prominent .admin-search-input,
+.student-candidatures-page-size-select,
+.profile-page .custom-select-trigger,
+.student-candidatures-shell .custom-select-trigger,
+.admin-main .custom-select-trigger {
+  border-color: var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: #fff;
+  box-shadow: none;
+}
+
+.profile-input-wrap:focus-within,
+.admin-recent-search:focus-within,
+.admin-search.admin-search-prominent .admin-search-input:focus,
+.profile-page .custom-select-trigger:focus,
+.student-candidatures-shell .custom-select-trigger:focus,
+.admin-main .custom-select-trigger:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(0, 201, 177, .15);
+}
+
+.success-page-modern {
+  min-height: 100vh;
+  padding: 16px;
+  background: var(--color-bg);
+}
+
+.success-topbar,
+.success-main {
+  width: min(100%, 1120px);
+}
+
+.success-main {
+  gap: 16px;
+}
+
+.success-icon-wrapper {
+  width: 46px;
+  height: 46px;
+  margin-bottom: 10px;
+  background: var(--color-accent-light);
+  color: var(--color-primary);
+}
+
+.next-step-item {
+  border-left: 3px solid var(--color-accent);
+  background: var(--color-surface-soft);
+}
+
+.step-number {
+  background: var(--color-primary);
+}
+
+.step-icon-wrapper {
+  background: var(--color-accent-light);
+  color: var(--color-primary);
+}
+
+.admin-layout {
+  background: var(--color-bg);
+}
+
+.admin-main {
+  background: var(--color-bg);
+  padding: 16px 20px 30px;
+  gap: 16px;
+}
+
+.admin-header.admin-header-focused {
+  padding: 18px 22px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-page-tag.admin-page-tag-admin {
+  color: var(--color-accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.admin-heading-block.admin-heading-block-focused h1 {
+  margin-bottom: 4px;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.admin-heading-block.admin-heading-block-focused p,
+.admin-search-caption,
+.admin-search-helper,
+.admin-header-meta-label,
+.admin-header-user .admin-user-text small {
+  color: rgba(255, 255, 255, .68);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-header-date,
+.admin-header-user,
+.admin-header-icon-button {
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, .08);
+  box-shadow: none;
+}
+
+.admin-header-date strong,
+.admin-header-user .admin-user-text strong {
+  color: #fff;
+}
+
+.admin-user-avatar,
+.admin-header-icon-button .admin-notification-icon {
+  background: var(--color-accent);
+  color: var(--color-primary);
+}
+
+.admin-search.admin-search-prominent {
+  max-width: 560px;
+  margin-top: 6px;
+}
+
+.admin-search.admin-search-prominent .admin-search-input {
+  min-height: 38px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.admin-main .campus-section-container,
+.admin-table-container,
+.admin-meta-card,
+.admin-documents-panel,
+.admin-analytics-card,
+.admin-worklist-overview-card,
+.admin-funnel-summary-card,
+.admin-mini-chart-card,
+.admin-command-card,
+.admin-dashboard-overview,
+.admin-briefing-panel,
+.admin-dashboard-filters-panel,
+.admin-alert-card,
+.admin-activity-summary,
+.admin-worklist-side,
+.admin-urgent-panel,
+.admin-queue-card,
+.admin-profile-hero,
+.admin-document-hero,
+.admin-application-hero {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-main .campus-section-container,
+.admin-table-container,
+.admin-meta-card,
+.admin-documents-panel,
+.admin-analytics-card,
+.admin-worklist-overview-card,
+.admin-funnel-summary-card,
+.admin-mini-chart-card,
+.admin-command-card,
+.admin-dashboard-overview,
+.admin-briefing-panel,
+.admin-dashboard-filters-panel,
+.admin-alert-card,
+.admin-activity-summary,
+.admin-worklist-side,
+.admin-urgent-panel,
+.admin-queue-card {
+  padding: 18px;
+}
+
+.admin-profile-hero,
+.admin-document-hero,
+.admin-application-hero {
+  padding: 18px 20px;
+  border-left: 3px solid var(--color-accent);
+}
+
+.admin-main .campus-section-header {
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-main .campus-section-header h2,
+.admin-analytics-card-header h3,
+.admin-meta-card-header h3,
+.admin-urgent-panel-header h3,
+.admin-funnel-summary-copy h3,
+.admin-worklist-title h3 {
+  margin-bottom: 4px;
+  color: var(--color-primary);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.admin-main .campus-section-header p,
+.admin-analytics-card-header p,
+.admin-meta-card-header p,
+.admin-urgent-panel-header p,
+.admin-funnel-summary-copy p,
+.admin-worklist-title p {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.admin-table th {
+  background: var(--color-surface-soft);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-table td {
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+.admin-layout.theme-dark .admin-header.admin-header-focused {
+  background: #101f2d;
+}
+
+.admin-layout.theme-dark .admin-main {
+  background: #0D1B27;
+}
+
+.admin-layout.theme-dark .admin-main .campus-section-container,
+.admin-layout.theme-dark .admin-table-container,
+.admin-layout.theme-dark .admin-meta-card,
+.admin-layout.theme-dark .admin-documents-panel,
+.admin-layout.theme-dark .admin-analytics-card,
+.admin-layout.theme-dark .admin-worklist-overview-card,
+.admin-layout.theme-dark .admin-funnel-summary-card,
+.admin-layout.theme-dark .admin-mini-chart-card,
+.admin-layout.theme-dark .admin-command-card,
+.admin-layout.theme-dark .admin-dashboard-overview,
+.admin-layout.theme-dark .admin-briefing-panel,
+.admin-layout.theme-dark .admin-dashboard-filters-panel,
+.admin-layout.theme-dark .admin-alert-card,
+.admin-layout.theme-dark .admin-activity-summary,
+.admin-layout.theme-dark .admin-worklist-side,
+.admin-layout.theme-dark .admin-urgent-panel,
+.admin-layout.theme-dark .admin-queue-card {
+  background: rgba(15, 23, 42, .92);
+  border-color: rgba(148, 163, 184, .18);
+}
+
+@media (max-width: 1024px) {
+  .student-dashboard-split-grid,
+  .profile-container {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-container {
+    flex-direction: column;
+  }
+
+  .profile-sidebar-right {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .student-dashboard-shell,
+  .student-candidatures-shell,
+  .student-profile-shell,
+  .student-application-shell {
+    padding: 12px 12px 24px;
+  }
+
+  .student-dashboard-hero,
+  .student-candidatures-hero,
+  .student-profile-hero,
+  .profile-page .profile-header,
+  .success-page-modern .success-header,
+  .admin-header.admin-header-focused {
+    padding: 15px;
+  }
+
+  .student-dashboard-hero,
+  .student-candidatures-hero,
+  .student-profile-hero,
+  .profile-page .profile-header,
+  .admin-header-top,
+  .admin-header-meta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .student-dashboard-hero-meta {
+    align-items: flex-start;
+  }
+
+  .student-dashboard-panel,
+  .profile-card,
+  .profile-state-card,
+  .success-summary-card,
+  .next-steps-section,
+  .admin-main .campus-section-container,
+  .admin-table-container {
+    padding: 15px;
+  }
+
+  .admin-main {
+    padding: 12px;
+  }
+}
