@@ -2228,18 +2228,6 @@ select.student-application-input {
   background: var(--color-surface-soft);
 }
 
-.profile-field-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  flex-shrink: 0;
-  color: #94a3b8;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: .02em;
-}
-
 .profile-input-wrap input,
 .profile-input-wrap textarea {
   width: 100%;
@@ -2254,13 +2242,13 @@ select.student-application-input {
 
 .profile-input-wrap input {
   min-height: 40px;
-  padding: 9px 12px 9px 0;
+  padding: 9px 12px;
 }
 
 .profile-input-wrap textarea {
   min-height: 76px;
   max-height: 90px;
-  padding: 10px 12px 10px 0;
+  padding: 10px 12px;
   line-height: 1.5;
   resize: vertical;
 }
@@ -2279,7 +2267,7 @@ select.student-application-input {
   width: 100%;
   min-height: 40px;
   height: 40px;
-  padding: 0 12px 0 0;
+  padding: 0 12px;
   border: 0;
   border-radius: 0;
   background: transparent;

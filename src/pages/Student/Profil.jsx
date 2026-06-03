@@ -666,7 +666,6 @@ export default function Profil() {
     readOnly = false,
     placeholder = "",
     hint = "",
-    icon = "-",
     full = false,
     rows = 0,
     extraProps = {},
@@ -676,7 +675,6 @@ export default function Profil() {
         {label} {required ? <abbr title="obligatoire">*</abbr> : null}
       </span>
       <div className={`profile-input-wrap ${readOnly ? "is-readonly" : ""}`.trim()}>
-        <span className="profile-field-icon" aria-hidden="true">{icon}</span>
         {rows > 0 ? (
           <textarea
             name={name}
@@ -711,7 +709,6 @@ export default function Profil() {
     onChange,
     required = false,
     disabled = false,
-    icon = "-",
     children,
   }) => (
     <label className="profile-field">
@@ -719,7 +716,6 @@ export default function Profil() {
         {label} {required ? <abbr title="obligatoire">*</abbr> : null}
       </span>
       <div className={`profile-input-wrap ${disabled ? "is-readonly" : ""}`.trim()}>
-        <span className="profile-field-icon" aria-hidden="true">{icon}</span>
         <CustomSelect
           name={name}
           value={value}
@@ -750,7 +746,6 @@ export default function Profil() {
         {label} {required ? <abbr title="obligatoire">*</abbr> : null}
       </span>
       <div className="profile-input-wrap profile-password-wrap">
-        <span className="profile-field-icon" aria-hidden="true">SEC</span>
         <input
           ref={ref}
           type={show ? "text" : "password"}
