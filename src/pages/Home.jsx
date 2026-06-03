@@ -3,7 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import LanguageSelector from "../components/LanguageSelector";
 import { useLanguage } from "../context/LanguageContext";
 import campusImage from "../assets/Workshop preps first-year college students, parents for freshman year.jpg";
-import { loginUser, saveAuthSession, getAuthSession } from "../services/authService";
+import {
+  getApiErrorMessage,
+  loginUser,
+  saveAuthSession,
+  getAuthSession,
+} from "../services/authService";
 import "../index.css";
 
 const featureIcons = [
@@ -113,11 +118,7 @@ export default function Home() {
       setShowLoginMenu(false);
       navigate(getHomePath(session.user.role));
     } catch (error) {
-      if (error instanceof TypeError || error.message === "Failed to fetch") {
-        setLoginError("Le service est temporairement indisponible. Réessayez dans un instant.");
-      } else {
-        setLoginError(error.message || t("home.loginMenu.invalidCredentials"));
-      }
+      setLoginError(getApiErrorMessage(error, t("home.loginMenu.invalidCredentials")));
     } finally {
       setIsLoginSubmitting(false);
     }

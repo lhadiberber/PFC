@@ -3,7 +3,12 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import LanguageSelector from "../../components/LanguageSelector";
 import { useLanguage } from "../../context/LanguageContext";
 import { isStudentProfileComplete } from "../../context/AdmissionsContext";
-import { getAuthSession, loginUser, saveAuthSession } from "../../services/authService";
+import {
+  getApiErrorMessage,
+  getAuthSession,
+  loginUser,
+  saveAuthSession,
+} from "../../services/authService";
 import "../../index.css";
 
 const ADMIN_ROLES = ["admin", "super_admin"];
@@ -136,11 +141,7 @@ export default function Login() {
       const destination = resolveStudentDestination(session);
       navigate(destination);
     } catch (error) {
-      if (error instanceof TypeError || error.message === "Failed to fetch") {
-        setFormError("Le service est temporairement indisponible. Vérifiez votre connexion et réessayez.");
-      } else {
-        setFormError(error.message || copy.errors.invalidStudentCredentials);
-      }
+      setFormError(getApiErrorMessage(error, copy.errors.invalidStudentCredentials));
     } finally {
       setIsSubmitting(false);
     }

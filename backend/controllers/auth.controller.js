@@ -53,16 +53,21 @@ async function isRecaptchaValid(token, ip) {
     params.append("remoteip", ip);
   }
 
-  const verifyResponse = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: params,
-  });
-  const result = await verifyResponse.json();
+  try {
+    const verifyResponse = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: params,
+    });
+    const result = await verifyResponse.json();
 
-  return result.success === true;
+    return result.success === true;
+  } catch (error) {
+    console.error("Erreur pendant la verification reCAPTCHA:", error);
+    return false;
+  }
 }
 
 function buildPublicUser(user) {

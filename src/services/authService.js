@@ -85,6 +85,25 @@ export class ApiError extends Error {
   }
 }
 
+export function isNetworkUnavailableError(error) {
+  const message = String(error?.message || "").trim().toLowerCase();
+  return (
+    error?.status === 0 ||
+    error instanceof TypeError ||
+    error?.name === "AbortError" ||
+    message === "failed to fetch"
+  );
+}
+
+export function getApiErrorMessage(error, fallbackMessage) {
+  if (isNetworkUnavailableError(error)) {
+    return "Backend indisponible. Lancez le serveur backend sur le port 5000 puis reessayez.";
+  }
+
+  const message = String(error?.message || "").trim();
+  return message || fallbackMessage;
+}
+
 export async function readJsonResponse(response) {
   const contentType = response.headers.get("content-type") || "";
   const text = await response.text();
