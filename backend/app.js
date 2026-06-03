@@ -31,9 +31,36 @@ const configuredClientOrigins = [process.env.CLIENT_URL, process.env.FRONTEND_UR
   .map((origin) => origin.trim())
   .filter(Boolean);
 const allowedClientOrigins = new Set([...defaultClientOrigins, ...configuredClientOrigins]);
-const isLocalDevOrigin = (origin) =>
-  /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin) &&
-  (process.env.NODE_ENV || "development") !== "production";
+const isDevelopment = (process.env.NODE_ENV || "development") !== "production";
+
+function isPrivateNetworkHostname(hostname) {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "::1" ||
+    hostname === "[::1]" ||
+    hostname.startsWith("192.168.") ||
+    hostname.startsWith("10.") ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname)
+  );
+}
+
+function isLocalDevOrigin(origin) {
+  if (!isDevelopment) {
+    return false;
+  }
+
+  try {
+    const parsedOrigin = new URL(origin);
+    return (
+      ["http:", "https:"].includes(parsedOrigin.protocol) &&
+      Boolean(parsedOrigin.port) &&
+      isPrivateNetworkHostname(parsedOrigin.hostname)
+    );
+  } catch (_error) {
+    return false;
+  }
+}
 
 app.use(
   cors({
