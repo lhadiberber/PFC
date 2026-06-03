@@ -56,21 +56,12 @@ async function removeUploadedFile(filePath) {
   }
 }
 
-async function ensureOptionalApplicationAccess(applicationId, studentId, response) {
+async function canLinkApplication(applicationId, studentId) {
   if (!applicationId) {
     return true;
   }
 
-  const hasAccess = await applicationBelongsToStudent(applicationId, studentId);
-
-  if (!hasAccess) {
-    response.status(404).json({
-      success: false,
-      message: "Candidature introuvable pour ce compte etudiant.",
-    });
-  }
-
-  return hasAccess;
+  return applicationBelongsToStudent(applicationId, studentId);
 }
 
 export async function uploadDocument(request, response, next) {
@@ -99,14 +90,17 @@ export async function uploadDocument(request, response, next) {
       return;
     }
 
-    const hasApplicationAccess = await ensureOptionalApplicationAccess(
+    const hasApplicationAccess = await canLinkApplication(
       documentPayload.application_id,
-      request.user.id,
-      response
+      request.user.id
     );
 
     if (!hasApplicationAccess) {
       await removeUploadedFile(uploadedFilePath);
+      response.status(404).json({
+        success: false,
+        message: "Candidature introuvable pour ce compte etudiant.",
+      });
       return;
     }
 
