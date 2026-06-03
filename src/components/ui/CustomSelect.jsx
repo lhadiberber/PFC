@@ -13,6 +13,25 @@ function getOptionValue(option) {
   return option.props.value ?? getOptionLabel(option);
 }
 
+function collectOptions(children) {
+  const options = [];
+
+  React.Children.forEach(children, (child) => {
+    if (!React.isValidElement(child)) return;
+
+    if (child.type === "option") {
+      options.push(child);
+      return;
+    }
+
+    if (child.props?.children) {
+      options.push(...collectOptions(child.props.children));
+    }
+  });
+
+  return options;
+}
+
 export default function CustomSelect({
   children,
   className = "",
@@ -28,8 +47,7 @@ export default function CustomSelect({
   const selectRef = useRef(null);
   const optionItems = useMemo(
     () =>
-      React.Children.toArray(children)
-        .filter((child) => React.isValidElement(child) && child.type === "option")
+      collectOptions(children)
         .map((option) => ({
           disabled: Boolean(option.props.disabled),
           label: getOptionLabel(option),
