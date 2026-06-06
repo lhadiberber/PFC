@@ -12,19 +12,34 @@ Plateforme universitaire d'admission avec un espace etudiant, un espace administ
 
 ## Lancer le projet
 
-Frontend :
+Commande recommandee depuis la racine du projet :
 
 ```bash
 npm install
 npm run dev
 ```
 
-Backend :
+Cette commande demarre automatiquement :
+
+- le backend Express sur `http://127.0.0.1:5000`
+- le frontend Vite sur `http://localhost:5178`
+
+Health checks utiles :
+
+```bash
+curl http://127.0.0.1:5000/api/health
+curl http://localhost:5178/api/health
+```
+
+Si vous lancez les serveurs separement :
 
 ```bash
 cd backend
-npm install
-npm run dev
+npm start
+```
+
+```bash
+npm run dev:frontend
 ```
 
 ## Roles disponibles

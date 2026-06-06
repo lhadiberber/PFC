@@ -27,8 +27,8 @@ DB_PASSWORD=your_password
 DB_NAME=pfc_admissions
 JWT_SECRET=change_this_secret_before_production
 JWT_EXPIRES_IN=1d
-CLIENT_URL=http://localhost:5173
-FRONTEND_URL=http://localhost:5173
+CLIENT_URL=http://localhost:5178
+FRONTEND_URL=http://localhost:5178
 PORT=5000
 
 SUPER_ADMIN_NOM=Super
@@ -53,6 +53,9 @@ CREATE DATABASE IF NOT EXISTS pfc_admissions
 - `npm run dev` : serveur de developpement avec watch
 - `npm start` : serveur Node
 - `npm run check` : verification syntaxique du point d'entree
+
+Depuis la racine du projet, utilisez plutot `npm run dev` pour demarrer le
+backend et le frontend ensemble sur les ports attendus.
 
 ## Structure
 
