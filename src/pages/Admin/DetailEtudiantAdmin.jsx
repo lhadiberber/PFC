@@ -4,7 +4,12 @@ import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
+import {
+  clearAuthSession,
+  getApiErrorMessage,
+  getAuthToken,
+  isNetworkUnavailableError,
+} from "../../services/authService";
 import { getAdminStudent } from "../../services/adminService";
 import { formatAdminDate, formatAdminDateTime, toAdminApplication } from "../../utils/adminApplications";
 import {
@@ -22,6 +27,12 @@ const DOCUMENT_FIELDS = [
 
 function getFieldValue(value, fallback = "Non renseigne") {
   return value && String(value).trim() ? value : fallback;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function normalizeStatus(status) {
@@ -108,6 +119,7 @@ export default function DetailEtudiantAdmin() {
   const [studentData, setStudentData] = useState(null);
   const [isLoadingStudent, setIsLoadingStudent] = useState(true);
   const [studentError, setStudentError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let isActive = true;
@@ -126,8 +138,37 @@ export default function DetailEtudiantAdmin() {
       setStudentError("");
 
       try {
-        const studentResponse = await getAdminStudent(id);
-        if (isActive) setStudentData(studentResponse);
+        let studentResponse = null;
+        let lastNetworkError = null;
+
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          try {
+            studentResponse = await getAdminStudent(id);
+            lastNetworkError = null;
+            break;
+          } catch (error) {
+            if (error.status === 401 || !isNetworkUnavailableError(error)) {
+              throw error;
+            }
+
+            lastNetworkError = error;
+
+            if (isActive) {
+              setStudentError("Connexion au serveur des etudiants en cours. Nouvelle tentative automatique...");
+            }
+
+            await wait(600 * (attempt + 1));
+          }
+        }
+
+        if (lastNetworkError) {
+          throw lastNetworkError;
+        }
+
+        if (isActive) {
+          setStudentError("");
+          setStudentData(studentResponse);
+        }
       } catch (error) {
         if (!isActive) return;
 
@@ -139,9 +180,11 @@ export default function DetailEtudiantAdmin() {
         }
 
         setStudentError(
-          error.status === 403
-            ? "Acces refuse. Cette page est reservee aux administrateurs."
-            : getApiErrorMessage(error, "Impossible de charger l'etudiant.")
+          isNetworkUnavailableError(error)
+            ? "Impossible de joindre le serveur des etudiants. Verifiez que le projet est lance avec npm run dev puis reessayez."
+            : error.status === 403
+              ? "Acces refuse. Cette page est reservee aux administrateurs."
+              : getApiErrorMessage(error, "Impossible de charger l'etudiant.")
         );
       } finally {
         if (isActive) setIsLoadingStudent(false);
@@ -153,7 +196,7 @@ export default function DetailEtudiantAdmin() {
     return () => {
       isActive = false;
     };
-  }, [id, navigate]);
+  }, [id, navigate, reloadKey]);
 
   const student = useMemo(() => mapStudentDetailToRecord(studentData), [studentData]);
 
@@ -198,6 +241,14 @@ export default function DetailEtudiantAdmin() {
             actionTo="/admin/etudiants"
             className="admin-empty-state"
           />
+          <div className="admin-dashboard-topbar-actions">
+            <Button
+              className="campus-btn-primary"
+              onClick={() => setReloadKey((currentKey) => currentKey + 1)}
+            >
+              Reessayer
+            </Button>
+          </div>
         </section>
       </AdminLayout>
     );
