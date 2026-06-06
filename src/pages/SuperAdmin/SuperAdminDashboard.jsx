@@ -3,9 +3,19 @@ import PropTypes from "prop-types";
 import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/admin/AdminLayout";
 import EmptyState from "../../components/ui/EmptyState";
-import { clearAuthSession, getApiErrorMessage } from "../../services/authService";
+import {
+  clearAuthSession,
+  getApiErrorMessage,
+  isNetworkUnavailableError,
+} from "../../services/authService";
 import { getSuperAdminDashboard } from "../../services/superAdminService";
 import "../../index.css";
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 function DashboardIcon({ name }) {
   const commonProps = {
@@ -207,9 +217,35 @@ export default function SuperAdminDashboard() {
       setError("");
 
       try {
-        const dashboard = await getSuperAdminDashboard();
+        let dashboard = {};
+        let lastNetworkError = null;
+
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          try {
+            dashboard = await getSuperAdminDashboard();
+            lastNetworkError = null;
+            break;
+          } catch (loadError) {
+            if (loadError.status === 401 || !isNetworkUnavailableError(loadError)) {
+              throw loadError;
+            }
+
+            lastNetworkError = loadError;
+
+            if (isActive) {
+              setError("Connexion au tableau de bord super admin en cours. Nouvelle tentative automatique...");
+            }
+
+            await wait(600 * (attempt + 1));
+          }
+        }
+
+        if (lastNetworkError) {
+          throw lastNetworkError;
+        }
 
         if (isActive) {
+          setError("");
           setPlatformStats(dashboard);
         }
       } catch (loadError) {
@@ -224,10 +260,12 @@ export default function SuperAdminDashboard() {
           }
 
           setError(
-            getApiErrorMessage(
-              loadError,
-              "Impossible de charger les données du tableau de bord."
-            )
+            isNetworkUnavailableError(loadError)
+              ? "Impossible de joindre le serveur du tableau de bord super admin. Vérifiez que le projet est lancé avec npm run dev puis réessayez."
+              : getApiErrorMessage(
+                  loadError,
+                  "Impossible de charger les données du tableau de bord."
+                )
           );
         }
       } finally {
