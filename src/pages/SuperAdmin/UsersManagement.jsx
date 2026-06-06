@@ -4,7 +4,7 @@ import AdminLayout from "../../components/admin/AdminLayout";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
-import { clearAuthSession } from "../../services/authService";
+import { clearAuthSession, getApiErrorMessage } from "../../services/authService";
 import {
   getUsers,
   updateUserRole,
@@ -64,7 +64,7 @@ export default function UsersManagement() {
           return;
         }
 
-        setError(loadError.message || "Impossible de charger les utilisateurs.");
+        setError(getApiErrorMessage(loadError, "Impossible de charger les utilisateurs."));
       } finally {
         if (isActive) {
           setIsLoading(false);
@@ -103,7 +103,7 @@ export default function UsersManagement() {
       updateUserInList(updatedUser);
       setSuccessMessage("Modification enregistrée.");
     } catch (roleError) {
-      setError(roleError.message || "Impossible de modifier le rôle.");
+      setError(getApiErrorMessage(roleError, "Impossible de modifier le rôle."));
     } finally {
       setUpdatingUserId(null);
     }
@@ -126,7 +126,7 @@ export default function UsersManagement() {
       updateUserInList(updatedUser);
       setSuccessMessage("Modification enregistrée.");
     } catch (statusError) {
-      setError(statusError.message || "Impossible de modifier le statut.");
+      setError(getApiErrorMessage(statusError, "Impossible de modifier le statut."));
     } finally {
       setUpdatingUserId(null);
     }
@@ -138,7 +138,7 @@ export default function UsersManagement() {
       subtitle="Consultez les comptes inscrits, gérez les rôles et les accès."
       showSearch={false}
     >
-      <section className="admin-primary-stats-grid">
+      <section className="admin-primary-stats-grid super-admin-users-stats-grid">
         <div className="admin-primary-stat-card admin-primary-stat-card-info">
           <span className="admin-stat-label">Utilisateurs</span>
           <strong>{stats.total}</strong>
@@ -161,7 +161,7 @@ export default function UsersManagement() {
         </div>
       </section>
 
-      <section className="admin-card">
+      <section className="admin-card super-admin-users-card">
         <div className="admin-card-header">
           <div>
             <span className="admin-page-context info">Comptes</span>

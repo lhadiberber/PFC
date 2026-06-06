@@ -6,7 +6,7 @@ import StatusBadge from "../../components/ui/StatusBadge";
 import { useAdmissions } from "../../context/AdmissionsContext";
 import { NIVEAU_BACHELIER } from "../../data/formationsBachelier";
 import { createApplication } from "../../services/applicationService";
-import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
 import { showLoading, showToast } from "../../utils/toast";
 import "../../index.css";
 
@@ -217,7 +217,7 @@ export default function StudentRecapitulatif() {
       showToast("Votre candidature a été transmise avec succès.", "success");
       navigate(`/success?numeroDossier=${numeroDossier}`);
     } catch (error) {
-      const message = error.message || "Une erreur est survenue lors de la soumission.";
+      const message = getApiErrorMessage(error, "Une erreur est survenue lors de la soumission.");
       if (error.status === 401) {
         clearAuthSession();
         navigate("/login", { state: { message } });

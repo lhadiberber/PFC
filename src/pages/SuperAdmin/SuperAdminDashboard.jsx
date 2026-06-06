@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/admin/AdminLayout";
 import EmptyState from "../../components/ui/EmptyState";
-import { clearAuthSession } from "../../services/authService";
+import { clearAuthSession, getApiErrorMessage } from "../../services/authService";
 import { getSuperAdminDashboard } from "../../services/superAdminService";
 import "../../index.css";
 
@@ -223,7 +223,12 @@ export default function SuperAdminDashboard() {
             return;
           }
 
-          setError(loadError.message || "Impossible de charger les données du tableau de bord.");
+          setError(
+            getApiErrorMessage(
+              loadError,
+              "Impossible de charger les données du tableau de bord."
+            )
+          );
         }
       } finally {
         if (isActive) {

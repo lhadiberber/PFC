@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import LanguageSelector from "../../components/LanguageSelector";
 import { useLanguage } from "../../context/LanguageContext";
-import { registerStudent } from "../../services/authService";
+import { getApiErrorMessage, registerStudent } from "../../services/authService";
 import "../../index.css";
 
 const INITIAL_FORM = {
@@ -186,7 +186,7 @@ export default function Register() {
       } else if (!error.status) {
         setFormError(copy.errors.backendUnavailable);
       } else {
-        setFormError(error.message || copy.errors.createFailed);
+        setFormError(getApiErrorMessage(error, copy.errors.createFailed));
       }
     } finally {
       setIsSubmitting(false);
@@ -198,7 +198,7 @@ export default function Register() {
       <div className="auth-register-shell">
         <div className="auth-register-topbar">
           <Link to="/" className="auth-register-brand">
-            <span className="auth-register-brand-mark">PFC</span>
+            <span className="auth-register-brand-mark">UP</span>
             <span className="auth-register-brand-text">{messages.common.brand}</span>
           </Link>
           <LanguageSelector aria-label="Changer la langue" />

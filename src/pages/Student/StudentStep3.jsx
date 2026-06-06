@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ApplicationStepLayout from "../../components/student/ApplicationStepLayout";
 import ProgressBar from "../../components/ui/ProgressBar";
 import { useAdmissions } from "../../context/AdmissionsContext";
-import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
 import {
   deleteStudentDocument,
   listMyDocuments,
@@ -236,7 +236,10 @@ export default function StudentStep3() {
       } catch (error) {
         if (!isActive) return;
 
-        const message = error.message || "Impossible de charger les documents déjà déposés.";
+        const message = getApiErrorMessage(
+          error,
+          "Impossible de charger les documents déjà déposés."
+        );
 
         if (error.status === 401) {
           clearAuthSession();
@@ -339,7 +342,7 @@ export default function StudentStep3() {
         [LEGACY_FIELD_BY_DOCUMENT_FIELD[fieldName] || fieldName]: fileName,
       });
     } catch (error) {
-      const message = error.message || "Impossible de déposer ce document.";
+      const message = getApiErrorMessage(error, "Impossible de déposer ce document.");
       if (error.status === 401) {
         clearAuthSession();
         navigate("/login", { state: { message } });
@@ -391,7 +394,7 @@ export default function StudentStep3() {
         fileInputRefs.current[fieldName].value = "";
       }
     } catch (error) {
-      const message = error.message || "Impossible de retirer ce document.";
+      const message = getApiErrorMessage(error, "Impossible de retirer ce document.");
       if (error.status === 401) {
         clearAuthSession();
         navigate("/login", { state: { message } });
@@ -559,11 +562,6 @@ export default function StudentStep3() {
                 <div className="student-application-upload-head">
                   <div>
                     <h3>{config.label}</h3>
-                    <p>
-                      Formats acceptés : {config.accept.replace(/,/g, ", ")}. Taille max :{" "}
-                      {formatMegabytes(config.maxSize)}.
-                    </p>
-                    {config.help ? <p>{config.help}</p> : null}
                   </div>
                   <span className="student-application-upload-tag">
                     {config.required ? "Obligatoire" : "Optionnel"}
@@ -648,14 +646,13 @@ export default function StudentStep3() {
                   ) : (
                     <div className="upload-placeholder">
                       <UploadIcon />
-                      <span className="upload-label">{config.label}</span>
                       <span className="upload-hint">
                         {uploadingFields[fieldName]
                           ? "Envoi du fichier en cours..."
                           : "Cliquez ou glissez un fichier ici"}
                       </span>
                       <span className="upload-formats">
-                        {config.accept.replace(/,/g, ", ")}
+                        {config.accept.replace(/,/g, ", ")} - max {formatMegabytes(config.maxSize)}
                       </span>
                     </div>
                   )}

@@ -152,7 +152,7 @@ export default function Login() {
       <div className="auth-register-shell">
         <div className="auth-register-topbar">
           <Link to="/" className="auth-register-brand">
-            <span className="auth-register-brand-mark">PFC</span>
+            <span className="auth-register-brand-mark">UP</span>
             <span className="auth-register-brand-text">{messages.common.brand}</span>
           </Link>
           <LanguageSelector aria-label="Changer la langue" />

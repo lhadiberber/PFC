@@ -7,7 +7,7 @@ import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
 import { useAdmissions } from "../../context/AdmissionsContext";
-import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
 import {
   getAdminApplication,
   updateAdminApplicationStatus as updateAdminApplicationStatusApi,
@@ -169,7 +169,7 @@ export default function DetailCandidaturesAdmin() {
         setApplicationError(
           error.status === 403
             ? "Accès refusé. Cette page est réservée aux administrateurs."
-            : error.message || "Impossible de charger la candidature."
+            : getApiErrorMessage(error, "Impossible de charger la candidature.")
         );
       } finally {
         if (isActive) {
@@ -331,7 +331,7 @@ export default function DetailCandidaturesAdmin() {
       updateApplicationStatus(candidature.id, nextStatus);
       showToast(`Statut mis à jour : ${getStatusDisplayLabel(nextStatus)}`, "success");
     } catch (error) {
-      const message = error.message || "Impossible de mettre à jour le statut.";
+      const message = getApiErrorMessage(error, "Impossible de mettre à jour le statut.");
 
       if (error.status === 401) {
         clearAuthSession();

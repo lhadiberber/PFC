@@ -6,7 +6,7 @@ import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
 import { listAdminApplications } from "../../services/adminService";
 import { downloadCsv } from "../../utils/exportCsv";
 import { downloadPdfReport } from "../../utils/exportPdf";
@@ -151,7 +151,7 @@ export default function CandidaturesAdmin() {
         setApplicationsError(
           error.status === 403
             ? "Accès refusé. Cette page est réservée aux administrateurs."
-            : error.message || "Impossible de charger les candidatures."
+            : getApiErrorMessage(error, "Impossible de charger les candidatures.")
         );
       } finally {
         if (isActive) {

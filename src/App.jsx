@@ -88,6 +88,10 @@ function AppContent() {
     ["/", "/login", "/register", "/success"].includes(location.pathname) || isAdminPage;
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname]);
+
+  useEffect(() => {
     setToastFn((message, type) => {
       const id = Date.now();
       setToasts(prev => [...prev, { id, message, type }]);

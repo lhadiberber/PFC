@@ -6802,6 +6802,48 @@ html[dir="rtl"] .admin-nav-item:hover {
   font-size: 11px;
 }
 
+.super-admin-users-stats-grid {
+  gap: 8px;
+}
+
+.super-admin-users-stats-grid .admin-primary-stat-card {
+  padding: 10px 12px;
+  min-height: auto;
+}
+
+.super-admin-users-stats-grid .admin-primary-stat-card strong {
+  font-size: 17px;
+  line-height: 1.1;
+}
+
+.super-admin-users-stats-grid .admin-stat-label,
+.super-admin-users-stats-grid .admin-primary-stat-card small {
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.super-admin-users-card {
+  padding: 14px;
+}
+
+.super-admin-users-card .admin-card-header {
+  margin-bottom: 10px;
+}
+
+.super-admin-users-card .admin-card-header h2 {
+  font-size: 18px;
+}
+
+.super-admin-users-card .admin-card-header p {
+  font-size: 12px;
+}
+
+.super-admin-users-card .admin-table th,
+.super-admin-users-card .admin-table td {
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
 .admin-meta-card,
 .admin-documents-panel,
 .admin-analytics-card,

@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import CustomSelect from "../../components/ui/CustomSelect";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { useAdmissions } from "../../context/AdmissionsContext";
-import { getAuthToken } from "../../services/authService";
+import { getApiErrorMessage, getAuthToken } from "../../services/authService";
 import {
   fetchMyProfile,
   profileFromApi,
@@ -318,7 +318,7 @@ export default function Profil() {
         setProfileError("");
       } catch (error) {
         if (isMounted) {
-          setProfileError(error.message || "Impossible de charger le profil étudiant.");
+          setProfileError(getApiErrorMessage(error, "Impossible de charger le profil étudiant."));
         }
       } finally {
         if (isMounted) {
@@ -532,7 +532,7 @@ export default function Profil() {
       setIsEditing(false);
       showToast("Profil mis à jour avec succès.", "success");
     } catch (error) {
-      const message = error.message || "Une erreur est survenue. Veuillez réessayer.";
+      const message = getApiErrorMessage(error, "Une erreur est survenue. Veuillez réessayer.");
       setProfileError(message);
       showToast(message, "error");
     } finally {

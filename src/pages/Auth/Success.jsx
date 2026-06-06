@@ -143,7 +143,7 @@ export default function Success() {
     <div className="success-page success-page-modern">
       <header className="success-topbar">
         <Link to="/" className="success-brand">
-          <span className="auth-register-brand-mark">PFC</span>
+          <span className="auth-register-brand-mark">UP</span>
           <span className="auth-register-brand-text">{messages?.common?.brand}</span>
         </Link>
         <LanguageSelector />

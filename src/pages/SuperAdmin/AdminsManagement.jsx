@@ -4,7 +4,7 @@ import AdminLayout from "../../components/admin/AdminLayout";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
-import { clearAuthSession } from "../../services/authService";
+import { clearAuthSession, getApiErrorMessage } from "../../services/authService";
 import {
   createAdmin,
   getAdmins,
@@ -79,7 +79,7 @@ export default function AdminsManagement() {
           return;
         }
 
-        setError(loadError.message || "Impossible de charger les administrateurs.");
+        setError(getApiErrorMessage(loadError, "Impossible de charger les administrateurs."));
       } finally {
         if (isActive) {
           setIsLoading(false);
@@ -172,7 +172,7 @@ export default function AdminsManagement() {
       setFormData(emptyForm);
       setSuccessMessage("Administrateur cree avec succes.");
     } catch (createError) {
-      setError(createError.message || "Impossible de creer l'administrateur.");
+      setError(getApiErrorMessage(createError, "Impossible de creer l'administrateur."));
     } finally {
       setIsCreating(false);
     }
@@ -235,7 +235,7 @@ export default function AdminsManagement() {
       setEditForm(emptyEditForm);
       setSuccessMessage("Modification enregistree.");
     } catch (editError) {
-      setError(editError.message || "Impossible de modifier l'administrateur.");
+      setError(getApiErrorMessage(editError, "Impossible de modifier l'administrateur."));
     } finally {
       setIsSavingEdit(false);
     }
@@ -262,7 +262,7 @@ export default function AdminsManagement() {
       }
       setSuccessMessage(nextStatus ? "Administrateur active." : "Administrateur desactive.");
     } catch (statusError) {
-      setError(statusError.message || "Impossible de mettre a jour le statut.");
+      setError(getApiErrorMessage(statusError, "Impossible de mettre a jour le statut."));
     } finally {
       setUpdatingAdminId(null);
     }

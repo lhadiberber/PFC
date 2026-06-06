@@ -6,7 +6,7 @@ import CustomSelect from "../../components/ui/CustomSelect";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
 import { listAdminStudents } from "../../services/adminService";
 import { downloadCsv } from "../../utils/exportCsv";
 import { downloadPdfReport } from "../../utils/exportPdf";
@@ -217,7 +217,7 @@ export default function EtudiantsAdmin() {
         setStudentsError(
           error.status === 403
             ? "Accès refusé. Cette page est réservée aux administrateurs."
-            : error.message || "Impossible de charger les étudiants."
+            : getApiErrorMessage(error, "Impossible de charger les étudiants.")
         );
       } finally {
         if (isActive) {

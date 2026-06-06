@@ -2739,60 +2739,65 @@ select.student-application-input {
 .student-step3-page .upload-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .student-step3-page .upload-card {
-  gap: 8px;
-  max-height: 180px;
+  gap: 6px;
+  max-height: 142px;
   min-height: 0;
-  padding: 12px 14px;
-  border: 1px solid #e2e8f0;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   background: #fff;
   overflow: hidden;
 }
 
 .student-step3-page .upload-card.completed {
-  border-left: 3px solid #00C9B1;
-  background: #fafafa;
+  border-left: 2px solid #00C9B1;
+  background: #fcfcfc;
 }
 
 .student-step3-page .student-application-upload-head {
   gap: 8px;
+  align-items: flex-start;
 }
 
 .student-step3-page .student-application-upload-head h3 {
-  margin-bottom: 3px;
-  font-size: 13px;
+  margin-bottom: 0;
+  color: #1E2D3D;
+  font-size: 12.5px;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .student-step3-page .student-application-upload-head p {
-  font-size: 11px;
-  line-height: 1.35;
+  display: none;
 }
 
 .student-step3-page .student-application-upload-tag {
-  min-height: 18px;
-  padding: 1px 8px;
-  font-size: 10px;
-  line-height: 1.4;
+  min-height: 16px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  line-height: 1.45;
 }
 
 .student-step3-page .upload-card .upload-zone {
-  min-height: 76px;
-  border: 1.5px solid #e2e8f0;
-  background: #fafafa;
+  min-height: 58px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
   border-radius: 8px;
-  padding: 14px 12px;
+  padding: 9px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 5px;
   transition: all 0.2s ease;
 }
 
@@ -2804,9 +2809,9 @@ select.student-application-input {
 }
 
 .student-step3-page .upload-card .upload-zone.has-file {
-  min-height: 76px;
-  padding: 10px 12px;
-  border-color: #dbe7e5;
+  min-height: 56px;
+  padding: 8px 10px;
+  border-color: #e5e7eb;
   background: #fff;
 }
 
@@ -2815,45 +2820,46 @@ select.student-application-input {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   text-align: center;
 }
 
 .student-step3-page .upload-svg-icon {
-  width: 24px;
-  height: 24px;
+  width: 19px;
+  height: 19px;
   color: #94a3b8;
 }
 
 .student-step3-page .upload-card .upload-label {
-  color: #1E2D3D;
-  font-size: 14px;
-  font-weight: 700;
+  display: none;
 }
 
 .student-step3-page .upload-card .upload-hint {
   color: #6B7280;
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
 }
 
 .student-step3-page .upload-card .upload-formats {
-  color: #64748b;
-  font-size: 11px;
+  color: #94a3b8;
+  font-size: 10px;
+  line-height: 1.2;
 }
 
 .student-step3-page .upload-card .uploaded-file {
   width: 100%;
   padding: 0;
-  gap: 8px;
+  gap: 7px;
   background: transparent;
   box-shadow: none;
 }
 
 .student-step3-page .upload-card .file-icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
-  background: #E0F7F4;
+  background: #eefbf9;
   color: #1E2D3D;
 }
 
@@ -2870,8 +2876,9 @@ select.student-application-input {
   max-width: 100%;
   overflow: hidden;
   color: #1E2D3D;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 600;
+  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2879,17 +2886,17 @@ select.student-application-input {
 .student-step3-page .upload-card .file-status {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   color: #64748b;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10.5px;
+  font-weight: 600;
   letter-spacing: 0;
-  text-transform: uppercase;
+  line-height: 1.25;
+  text-transform: none;
 }
 
 .student-step3-page .upload-card .file-status-icon {
-  font-size: 14px;
-  line-height: 1;
+  display: none;
 }
 
 .student-step3-page .upload-card .btn-retirer {

@@ -1,6 +1,6 @@
 const fr = {
   common: {
-    brand: "PFC Admissions",
+    brand: "UniPass",
     portalAdmissions: "Portail Admissions",
     candidateSpace: "Espace candidat",
     adminSpace: "Espace administrateur",
@@ -24,7 +24,7 @@ const fr = {
     },
     hero: {
       badge: "Plateforme universitaire d'admission",
-      title: "Préparez votre admission universitaire en ligne",
+      title: "Construisez votre dossier d’admission universitaire en ligne",
       subtitle:
         "Créez votre dossier, choisissez vos formations et suivez l'avancement de votre candidature depuis un seul espace.",
       createAccount: "Créer mon compte",
@@ -244,7 +244,7 @@ const fr = {
             "L'utilisation de la plateforme implique le respect des informations fournies et des procédures d'admission définies par l'établissement.",
         },
       ],
-      copyright: "© 2026 PFC Admissions - Tous droits réservés",
+      copyright: "© 2026 UniPass - Tous droits réservés",
     },
   },
   auth: {

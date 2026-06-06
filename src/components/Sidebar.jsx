@@ -122,6 +122,14 @@ export default function Sidebar({
     setIsMobileOpen(false);
   }, [location.pathname]);
 
+  const handleNavClick = (event, item) => {
+    if (isItemActive(item, location.pathname)) {
+      event.preventDefault();
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      setIsMobileOpen(false);
+    }
+  };
+
   return (
     <>
       <button
@@ -146,7 +154,7 @@ export default function Sidebar({
       <aside className={`app-sidebar ${isMobileOpen ? "is-open" : ""} ${className}`.trim()}>
         <div className="app-sidebar-brand">
           <Link to={brandHref} className="app-sidebar-brand-link">
-            <span className="app-sidebar-logo">PFC</span>
+            <span className="app-sidebar-logo">UP</span>
             <span className="app-sidebar-brand-copy">
               <strong>{brandTitle}</strong>
               <small>{brandSubtitle}</small>
@@ -170,6 +178,7 @@ export default function Sidebar({
                 <Link
                   key={item.path}
                   to={item.path}
+                  onClick={(event) => handleNavClick(event, item)}
                   className={`app-sidebar-link ${
                     isItemActive(item, location.pathname) ? "active" : ""
                   }`.trim()}

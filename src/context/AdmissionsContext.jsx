@@ -297,7 +297,7 @@ function normalizeApplicationNote(note = {}, index = 0) {
   return {
     id: normalizeText(note.id, `note-${index + 1}`),
     content: normalizeText(note.content || note.message).trim(),
-    authorName: normalizeText(note.authorName, "Administrateur PFC"),
+    authorName: normalizeText(note.authorName, "Administrateur UniPass"),
     authorRole: normalizeText(note.authorRole, "Gestionnaire de la plateforme"),
     createdAt: normalizeIsoTimestamp(note.createdAt, new Date().toISOString()),
   };
@@ -411,7 +411,7 @@ function getPersonDisplayName(details = {}, fallback = "Candidat") {
 
 function readStoredAdminActor() {
   const fallbackActor = {
-    name: localStorage.getItem("userEmail") || "Administrateur PFC",
+    name: localStorage.getItem("userEmail") || "Administrateur UniPass",
     role: "Gestionnaire de la plateforme",
   };
 
@@ -423,7 +423,7 @@ function readStoredAdminActor() {
         name:
           normalizeText(parsedProfile.fullName) ||
           normalizeText(parsedProfile.email) ||
-          "Administrateur PFC",
+          "Administrateur UniPass",
         role: normalizeText(parsedProfile.role, "Gestionnaire de la plateforme"),
       };
     }
@@ -448,7 +448,7 @@ function normalizeActivityEntry(entry = {}, index = 0) {
     numeroDossier: normalizeText(entry.numeroDossier),
     universite: normalizeText(entry.universite),
     specialite: normalizeText(entry.specialite),
-    actorName: normalizeText(entry.actorName, "Plateforme PFC"),
+    actorName: normalizeText(entry.actorName, "Plateforme UniPass"),
     actorRole: normalizeText(entry.actorRole, "Systeme"),
     title: normalizeText(entry.title, "Activite"),
     description: normalizeText(entry.description),

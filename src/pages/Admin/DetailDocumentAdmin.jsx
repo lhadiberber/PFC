@@ -4,7 +4,7 @@ import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
 import { getAdminDocument, updateAdminDocumentStatus } from "../../services/adminService";
 import { formatAdminDate, formatAdminDateTime } from "../../utils/adminApplications";
 import { showToast } from "../../utils/toast";
@@ -154,7 +154,7 @@ export default function DetailDocumentAdmin() {
         setDocumentError(
           error.status === 403
             ? "Accès refusé. Cette page est réservée aux administrateurs."
-            : error.message || "Impossible de charger le document."
+            : getApiErrorMessage(error, "Impossible de charger le document.")
         );
       } finally {
         if (isActive) setIsLoadingDocument(false);
@@ -242,7 +242,10 @@ export default function DetailDocumentAdmin() {
         "success"
       );
     } catch (error) {
-      const message = error.message || "Impossible de mettre à jour le statut du document.";
+      const message = getApiErrorMessage(
+        error,
+        "Impossible de mettre à jour le statut du document."
+      );
 
       if (error.status === 401) {
         clearAuthSession();

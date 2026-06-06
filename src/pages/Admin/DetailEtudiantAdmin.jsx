@@ -4,7 +4,7 @@ import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
 import { getAdminStudent } from "../../services/adminService";
 import { formatAdminDate, formatAdminDateTime, toAdminApplication } from "../../utils/adminApplications";
 import {
@@ -141,7 +141,7 @@ export default function DetailEtudiantAdmin() {
         setStudentError(
           error.status === 403
             ? "Acces refuse. Cette page est reservee aux administrateurs."
-            : error.message || "Impossible de charger l'etudiant."
+            : getApiErrorMessage(error, "Impossible de charger l'etudiant.")
         );
       } finally {
         if (isActive) setIsLoadingStudent(false);

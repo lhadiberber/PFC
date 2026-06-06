@@ -5,7 +5,13 @@ import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { useAdmissions } from "../../context/AdmissionsContext";
-import { clearAuthSession, getAuthSession, getAuthToken } from "../../services/authService";
+import {
+  clearAuthSession,
+  getApiErrorMessage,
+  getAuthSession,
+  getAuthToken,
+  isNetworkUnavailableError,
+} from "../../services/authService";
 import { getStudentDashboard } from "../../services/studentService";
 import "../../index.css";
 
@@ -547,8 +553,12 @@ export default function StudentDashboard() {
 
           setDashboardData(buildLocalDashboardFallback(getAuthSession()?.user));
           setDashboardError(
-            error.message ||
-              "Les données serveur sont indisponibles. Affichage temporaire des données locales."
+            isNetworkUnavailableError(error)
+              ? ""
+              : getApiErrorMessage(
+                  error,
+                  "Les données serveur sont indisponibles. Affichage temporaire des données locales."
+                )
           );
         }
       } finally {

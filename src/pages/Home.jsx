@@ -32,6 +32,11 @@ const footerLinkTargets = [
   ["mentions-legales", "confidentialite", "cgu"],
 ];
 
+const HOME_BRAND = {
+  logo: "UP",
+  name: "UniPass",
+};
+
 function getHomePath(role) {
   if (role === "super_admin") return "/super-admin";
   if (role === "admin") return "/admin";
@@ -146,8 +151,8 @@ export default function Home() {
         <div className="campus-header-container">
           <div className="campus-logo">
             <Link to="/">
-              <span className="logo-icon">PFC</span>
-              <span className="logo-text">{t("common.brand")}</span>
+              <span className="logo-icon">{HOME_BRAND.logo}</span>
+              <span className="logo-text">{HOME_BRAND.name}</span>
             </Link>
           </div>
 
@@ -542,8 +547,8 @@ export default function Home() {
           <div className="campus-footer-top">
             <div className="campus-footer-brand">
               <div className="footer-logo">
-                <span className="logo-icon">PFC</span>
-                <span className="logo-text">{t("common.brand")}</span>
+                <span className="logo-icon">{HOME_BRAND.logo}</span>
+                <span className="logo-text">{HOME_BRAND.name}</span>
               </div>
               <p>{home.footer.description}</p>
             </div>

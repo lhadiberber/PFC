@@ -14,7 +14,7 @@ function normalizeText(value, fallback = "") {
 }
 
 function splitFullName(fullName) {
-  const parts = normalizeText(fullName, "Administrateur PFC")
+  const parts = normalizeText(fullName, "Administrateur UniPass")
     .split(" ")
     .map((part) => part.trim())
     .filter(Boolean);

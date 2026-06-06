@@ -7,7 +7,12 @@ import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { clearAuthSession, getAuthToken } from "../../services/authService";
+import {
+  clearAuthSession,
+  getApiErrorMessage,
+  getAuthToken,
+  isNetworkUnavailableError,
+} from "../../services/authService";
 import { getAdminDashboard } from "../../services/adminService";
 import {
   getAdminActionAlerts,
@@ -42,6 +47,24 @@ function getSeverityTone(level) {
     default:
       return "neutral";
   }
+}
+
+function buildEmptyAdminDashboardData() {
+  return {
+    stats: {},
+    applications: [],
+    recentApplications: [],
+    statusDistribution: {
+      enAttente: 0,
+      acceptees: 0,
+      refusees: 0,
+    },
+    documentsToReview: {
+      total: 0,
+      items: [],
+    },
+    recentActivity: [],
+  };
 }
 
 function DashboardStatIcon({ name }) {
@@ -434,10 +457,16 @@ export default function DashboardAdmin() {
             return;
           }
 
+          if (isNetworkUnavailableError(error)) {
+            setAdminDashboardData(buildEmptyAdminDashboardData());
+            setAdminDashboardError("");
+            return;
+          }
+
           setAdminDashboardError(
             error.status === 403
               ? "Accès refusé. Ce tableau de bord est réservé aux administrateurs."
-              : error.message || "Impossible de charger le dashboard admin."
+              : getApiErrorMessage(error, "Impossible de charger le dashboard admin.")
           );
         }
       } finally {
@@ -470,7 +499,7 @@ export default function DashboardAdmin() {
         title: activity.title || "Activité",
         description: activity.description || "",
         detail: "",
-        actorName: "Plateforme PFC",
+        actorName: "Plateforme UniPass",
         actorRole: "Backend",
         numeroDossier: "",
         occurredAt: activity.date,

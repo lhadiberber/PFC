@@ -1,6 +1,6 @@
 const en = {
   common: {
-    brand: "PFC Admissions",
+    brand: "UniPass",
     portalAdmissions: "Admissions Portal",
     candidateSpace: "Candidate area",
     adminSpace: "Admin area",
@@ -239,7 +239,7 @@ const en = {
             "Using the platform requires respecting the information provided and the admission procedures defined by the institution.",
         },
       ],
-      copyright: "© 2026 PFC Admissions - All rights reserved",
+      copyright: "© 2026 UniPass - All rights reserved",
     },
   },
   auth: {

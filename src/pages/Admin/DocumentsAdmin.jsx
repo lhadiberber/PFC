@@ -6,7 +6,7 @@ import CustomSelect from "../../components/ui/CustomSelect";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
 import { listAdminDocuments } from "../../services/adminService";
 import { downloadCsv } from "../../utils/exportCsv";
 import { formatAdminDate } from "../../utils/adminApplications";
@@ -202,7 +202,7 @@ export default function DocumentsAdmin() {
         setDocumentsError(
           error.status === 403
             ? "Accès refusé. Cette page est réservée aux administrateurs."
-            : error.message || "Impossible de charger les documents."
+            : getApiErrorMessage(error, "Impossible de charger les documents.")
         );
       } finally {
         if (isActive) setIsLoadingDocuments(false);

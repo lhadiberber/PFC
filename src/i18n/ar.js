@@ -1,6 +1,6 @@
 const ar = {
   common: {
-    brand: "PFC Admissions",
+    brand: "UniPass",
     portalAdmissions: "بوابة القبول",
     candidateSpace: "فضاء المترشح",
     adminSpace: "فضاء الإدارة",
@@ -232,7 +232,7 @@ const ar = {
             "استعمال المنصة يعني احترام المعلومات المقدمة وإجراءات القبول المحددة من طرف المؤسسة.",
         },
       ],
-      copyright: "© 2026 PFC Admissions - جميع الحقوق محفوظة",
+      copyright: "© 2026 UniPass - جميع الحقوق محفوظة",
     },
   },
   auth: {
