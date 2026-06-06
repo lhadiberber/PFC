@@ -4,12 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev-all.js",
+    "dev:frontend": "vite --host 127.0.0.1 --port 5178 --strictPort",
+    "dev:backend": "npm --prefix backend start",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
-"dependencies": {
+  "dependencies": {
     "prop-types": "^15.8.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

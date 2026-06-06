@@ -52,10 +52,6 @@ function getRuntimeApiUrls() {
 }
 
 function getLocalApiFallbackUrls() {
-  if (isBrowserRuntime() && !isLocalHostname(window.location.hostname)) {
-    return [];
-  }
-
   return ["http://127.0.0.1:5000/api", "http://localhost:5000/api"];
 }
 
@@ -148,6 +144,28 @@ async function fetchWithTimeout(url, options = {}) {
   }
 }
 
+async function isProxyBackendUnavailableResponse(response) {
+  if (![502, 503].includes(response.status)) {
+    return false;
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    return false;
+  }
+
+  try {
+    const payload = await response.clone().json();
+    const message = String(payload?.message || "").toLowerCase();
+    return (
+      message.includes("backend indisponible") ||
+      message.includes("lancez le serveur backend")
+    );
+  } catch (_error) {
+    return false;
+  }
+}
+
 export async function fetchApi(endpoint, options = {}) {
   let lastNetworkError = null;
   let lastInvalidResponse = null;
@@ -161,6 +179,15 @@ export async function fetchApi(endpoint, options = {}) {
     try {
       const response = await fetchWithTimeout(requestUrl, options);
       const contentType = response.headers.get("content-type") || "";
+
+      if (await isProxyBackendUnavailableResponse(response)) {
+        lastNetworkError = new ApiError(
+          "Backend indisponible. Lancez le serveur backend sur le port 5000 puis reessayez.",
+          response.status,
+          { url: requestUrl }
+        );
+        continue;
+      }
 
       if (!contentType.includes("application/json") && response.status !== 204) {
         lastInvalidResponse = {
