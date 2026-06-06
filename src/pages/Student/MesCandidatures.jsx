@@ -7,7 +7,7 @@ import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { listMyApplications } from "../../services/applicationService";
-import { clearAuthSession, getAuthToken } from "../../services/authService";
+import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
 import { listMyDocuments } from "../../services/documentService";
 import { fetchMyProfile } from "../../services/profileService";
 import "../../index.css";
@@ -349,12 +349,28 @@ export default function MesCandidatures() {
       try {
         setIsLoading(true);
         setLoadError("");
-        const [applicationsResponse, documentsResponse, profileResponse] = await Promise.all([
+        const [applicationsResult, documentsResult, profileResult] = await Promise.allSettled([
           listMyApplications(),
           listMyDocuments(),
           fetchMyProfile(),
         ]);
 
+        const authError = [applicationsResult, documentsResult, profileResult].find(
+          (result) => result.status === "rejected" && result.reason?.status === 401
+        );
+
+        if (authError) {
+          throw authError.reason;
+        }
+
+        if (applicationsResult.status === "rejected") {
+          throw applicationsResult.reason;
+        }
+
+        const applicationsResponse = applicationsResult.value;
+        const documentsResponse =
+          documentsResult.status === "fulfilled" ? documentsResult.value : [];
+        const profileResponse = profileResult.status === "fulfilled" ? profileResult.value : {};
         const profileDetails = mapApiProfileToDetails(profileResponse);
 
         if (isMounted) {
@@ -370,8 +386,10 @@ export default function MesCandidatures() {
         }
       } catch (error) {
         if (isMounted) {
-          const message =
-            error.message || "Impossible de charger vos candidatures. Réessayez ultérieurement.";
+          const message = getApiErrorMessage(
+            error,
+            "Impossible de charger vos candidatures. Réessayez ultérieurement."
+          );
           setLoadError(message);
           if (error.status === 401) {
             clearAuthSession();
