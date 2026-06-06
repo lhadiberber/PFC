@@ -28,10 +28,9 @@ import AdminsManagement from "./pages/SuperAdmin/AdminsManagement.jsx";
 import UsersManagement from "./pages/SuperAdmin/UsersManagement.jsx";
 import SuperAdminProfile from "./pages/SuperAdmin/SuperAdminProfile.jsx";
 import Navbar from "./components/Navbar";
-import ToastContainer from "./components/Toast";
 import { useAdmissions } from "./context/AdmissionsContext";
 import { clearAuthSession, getAuthSession } from "./services/authService";
-import { setToastFn, setLoadingFn, clearToastFn, clearLoadingFn } from "./utils/toast";
+import { setLoadingFn, clearLoadingFn } from "./utils/toast";
 
 const ADMIN_ROLES = ["admin", "super_admin"];
 const SUPER_ADMIN_HOME = "/super-admin";
@@ -77,7 +76,6 @@ ProtectedRoute.propTypes = {
 };
 
 function AppContent() {
-  const [toasts, setToasts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("");
 
@@ -92,28 +90,15 @@ function AppContent() {
   }, [location.pathname]);
 
   useEffect(() => {
-    setToastFn((message, type) => {
-      const id = Date.now();
-      setToasts(prev => [...prev, { id, message, type }]);
-      setTimeout(() => {
-        setToasts(prev => prev.filter(t => t.id !== id));
-      }, 3000);
-    });
-
     setLoadingFn((show, text) => {
       setLoading(show);
       if (show && text) setLoadingText(text);
     });
 
     return () => {
-      clearToastFn();
       clearLoadingFn();
     };
   }, []);
-
-  const removeToast = (id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  };
 
   return (
     <>
@@ -127,7 +112,6 @@ function AppContent() {
             </div>
           </div>
         )}
-        <ToastContainer toasts={toasts} removeToast={removeToast} />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/student" element={<Navigate to="/student-step1" replace />} />

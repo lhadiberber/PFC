@@ -467,7 +467,7 @@ export default function ProfilAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Préférences</h3>
-                  <p>Réglez l'affichage et les notifications de l'espace admin</p>
+                  <p>Réglez l'affichage de l'espace admin</p>
                 </div>
               </div>
 
@@ -483,28 +483,6 @@ export default function ProfilAdmin() {
                     <option value="light">Clair</option>
                     <option value="dark">Sombre</option>
                   </CustomSelect>
-                </label>
-
-                <label className="admin-preference-card">
-                  <input
-                    type="checkbox"
-                    name="notificationsEnabled"
-                    checked={profileData.notificationsEnabled}
-                    onChange={handleProfileChange}
-                    disabled={!isEditing}
-                  />
-                  <span>Notifications administrateur activées</span>
-                </label>
-
-                <label className="admin-preference-card">
-                  <input
-                    type="checkbox"
-                    name="dailySummary"
-                    checked={profileData.dailySummary}
-                    onChange={handleProfileChange}
-                    disabled={!isEditing}
-                  />
-                  <span>Recevoir un récapitulatif quotidien</span>
                 </label>
               </div>
             </article>

@@ -1,12 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../Sidebar";
-import Button from "../ui/Button";
 import PageHeader from "../ui/PageHeader";
 import { useLanguage } from "../../context/LanguageContext";
-import { getAdminDashboard } from "../../services/adminService";
-import { clearAuthSession, getAuthSession, getAuthToken } from "../../services/authService";
+import { clearAuthSession, getAuthSession } from "../../services/authService";
 
 function getStoredAdminProfile() {
   try {
@@ -266,16 +264,9 @@ export default function AdminLayout({
 }) {
   const { locale, t } = useLanguage();
   const navigate = useNavigate();
-  const notifRef = useRef(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("adminDarkMode") === "true");
-  const [showNotif, setShowNotif] = useState(false);
   const [adminProfile, setAdminProfile] = useState(() => getStoredAdminProfile());
   const [currentTime, setCurrentTime] = useState(() => new Date());
-  const [adminStats, setAdminStats] = useState({
-    enAttente: 0,
-    totalCandidatures: 0,
-    documentsManquants: 0,
-  });
 
   const session = getAuthSession();
   const sessionUser = session?.user || {};
@@ -308,17 +299,6 @@ export default function AdminLayout({
   }, []);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (notifRef.current && !notifRef.current.contains(event.target)) {
-        setShowNotif(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
     const syncPreferences = () => {
       setDarkMode(localStorage.getItem("adminDarkMode") === "true");
       setAdminProfile(getStoredAdminProfile());
@@ -332,40 +312,6 @@ export default function AdminLayout({
       window.removeEventListener("storage", syncPreferences);
     };
   }, []);
-
-  useEffect(() => {
-    let isActive = true;
-
-    async function loadAdminStats() {
-      if (!getAuthToken()) {
-        return;
-      }
-
-      try {
-        const dashboard = await getAdminDashboard();
-        const stats = dashboard.stats || {};
-
-        if (isActive) {
-          setAdminStats({
-            enAttente: stats.enAttente || 0,
-            totalCandidatures: stats.totalCandidatures || 0,
-            documentsManquants: stats.documentsEnAttente || 0,
-          });
-        }
-      } catch (error) {
-        if (error.status === 401) {
-          clearAuthSession();
-          navigate("/login", { replace: true });
-        }
-      }
-    }
-
-    loadAdminStats();
-
-    return () => {
-      isActive = false;
-    };
-  }, [navigate]);
 
   const handleLogout = () => {
     clearAuthSession();
@@ -414,57 +360,6 @@ export default function AdminLayout({
                   <strong>{operatorName}</strong>
                   <small>{operatorRole}</small>
                 </div>
-              </div>
-
-              <div className="admin-header-notification" ref={notifRef}>
-                <Button
-                  className="admin-header-icon-button"
-                  onClick={() => setShowNotif((prev) => !prev)}
-                  title={t("adminLayout.notificationTitle")}
-                >
-                  <span className="admin-notification-icon">
-                    <AdminIcon name="bell" />
-                  </span>
-                  <span className="admin-notification-badge">{adminStats.enAttente}</span>
-                </Button>
-
-                {showNotif && (
-                  <div className="admin-notif-dropdown">
-                    <div className="notif-item">
-                      <strong>
-                        {t("adminLayout.notifications.consolidated", {
-                          count: adminStats.totalCandidatures,
-                        })}
-                      </strong>
-                      <span>{t("adminLayout.notifications.consolidatedDetail")}</span>
-                    </div>
-                    <div className="notif-item">
-                      <strong>
-                        {t("adminLayout.notifications.pending", {
-                          count: adminStats.enAttente,
-                        })}
-                      </strong>
-                      <span>{t("adminLayout.notifications.pendingDetail")}</span>
-                    </div>
-                    <div className="notif-item">
-                      <strong>
-                        {t("adminLayout.notifications.documents", {
-                          count: adminStats.documentsManquants,
-                        })}
-                      </strong>
-                      <span>{t("adminLayout.notifications.documentsDetail")}</span>
-                    </div>
-                    <Button
-                      className="notif-link"
-                      onClick={() => {
-                        setShowNotif(false);
-                        navigate("/admin/candidatures");
-                      }}
-                    >
-                      {t("adminLayout.openQueue")}
-                    </Button>
-                  </div>
-                )}
               </div>
             </div>
           </div>
