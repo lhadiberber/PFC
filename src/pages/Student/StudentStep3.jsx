@@ -3,7 +3,12 @@ import { useNavigate } from "react-router-dom";
 import ApplicationStepLayout from "../../components/student/ApplicationStepLayout";
 import ProgressBar from "../../components/ui/ProgressBar";
 import { useAdmissions } from "../../context/AdmissionsContext";
-import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
+import {
+  clearAuthSession,
+  getApiErrorMessage,
+  getAuthToken,
+  isNetworkUnavailableError,
+} from "../../services/authService";
 import {
   deleteStudentDocument,
   listMyDocuments,
@@ -108,6 +113,12 @@ function isImageDocument(fieldName) {
 
 function formatMegabytes(size) {
   return `${size / (1024 * 1024)} Mo`;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function normalizeDocumentStatus(status) {
@@ -223,8 +234,35 @@ export default function StudentStep3() {
       setPageError("");
 
       try {
-        const documents = await listMyDocuments();
+        let documents = [];
+        let lastNetworkError = null;
+
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          try {
+            documents = await listMyDocuments();
+            lastNetworkError = null;
+            break;
+          } catch (error) {
+            if (error.status === 401 || !isNetworkUnavailableError(error)) {
+              throw error;
+            }
+
+            lastNetworkError = error;
+
+            if (isActive) {
+              setPageError("Connexion au serveur de documents en cours. Nouvelle tentative automatique...");
+            }
+
+            await wait(600 * (attempt + 1));
+          }
+        }
+
+        if (lastNetworkError) {
+          throw lastNetworkError;
+        }
+
         if (!isActive) return;
+        setPageError("");
 
         const mappedDocuments = mapApiDocumentsToFields(documents);
         const nextFiles = { ...buildEmptyDocumentFiles(), ...mappedDocuments.files };
@@ -236,10 +274,9 @@ export default function StudentStep3() {
       } catch (error) {
         if (!isActive) return;
 
-        const message = getApiErrorMessage(
-          error,
-          "Impossible de charger les documents déjà déposés."
-        );
+        const message = isNetworkUnavailableError(error)
+          ? "Impossible de joindre le serveur de documents. Vérifiez que le projet est lancé avec npm run dev puis réessayez."
+          : getApiErrorMessage(error, "Impossible de charger les documents déjà déposés.");
 
         if (error.status === 401) {
           clearAuthSession();
@@ -342,7 +379,9 @@ export default function StudentStep3() {
         [LEGACY_FIELD_BY_DOCUMENT_FIELD[fieldName] || fieldName]: fileName,
       });
     } catch (error) {
-      const message = getApiErrorMessage(error, "Impossible de déposer ce document.");
+      const message = isNetworkUnavailableError(error)
+        ? "Le serveur de documents n'a pas répondu. Vérifiez que npm run dev est lancé puis réessayez le dépôt."
+        : getApiErrorMessage(error, "Impossible de déposer ce document.");
       if (error.status === 401) {
         clearAuthSession();
         navigate("/login", { state: { message } });
@@ -394,7 +433,9 @@ export default function StudentStep3() {
         fileInputRefs.current[fieldName].value = "";
       }
     } catch (error) {
-      const message = getApiErrorMessage(error, "Impossible de retirer ce document.");
+      const message = isNetworkUnavailableError(error)
+        ? "Le serveur de documents n'a pas répondu. Vérifiez que npm run dev est lancé puis réessayez le retrait."
+        : getApiErrorMessage(error, "Impossible de retirer ce document.");
       if (error.status === 401) {
         clearAuthSession();
         navigate("/login", { state: { message } });
