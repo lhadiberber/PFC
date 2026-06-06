@@ -1,5 +1,7 @@
 export const API_BASE_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/+$/, "");
 const API_REQUEST_TIMEOUT_MS = 12000;
+const API_NETWORK_RETRY_COUNT = 2;
+const API_NETWORK_RETRY_DELAY_MS = 350;
 
 function normalizeApiUrl(url) {
   return String(url || "").replace(/\/+$/, "");
@@ -16,6 +18,12 @@ function isLocalHostname(hostname) {
 function normalizeEndpoint(endpoint) {
   const normalizedEndpoint = String(endpoint || "").trim();
   return normalizedEndpoint.startsWith("/") ? normalizedEndpoint : `/${normalizedEndpoint}`;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function getRuntimeApiUrls() {
@@ -172,35 +180,41 @@ export async function fetchApi(endpoint, options = {}) {
   const triedUrls = [];
   const normalizedEndpoint = normalizeEndpoint(endpoint);
 
-  for (const baseUrl of getApiFallbackUrls()) {
-    const requestUrl = `${baseUrl}${normalizedEndpoint}`;
-    triedUrls.push(requestUrl);
+  for (let attempt = 0; attempt <= API_NETWORK_RETRY_COUNT; attempt += 1) {
+    for (const baseUrl of getApiFallbackUrls()) {
+      const requestUrl = `${baseUrl}${normalizedEndpoint}`;
+      triedUrls.push(requestUrl);
 
-    try {
-      const response = await fetchWithTimeout(requestUrl, options);
-      const contentType = response.headers.get("content-type") || "";
+      try {
+        const response = await fetchWithTimeout(requestUrl, options);
+        const contentType = response.headers.get("content-type") || "";
 
-      if (await isProxyBackendUnavailableResponse(response)) {
-        lastNetworkError = new ApiError(
-          "Backend indisponible. Lancez le serveur backend sur le port 5000 puis reessayez.",
-          response.status,
-          { url: requestUrl }
-        );
-        continue;
+        if (await isProxyBackendUnavailableResponse(response)) {
+          lastNetworkError = new ApiError(
+            "Backend indisponible. Lancez le serveur backend sur le port 5000 puis reessayez.",
+            response.status,
+            { url: requestUrl }
+          );
+          continue;
+        }
+
+        if (!contentType.includes("application/json") && response.status !== 204) {
+          lastInvalidResponse = {
+            url: requestUrl,
+            status: response.status,
+            contentType,
+          };
+          continue;
+        }
+
+        return response;
+      } catch (error) {
+        lastNetworkError = error;
       }
+    }
 
-      if (!contentType.includes("application/json") && response.status !== 204) {
-        lastInvalidResponse = {
-          url: requestUrl,
-          status: response.status,
-          contentType,
-        };
-        continue;
-      }
-
-      return response;
-    } catch (error) {
-      lastNetworkError = error;
+    if (attempt < API_NETWORK_RETRY_COUNT && lastNetworkError) {
+      await wait(API_NETWORK_RETRY_DELAY_MS * (attempt + 1));
     }
   }
 
