@@ -7,7 +7,12 @@ import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
 import { useAdmissions } from "../../context/AdmissionsContext";
-import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
+import {
+  clearAuthSession,
+  getApiErrorMessage,
+  getAuthToken,
+  isNetworkUnavailableError,
+} from "../../services/authService";
 import {
   getAdminApplication,
   updateAdminApplicationStatus as updateAdminApplicationStatusApi,
@@ -114,6 +119,12 @@ function getFieldValue(value, fallback = "Non renseigné") {
   return value && String(value).trim() ? value : fallback;
 }
 
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 export default function DetailCandidaturesAdmin() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -134,6 +145,7 @@ export default function DetailCandidaturesAdmin() {
   const [isLoadingApplication, setIsLoadingApplication] = useState(true);
   const [applicationError, setApplicationError] = useState("");
   const [statusActionLoading, setStatusActionLoading] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let isActive = true;
@@ -152,8 +164,37 @@ export default function DetailCandidaturesAdmin() {
       setApplicationError("");
 
       try {
-        const application = await getAdminApplication(id);
+        let application = null;
+        let lastNetworkError = null;
+
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          try {
+            application = await getAdminApplication(id);
+            lastNetworkError = null;
+            break;
+          } catch (error) {
+            if (error.status === 401 || !isNetworkUnavailableError(error)) {
+              throw error;
+            }
+
+            lastNetworkError = error;
+
+            if (isActive) {
+              setApplicationError(
+                "Connexion au serveur des candidatures en cours. Nouvelle tentative automatique..."
+              );
+            }
+
+            await wait(600 * (attempt + 1));
+          }
+        }
+
+        if (lastNetworkError) {
+          throw lastNetworkError;
+        }
+
         if (isActive) {
+          setApplicationError("");
           setRemoteApplication(application);
         }
       } catch (error) {
@@ -167,9 +208,11 @@ export default function DetailCandidaturesAdmin() {
         }
 
         setApplicationError(
-          error.status === 403
-            ? "Accès refusé. Cette page est réservée aux administrateurs."
-            : getApiErrorMessage(error, "Impossible de charger la candidature.")
+          isNetworkUnavailableError(error)
+            ? "Impossible de joindre le serveur des candidatures. Vérifiez que le projet est lancé avec npm run dev puis réessayez."
+            : error.status === 403
+              ? "Accès refusé. Cette page est réservée aux administrateurs."
+              : getApiErrorMessage(error, "Impossible de charger la candidature.")
         );
       } finally {
         if (isActive) {
@@ -183,7 +226,7 @@ export default function DetailCandidaturesAdmin() {
     return () => {
       isActive = false;
     };
-  }, [id, navigate]);
+  }, [id, navigate, reloadKey]);
 
   const localCandidature = useMemo(
     () => applications.map(toAdminApplication).find((item) => String(item.id) === String(id)),
@@ -245,6 +288,14 @@ export default function DetailCandidaturesAdmin() {
             actionTo="/admin/candidatures"
             className="admin-empty-state"
           />
+          <div className="admin-dashboard-topbar-actions">
+            <Button
+              className="campus-btn-primary"
+              onClick={() => setReloadKey((currentKey) => currentKey + 1)}
+            >
+              Réessayer
+            </Button>
+          </div>
         </section>
       </AdminLayout>
     );
@@ -331,7 +382,9 @@ export default function DetailCandidaturesAdmin() {
       updateApplicationStatus(candidature.id, nextStatus);
       showToast(`Statut mis à jour : ${getStatusDisplayLabel(nextStatus)}`, "success");
     } catch (error) {
-      const message = getApiErrorMessage(error, "Impossible de mettre à jour le statut.");
+      const message = isNetworkUnavailableError(error)
+        ? "Le serveur des candidatures n'a pas répondu. Vérifiez que npm run dev est lancé puis réessayez la mise à jour."
+        : getApiErrorMessage(error, "Impossible de mettre à jour le statut.");
 
       if (error.status === 401) {
         clearAuthSession();

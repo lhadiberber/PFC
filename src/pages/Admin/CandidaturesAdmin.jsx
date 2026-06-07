@@ -6,7 +6,12 @@ import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
+import {
+  clearAuthSession,
+  getApiErrorMessage,
+  getAuthToken,
+  isNetworkUnavailableError,
+} from "../../services/authService";
 import { listAdminApplications } from "../../services/adminService";
 import { downloadCsv } from "../../utils/exportCsv";
 import { downloadPdfReport } from "../../utils/exportPdf";
@@ -41,6 +46,12 @@ function isToday(dateValue) {
     date.getMonth() === today.getMonth() &&
     date.getDate() === today.getDate()
   );
+}
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function sortCandidatures(items, sortField, sortDirection) {
@@ -134,8 +145,37 @@ export default function CandidaturesAdmin() {
       setApplicationsError("");
 
       try {
-        const applicationsResponse = await listAdminApplications();
+        let applicationsResponse = [];
+        let lastNetworkError = null;
+
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          try {
+            applicationsResponse = await listAdminApplications();
+            lastNetworkError = null;
+            break;
+          } catch (error) {
+            if (error.status === 401 || !isNetworkUnavailableError(error)) {
+              throw error;
+            }
+
+            lastNetworkError = error;
+
+            if (isActive) {
+              setApplicationsError(
+                "Connexion au serveur des candidatures en cours. Nouvelle tentative automatique..."
+              );
+            }
+
+            await wait(600 * (attempt + 1));
+          }
+        }
+
+        if (lastNetworkError) {
+          throw lastNetworkError;
+        }
+
         if (isActive) {
+          setApplicationsError("");
           setAdminApplicationsData(applicationsResponse);
         }
       } catch (error) {
@@ -149,9 +189,11 @@ export default function CandidaturesAdmin() {
         }
 
         setApplicationsError(
-          error.status === 403
-            ? "Accès refusé. Cette page est réservée aux administrateurs."
-            : getApiErrorMessage(error, "Impossible de charger les candidatures.")
+          isNetworkUnavailableError(error)
+            ? "Impossible de joindre le serveur des candidatures. Vérifiez que le projet est lancé avec npm run dev puis réessayez."
+            : error.status === 403
+              ? "Accès refusé. Cette page est réservée aux administrateurs."
+              : getApiErrorMessage(error, "Impossible de charger les candidatures.")
         );
       } finally {
         if (isActive) {
