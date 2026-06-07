@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import {
   createUser,
+  findUserByBacRegistrationNumber,
   findUserByEmail,
   findUserById,
   normalizeEmail,
@@ -167,17 +168,19 @@ export async function login(request, response, next) {
   try {
     const { email, password } = request.body;
     const passwordValue = String(password || "");
-    const normalizedEmail = normalizeEmail(email);
+    const identifier = String(email || "").trim();
 
-    if (!normalizedEmail || !passwordValue) {
+    if (!identifier || !passwordValue) {
       response.status(400).json({
         success: false,
-        message: "Email et mot de passe sont obligatoires.",
+        message: "Identifiant et mot de passe sont obligatoires.",
       });
       return;
     }
 
-    const user = await findUserByEmail(normalizedEmail);
+    const user = identifier.includes("@")
+      ? await findUserByEmail(normalizeEmail(identifier))
+      : await findUserByBacRegistrationNumber(identifier);
     const isPasswordValid = user
       ? await bcrypt.compare(passwordValue, user.password_hash)
       : false;

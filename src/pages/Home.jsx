@@ -223,15 +223,15 @@ export default function Home() {
                     </p>
 
                     <div className="campus-form-group">
-                      <label htmlFor="home-login-email">{t("common.email")}</label>
+                      <label htmlFor="home-login-email">Email ou numéro d'inscription</label>
                       <input
                         id="home-login-email"
                         name="email"
-                        type="email"
-                        placeholder={messages.auth.login.emailPlaceholder}
+                        type="text"
+                        placeholder="exemple@mail.com ou numéro d'inscription au bac"
                         value={email}
                         disabled={isLoginSubmitting}
-                        autoComplete="email"
+                        autoComplete="username"
                         onChange={(event) => {
                           setEmail(event.target.value);
                           setLoginError("");

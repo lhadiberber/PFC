@@ -94,9 +94,11 @@ export default function Login() {
   const validate = () => {
     const nextErrors = {};
 
-    if (!formData.email.trim()) {
+    const identifier = formData.email.trim();
+
+    if (!identifier) {
       nextErrors.email = copy.errors.emailRequired;
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (identifier.includes("@") && !/\S+@\S+\.\S+/.test(identifier)) {
       nextErrors.email = copy.errors.invalidEmail;
     }
 
@@ -198,17 +200,17 @@ export default function Login() {
                   className="auth-register-field auth-register-field-full"
                   htmlFor="login-email"
                 >
-                  <span>{messages.common.email}</span>
+                  <span>Email ou numéro d'inscription</span>
                   <input
                     id="login-email"
                     ref={emailRef}
-                    type="email"
+                    type="text"
                     name="email"
-                    placeholder={copy.emailPlaceholder}
+                    placeholder="exemple@mail.com ou numéro d'inscription au bac"
                     value={formData.email}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    autoComplete="email"
+                    autoComplete="username"
                     aria-invalid={Boolean(errors.email)}
                     aria-describedby={errors.email ? "email-error" : undefined}
                   />

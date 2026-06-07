@@ -62,6 +62,26 @@ export async function findUserByEmail(email) {
   return rows[0] || null;
 }
 
+export async function findUserByBacRegistrationNumber(registrationNumber) {
+  const normalizedRegistrationNumber = String(registrationNumber || "").trim();
+
+  if (!normalizedRegistrationNumber) {
+    return null;
+  }
+
+  const [rows] = await pool.execute(
+    `SELECT u.*
+     FROM users u
+     INNER JOIN student_profiles sp ON sp.user_id = u.id
+     WHERE u.role = 'student'
+       AND sp.numero_inscription_bac = ?
+     LIMIT 1`,
+    [normalizedRegistrationNumber]
+  );
+
+  return rows[0] || null;
+}
+
 export async function findUserById(id) {
   const [rows] = await pool.execute(`SELECT ${PUBLIC_USER_FIELDS} FROM users WHERE id = ? LIMIT 1`, [
     id,
