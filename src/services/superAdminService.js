@@ -18,6 +18,8 @@ export async function createAdmin(adminData) {
       prenom: adminData.prenom,
       email: adminData.email,
       password: adminData.password,
+      university_scope: adminData.university_scope || "",
+      assigned_department: adminData.assigned_department || "",
     },
   });
 
@@ -31,6 +33,8 @@ export async function updateAdmin(id, adminData) {
       nom: adminData.nom,
       prenom: adminData.prenom,
       email: adminData.email,
+      university_scope: adminData.university_scope || "",
+      assigned_department: adminData.assigned_department || "",
     },
   });
 

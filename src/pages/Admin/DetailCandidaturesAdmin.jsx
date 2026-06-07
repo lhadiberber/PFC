@@ -120,6 +120,19 @@ function getFieldValue(value, fallback = "Non renseigné") {
   return value && String(value).trim() ? value : fallback;
 }
 
+function getPreselectionTone(status) {
+  switch (status) {
+    case "eligible":
+      return "positive";
+    case "incomplet":
+      return "warning";
+    case "non_eligible":
+      return "danger";
+    default:
+      return "neutral";
+  }
+}
+
 function normalizeDocumentType(value) {
   return String(value || "")
     .trim()
@@ -566,6 +579,9 @@ export default function DetailCandidaturesAdmin() {
               <span className={`admin-page-context ${candidature.adminMeta.internalPriorityTone}`}>
                 Priorité {candidature.adminMeta.internalPriorityLabel}
               </span>
+              <span className={`admin-queue-pill ${getPreselectionTone(candidature.preselection?.status)}`}>
+                {candidature.preselection?.label || "Non évalué"}
+              </span>
             </div>
 
             <div className="admin-application-hero-grid">
@@ -813,6 +829,12 @@ export default function DetailCandidaturesAdmin() {
                   <span className="admin-meta-label">Statut interne</span>
                   <span className={`admin-queue-pill ${candidature.adminMeta.internalStatusTone}`}>
                     {candidature.adminMeta.internalStatusLabel}
+                  </span>
+                </div>
+                <div className="admin-meta-item">
+                  <span className="admin-meta-label">Présélection</span>
+                  <span className={`admin-queue-pill ${getPreselectionTone(candidature.preselection?.status)}`}>
+                    {candidature.preselection?.label || "Non évalué"}
                   </span>
                 </div>
                 <div className="admin-meta-item">

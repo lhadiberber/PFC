@@ -56,6 +56,19 @@ function wait(ms) {
   });
 }
 
+function getPreselectionTone(status) {
+  switch (status) {
+    case "eligible":
+      return "positive";
+    case "incomplet":
+      return "warning";
+    case "non_eligible":
+      return "danger";
+    default:
+      return "neutral";
+  }
+}
+
 function sortCandidatures(items, sortField, sortDirection) {
   const factor = sortDirection === "asc" ? 1 : -1;
 
@@ -503,6 +516,7 @@ export default function CandidaturesAdmin() {
     { label: "Spécialité", getValue: (item) => item.specialite },
     { label: "Date de dépôt", getValue: (item) => formatAdminDate(item.date) },
     { label: "Statut", getValue: (item) => item.statut },
+    { label: "Présélection", getValue: (item) => item.preselection?.label || "Non évalué" },
     {
       label: "Priorité interne",
       getValue: (item) => item.adminMeta?.internalPriorityLabel || "Moyenne",
@@ -869,6 +883,7 @@ export default function CandidaturesAdmin() {
                 <th>Spécialité</th>
                 <th>Date</th>
                 <th>Statut</th>
+                <th>Présélection</th>
                 <th>Pilotage</th>
                 <th>Progression</th>
                 <th>Action</th>
@@ -877,7 +892,7 @@ export default function CandidaturesAdmin() {
             <tbody>
               {paginatedCandidatures.length === 0 ? (
                 <tr>
-                  <td colSpan="9">
+                  <td colSpan="10">
                     <EmptyState
                       title="Aucune candidature"
                       description="Aucun dossier ne correspond aux filtres choisis."
@@ -902,6 +917,15 @@ export default function CandidaturesAdmin() {
                       <td data-label="Date">{formatAdminDate(candidature.date)}</td>
                       <td data-label="Statut">
                         <StatusBadge status={candidature.statut} />
+                      </td>
+                      <td data-label="Présélection">
+                        <span
+                          className={`admin-queue-pill ${getPreselectionTone(
+                            candidature.preselection?.status
+                          )}`}
+                        >
+                          {candidature.preselection?.label || "Non évalué"}
+                        </span>
                       </td>
                       <td data-label="Pilotage">
                         <div className="admin-table-meta">

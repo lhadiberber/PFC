@@ -78,6 +78,8 @@ function buildPublicUser(user) {
     email: user.email,
     role: user.role,
     is_active: Boolean(user.is_active),
+    university_scope: user.university_scope || "",
+    assigned_department: user.assigned_department || "",
     created_at: user.created_at,
   };
 }

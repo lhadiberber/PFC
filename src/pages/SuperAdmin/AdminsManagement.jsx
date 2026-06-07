@@ -20,12 +20,16 @@ const emptyForm = {
   email: "",
   password: "",
   confirmPassword: "",
+  university_scope: "",
+  assigned_department: "",
 };
 
 const emptyEditForm = {
   nom: "",
   prenom: "",
   email: "",
+  university_scope: "",
+  assigned_department: "",
 };
 
 function isValidEmail(email) {
@@ -172,6 +176,8 @@ export default function AdminsManagement() {
         prenom: formData.prenom.trim(),
         email: formData.email.trim(),
         password: formData.password,
+        university_scope: formData.university_scope.trim(),
+        assigned_department: formData.assigned_department.trim(),
       });
       if (createdAdmin) {
         setAdmins((current) => [createdAdmin, ...current]);
@@ -204,6 +210,8 @@ export default function AdminsManagement() {
       nom: admin.nom || "",
       prenom: admin.prenom || "",
       email: admin.email || "",
+      university_scope: admin.university_scope || "",
+      assigned_department: admin.assigned_department || "",
     });
     setError("");
     setErrorCanRetry(false);
@@ -235,6 +243,8 @@ export default function AdminsManagement() {
         nom: editForm.nom.trim(),
         prenom: editForm.prenom.trim(),
         email: editForm.email.trim(),
+        university_scope: editForm.university_scope.trim(),
+        assigned_department: editForm.assigned_department.trim(),
       });
 
       if (updatedAdmin) {
@@ -364,6 +374,24 @@ export default function AdminsManagement() {
             disabled={isCreating}
           />
           <input
+            type="text"
+            name="university_scope"
+            value={formData.university_scope}
+            onChange={handleFieldChange}
+            placeholder="Université affectée"
+            className="admin-search-input"
+            disabled={isCreating}
+          />
+          <input
+            type="text"
+            name="assigned_department"
+            value={formData.assigned_department}
+            onChange={handleFieldChange}
+            placeholder="Département / filière"
+            className="admin-search-input"
+            disabled={isCreating}
+          />
+          <input
             type="password"
             name="password"
             value={formData.password}
@@ -410,6 +438,7 @@ export default function AdminsManagement() {
                   <th>Nom</th>
                   <th>Prénom</th>
                   <th>Email</th>
+                  <th>Périmètre</th>
                   <th>Role</th>
                   <th>Statut</th>
                   <th>Date création</th>
@@ -419,7 +448,7 @@ export default function AdminsManagement() {
               <tbody>
                 {admins.length === 0 ? (
                   <tr>
-                    <td colSpan="7">
+                    <td colSpan="8">
                       <EmptyState
                         title="Aucun administrateur pour le moment."
                         description="Créez le premier compte admin depuis le formulaire."
@@ -476,6 +505,39 @@ export default function AdminsManagement() {
                             />
                           ) : (
                             admin.email
+                          )}
+                        </td>
+                        <td data-label="Périmètre">
+                          {isEditing ? (
+                            <div className="admin-table-meta">
+                              <input
+                                type="text"
+                                name="university_scope"
+                                value={editForm.university_scope}
+                                onChange={handleEditFieldChange}
+                                className="admin-search-input"
+                                placeholder="Université"
+                                disabled={isSavingEdit}
+                              />
+                              <input
+                                type="text"
+                                name="assigned_department"
+                                value={editForm.assigned_department}
+                                onChange={handleEditFieldChange}
+                                className="admin-search-input"
+                                placeholder="Département / filière"
+                                disabled={isSavingEdit}
+                              />
+                            </div>
+                          ) : (
+                            <div className="admin-table-meta">
+                              <span className="admin-table-meta-text">
+                                {admin.university_scope || "Non affecté"}
+                              </span>
+                              <span className="admin-table-meta-subtext">
+                                {admin.assigned_department || "Tous les départements"}
+                              </span>
+                            </div>
                           )}
                         </td>
                         <td data-label="Role">{admin.role}</td>

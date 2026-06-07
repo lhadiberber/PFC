@@ -186,6 +186,13 @@ function getMenuItems(t, role) {
           activePrefixes: ["/admin/documents"],
         },
         {
+          id: "selection-rules",
+          label: "Règles de sélection",
+          icon: "shield",
+          path: "/admin/regles-selection",
+          activePrefixes: ["/admin/regles-selection"],
+        },
+        {
           id: "profil",
           label: t("adminLayout.menu.profile"),
           icon: "user",
@@ -206,7 +213,7 @@ function getMenuItems(t, role) {
       label: "Accès espace admin",
     },
     ...adminMenu[0].items.filter((item) =>
-      ["candidatures", "etudiants", "documents"].includes(item.id)
+      ["candidatures", "etudiants", "documents", "selection-rules"].includes(item.id)
     ),
   ];
 

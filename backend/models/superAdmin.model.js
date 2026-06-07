@@ -1,8 +1,10 @@
 import { pool } from "../config/db.js";
 import { normalizeEmail } from "./user.model.js";
 
-const ADMIN_FIELDS = "id, nom, prenom, email, role, is_active, created_at";
-const USER_FIELDS = "id, nom, prenom, email, role, is_active, created_at";
+const ADMIN_FIELDS =
+  "id, nom, prenom, email, role, is_active, university_scope, assigned_department, created_at";
+const USER_FIELDS =
+  "id, nom, prenom, email, role, is_active, university_scope, assigned_department, created_at";
 
 function normalizeAdmin(row) {
   if (!row) {
@@ -16,6 +18,8 @@ function normalizeAdmin(row) {
     email: row.email || "",
     role: row.role || "admin",
     is_active: Boolean(row.is_active),
+    university_scope: row.university_scope || "",
+    assigned_department: row.assigned_department || "",
     created_at: row.created_at,
   };
 }
@@ -32,6 +36,8 @@ function normalizeUser(row) {
     email: row.email || "",
     role: row.role || "student",
     is_active: Boolean(row.is_active),
+    university_scope: row.university_scope || "",
+    assigned_department: row.assigned_department || "",
     created_at: row.created_at,
   };
 }
@@ -113,15 +119,33 @@ export async function findUserByEmailForAdminManagement(email) {
   return normalizeAdmin(rows[0]);
 }
 
-export async function createAdmin({ nom, prenom, email, passwordHash }) {
+export async function createAdmin({
+  nom,
+  prenom,
+  email,
+  passwordHash,
+  universityScope = "",
+  assignedDepartment = "",
+}) {
   const [insertResult] = await pool.execute(
-    `INSERT INTO users (nom, prenom, email, password_hash, role, is_active)
-     VALUES (?, ?, ?, ?, 'admin', 1)`,
+    `INSERT INTO users (
+       nom,
+       prenom,
+       email,
+       password_hash,
+       role,
+       is_active,
+       university_scope,
+       assigned_department
+     )
+     VALUES (?, ?, ?, ?, 'admin', 1, ?, ?)`,
     [
       String(nom || "").trim(),
       String(prenom || "").trim(),
       normalizeEmail(email),
       passwordHash,
+      String(universityScope || "").trim() || null,
+      String(assignedDepartment || "").trim() || null,
     ]
   );
 
@@ -141,15 +165,17 @@ export async function updateAdminStatus(id, isActive) {
   return findUserForAdminManagement(id);
 }
 
-export async function updateAdminInfo(id, { nom, prenom, email }) {
+export async function updateAdminInfo(id, { nom, prenom, email, universityScope = "", assignedDepartment = "" }) {
   const [updateResult] = await pool.execute(
     `UPDATE users
-     SET nom = ?, prenom = ?, email = ?
+     SET nom = ?, prenom = ?, email = ?, university_scope = ?, assigned_department = ?
      WHERE id = ? AND role = 'admin'`,
     [
       String(nom || "").trim(),
       String(prenom || "").trim(),
       normalizeEmail(email),
+      String(universityScope || "").trim() || null,
+      String(assignedDepartment || "").trim() || null,
       id,
     ]
   );

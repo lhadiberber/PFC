@@ -1,6 +1,7 @@
 import { pool } from "../config/db.js";
 
-const PUBLIC_USER_FIELDS = "id, nom, prenom, email, role, is_active, created_at";
+const PUBLIC_USER_FIELDS =
+  "id, nom, prenom, email, role, is_active, university_scope, assigned_department, created_at";
 const ALLOWED_ROLES = new Set(["student", "admin", "super_admin"]);
 const USER_ROLE_SQL = "ENUM('student', 'admin', 'super_admin')";
 
@@ -11,6 +12,20 @@ async function ensureUserTableShape() {
 
   if (columns.length === 0) {
     await pool.execute("ALTER TABLE users ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1 AFTER role");
+  }
+
+  const [universityScopeColumns] = await pool.execute("SHOW COLUMNS FROM users LIKE 'university_scope'");
+
+  if (universityScopeColumns.length === 0) {
+    await pool.execute("ALTER TABLE users ADD COLUMN university_scope VARCHAR(160) NULL AFTER is_active");
+  }
+
+  const [assignedDepartmentColumns] = await pool.execute("SHOW COLUMNS FROM users LIKE 'assigned_department'");
+
+  if (assignedDepartmentColumns.length === 0) {
+    await pool.execute(
+      "ALTER TABLE users ADD COLUMN assigned_department VARCHAR(160) NULL AFTER university_scope"
+    );
   }
 }
 
@@ -24,6 +39,8 @@ export async function ensureUsersTable() {
       password_hash VARCHAR(255) NOT NULL,
       role ${USER_ROLE_SQL} NOT NULL DEFAULT 'student',
       is_active TINYINT(1) NOT NULL DEFAULT 1,
+      university_scope VARCHAR(160) NULL,
+      assigned_department VARCHAR(160) NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
       UNIQUE KEY users_email_unique (email)

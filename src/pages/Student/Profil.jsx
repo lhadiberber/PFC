@@ -361,6 +361,7 @@ export default function Profil() {
   }, [accountInfo.accountCreatedAt, accountInfo.email, profile]);
 
   const latestApplication = useMemo(() => sortApplications(applications)[0] || null, [applications]);
+  const hasSubmittedApplication = Boolean(latestApplication);
 
   const mergedDocuments = useMemo(
     () =>
@@ -829,6 +830,14 @@ export default function Profil() {
         </div>
       ) : null}
 
+      <section className="profile-declarative-notice" aria-label="Information sur la vérification du profil">
+        <strong>Profil déclaratif</strong>
+        <p>
+          Les informations renseignées dans ce profil sont déclaratives. Elles seront vérifiées par l'administration à
+          partir des documents justificatifs déposés dans votre dossier de candidature.
+        </p>
+      </section>
+
       <section className="profile-summary-grid" aria-label="Résumé du profil">
         <article className="profile-summary-card">
           <span className="profile-summary-icon">PRO</span>
@@ -932,6 +941,16 @@ export default function Profil() {
                   <h3>Baccalauréat</h3>
                   <p>Renseignez les informations utilisées pour préparer l'étude de votre candidature.</p>
                 </div>
+                <div className="profile-verification-note" role="note">
+                  Ces informations doivent correspondre au relevé de notes et à l'attestation de réussite déposés dans
+                  le dossier.
+                </div>
+                {hasSubmittedApplication ? (
+                  <div className="profile-verification-note profile-verification-note-warning" role="status">
+                    Après soumission de la candidature, toute modification des informations du baccalauréat devra être
+                    vérifiée par l'administration.
+                  </div>
+                ) : null}
                 <div className="profile-form-grid">
                   {renderInputField({ label: "Année d'obtention", name: "anneeBac", value: academicForm.anneeBac, onChange: handleAcademicChange, type: "number", required: true, readOnly: !isEditing, icon: "AN", placeholder: "Ex. 2024", extraProps: { min: "1980", max: new Date().getFullYear() + 1 } })}
                   {renderSelectField({ label: "Série du baccalauréat", name: "serieBac", value: academicForm.serieBac, onChange: handleAcademicChange, required: true, disabled: !isEditing, icon: "SR", children: <><option value="">Sélectionner une série</option>{BAC_SERIES.map((serie) => (<option key={serie} value={serie}>{serie}</option>))}</> })}
@@ -1009,7 +1028,18 @@ export default function Profil() {
 
             <div className="profile-state-score">
               <strong>{overallCompletion}%</strong>
-              <span>{completionTone}</span>
+              <span>Profil complété</span>
+            </div>
+
+            <div className="profile-verification-status">
+              <div>
+                <span>Statut administratif</span>
+                <strong>Non vérifié</strong>
+              </div>
+              <div>
+                <span>Vérification finale</span>
+                <strong>Après dépôt des documents</strong>
+              </div>
             </div>
 
             <div className="profile-state-list">

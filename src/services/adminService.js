@@ -67,3 +67,32 @@ export async function updateAdminDocumentStatus(id, payload) {
 
   return response.document || null;
 }
+
+export async function listSelectionRules() {
+  const response = await apiRequest("/admin/selection-rules");
+  return response.rules || [];
+}
+
+export async function createSelectionRule(ruleData) {
+  const response = await apiRequest("/admin/selection-rules", {
+    method: "POST",
+    body: ruleData,
+  });
+
+  return response.rule || null;
+}
+
+export async function updateSelectionRule(id, ruleData) {
+  const response = await apiRequest(`/admin/selection-rules/${id}`, {
+    method: "PUT",
+    body: ruleData,
+  });
+
+  return response.rule || null;
+}
+
+export async function deleteSelectionRule(id) {
+  await apiRequest(`/admin/selection-rules/${id}`, {
+    method: "DELETE",
+  });
+}

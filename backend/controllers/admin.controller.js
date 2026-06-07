@@ -1,15 +1,19 @@
-import { pool } from "../config/db.js";
 import {
   findAdminApplicationById,
   findAdminApplications,
   findAdminDashboardData,
   findAdminDocumentById,
   findAdminDocuments,
+  findAdminOverviewStats,
   findAdminStudentById,
   findAdminStudents,
   updateAdminApplicationStatus,
   updateAdminDocumentStatus,
 } from "../models/admin.model.js";
+import {
+  evaluateApplicationPreselection,
+  findSelectionRules,
+} from "../models/selectionRule.model.js";
 
 const DOCUMENT_TYPES = [
   {
@@ -218,6 +222,11 @@ function buildApplicationDetails(application, documentsByStudent) {
     adresse: application.adresse,
     diplomeActuel: application.diplome_actuel,
     typeBac: application.diplome_actuel,
+    serieBac: application.serie_bac,
+    moyenneBac: application.moyenne_bac,
+    domaine: application.domaine,
+    filiere: application.filiere,
+    faculteInstitut: application.faculte_institut,
     etablissementActuel: application.etablissement,
     anneeBac: application.annee_obtention,
     moyenneBac: application.moyenne,
@@ -230,8 +239,14 @@ function buildApplicationDetails(application, documentsByStudent) {
   };
 }
 
-function mapApplicationForFrontend(application, documentsByStudent) {
+function buildPreselection(application, documentsByStudent, rules = []) {
+  const studentDocuments = documentsByStudent.get(String(application.student_id)) || [];
+  return evaluateApplicationPreselection(application, studentDocuments, rules);
+}
+
+function mapApplicationForFrontend(application, documentsByStudent, rules = []) {
   const statut = normalizeApplicationStatus(application.statut);
+  const preselection = buildPreselection(application, documentsByStudent, rules);
 
   return {
     id: application.id,
@@ -244,6 +259,7 @@ function mapApplicationForFrontend(application, documentsByStudent) {
     dateDepot: application.date_depot,
     submittedAt: application.date_depot,
     statut,
+    preselection,
     details: buildApplicationDetails(application, documentsByStudent),
     adminMeta: {
       internalPriority: "moyenne",
@@ -265,8 +281,9 @@ function mapApplicationForFrontend(application, documentsByStudent) {
   };
 }
 
-function mapApplicationListItem(application, documentsByStudent) {
+function mapApplicationListItem(application, documentsByStudent, rules = []) {
   const details = buildApplicationDetails(application, documentsByStudent);
+  const preselection = buildPreselection(application, documentsByStudent, rules);
 
   return {
     id: application.id,
@@ -278,6 +295,7 @@ function mapApplicationListItem(application, documentsByStudent) {
     formation: application.formation,
     niveau: application.niveau,
     statut: normalizeApplicationStatus(application.statut),
+    preselection,
     date_depot: application.date_depot,
     numeroDossier: buildNumeroDossier(application),
     specialite: application.formation,
@@ -289,9 +307,10 @@ function mapApplicationListItem(application, documentsByStudent) {
 
 function mapApplicationDetail(application, documents, request) {
   const documentsByStudent = buildDocumentsByStudent(documents);
+  const rules = request.selectionRules || [];
 
   return {
-    ...mapApplicationForFrontend(application, documentsByStudent),
+    ...mapApplicationForFrontend(application, documentsByStudent, rules),
     student: {
       id: application.student_id,
       nom: application.nom,
@@ -304,6 +323,8 @@ function mapApplicationDetail(application, documents, request) {
       nationalite: application.nationalite,
       adresse: application.adresse,
       diplome_actuel: application.diplome_actuel,
+      serie_bac: application.serie_bac,
+      moyenne_bac: application.moyenne_bac,
       etablissement: application.etablissement,
       specialite_actuelle: application.specialite_actuelle,
       annee_obtention: application.annee_obtention,
@@ -371,6 +392,7 @@ function mapStudentListItem(student) {
 
 function mapStudentDetail(studentDetail) {
   const documentsByStudent = buildDocumentsByStudent(studentDetail.documents);
+  const selectionRules = studentDetail.selectionRules || [];
 
   return {
     user: {
@@ -393,7 +415,7 @@ function mapStudentDetail(studentDetail) {
       moyenne: studentDetail.student.moyenne,
     },
     applications: studentDetail.applications.map((application) =>
-      mapApplicationListItem(application, documentsByStudent)
+      mapApplicationListItem(application, documentsByStudent, selectionRules)
     ),
     documents: studentDetail.documents.map((document) => ({
       id: document.id,
@@ -571,16 +593,9 @@ function buildRecentActivity(applications, documents, students) {
     .slice(0, 8);
 }
 
-export async function getAdminOverview(_request, response, next) {
+export async function getAdminOverview(request, response, next) {
   try {
-    const [[stats]] = await pool.execute(`
-      SELECT
-        COUNT(*) AS totalCandidatures,
-        SUM(statut = 'En attente') AS enAttente,
-        SUM(statut IN ('Acceptée', 'Acceptee')) AS acceptees,
-        SUM(statut IN ('Refusée', 'Refusee', 'Rejetee')) AS rejetees
-      FROM applications
-    `);
+    const stats = await findAdminOverviewStats(request.user);
 
     response.json({ success: true, stats });
   } catch (error) {
@@ -588,9 +603,10 @@ export async function getAdminOverview(_request, response, next) {
   }
 }
 
-export async function getAdminDashboard(_request, response, next) {
+export async function getAdminDashboard(request, response, next) {
   try {
-    const { applications, documents, students } = await findAdminDashboardData();
+    const { applications, documents, students } = await findAdminDashboardData(request.user);
+    const selectionRules = await findSelectionRules(request.user);
     const documentsByStudent = buildDocumentsByStudent(documents);
     const stats = buildStats(applications, documents, students, documentsByStudent);
 
@@ -599,7 +615,7 @@ export async function getAdminDashboard(_request, response, next) {
       stats,
       recentApplications: buildRecentApplications(applications),
       applications: applications.map((application) =>
-        mapApplicationForFrontend(application, documentsByStudent)
+        mapApplicationForFrontend(application, documentsByStudent, selectionRules)
       ),
       statusDistribution: {
         enAttente: stats.enAttente,
@@ -617,16 +633,17 @@ export async function getAdminDashboard(_request, response, next) {
   }
 }
 
-export async function listAdminApplications(_request, response, next) {
+export async function listAdminApplications(request, response, next) {
   try {
-    const applications = await findAdminApplications();
-    const { documents } = await findAdminDashboardData();
+    const applications = await findAdminApplications(request.user);
+    const { documents } = await findAdminDashboardData(request.user);
+    const selectionRules = await findSelectionRules(request.user);
     const documentsByStudent = buildDocumentsByStudent(documents);
 
     response.json({
       success: true,
       applications: applications.map((application) =>
-        mapApplicationListItem(application, documentsByStudent)
+        mapApplicationListItem(application, documentsByStudent, selectionRules)
       ),
     });
   } catch (error) {
@@ -636,7 +653,7 @@ export async function listAdminApplications(_request, response, next) {
 
 export async function getAdminApplication(request, response, next) {
   try {
-    const applicationDetail = await findAdminApplicationById(request.params.id);
+    const applicationDetail = await findAdminApplicationById(request.params.id, request.user);
 
     if (!applicationDetail) {
       response.status(404).json({
@@ -645,6 +662,8 @@ export async function getAdminApplication(request, response, next) {
       });
       return;
     }
+
+    request.selectionRules = await findSelectionRules(request.user);
 
     response.json({
       success: true,
@@ -661,7 +680,7 @@ export async function getAdminApplication(request, response, next) {
 
 export async function listAdminDocuments(request, response, next) {
   try {
-    const documents = await findAdminDocuments();
+    const documents = await findAdminDocuments(request.user);
 
     response.json({
       success: true,
@@ -674,7 +693,7 @@ export async function listAdminDocuments(request, response, next) {
 
 export async function getAdminDocument(request, response, next) {
   try {
-    const document = await findAdminDocumentById(request.params.id);
+    const document = await findAdminDocumentById(request.params.id, request.user);
 
     if (!document) {
       response.status(404).json({
@@ -708,7 +727,8 @@ export async function updateAdminDocumentStatusController(request, response, nex
     const document = await updateAdminDocumentStatus(
       request.params.id,
       statut,
-      request.body.commentaire_admin
+      request.body.commentaire_admin,
+      request.user
     );
 
     if (!document) {
@@ -744,7 +764,8 @@ export async function updateAdminApplicationStatusController(request, response, 
     const updatedApplication = await updateAdminApplicationStatus(
       request.params.id,
       statut,
-      request.body.commentaire_admin
+      request.body.commentaire_admin,
+      request.user
     );
 
     if (!updatedApplication) {
@@ -754,6 +775,8 @@ export async function updateAdminApplicationStatusController(request, response, 
       });
       return;
     }
+
+    request.selectionRules = await findSelectionRules(request.user);
 
     response.json({
       success: true,
@@ -769,9 +792,9 @@ export async function updateAdminApplicationStatusController(request, response, 
   }
 }
 
-export async function listAdminStudents(_request, response, next) {
+export async function listAdminStudents(request, response, next) {
   try {
-    const students = await findAdminStudents();
+    const students = await findAdminStudents(request.user);
 
     response.json({
       success: true,
@@ -784,7 +807,7 @@ export async function listAdminStudents(_request, response, next) {
 
 export async function getAdminStudent(request, response, next) {
   try {
-    const studentDetail = await findAdminStudentById(request.params.id);
+    const studentDetail = await findAdminStudentById(request.params.id, request.user);
 
     if (!studentDetail) {
       response.status(404).json({
@@ -793,6 +816,8 @@ export async function getAdminStudent(request, response, next) {
       });
       return;
     }
+
+    studentDetail.selectionRules = await findSelectionRules(request.user);
 
     response.json({
       success: true,

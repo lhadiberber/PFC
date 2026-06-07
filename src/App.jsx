@@ -17,6 +17,7 @@ import DocumentsAdmin from "./pages/Admin/DocumentsAdmin.jsx";
 import DetailDocumentAdmin from "./pages/Admin/DetailDocumentAdmin.jsx";
 import ProfilAdmin from "./pages/Admin/ProfilAdmin.jsx";
 import DetailCandidaturesAdmin from "./pages/Admin/DetailCandidaturesAdmin.jsx";
+import SelectionRulesAdmin from "./pages/Admin/SelectionRulesAdmin.jsx";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Success from "./pages/Auth/Success";
@@ -128,6 +129,7 @@ function AppContent() {
           <Route path="/admin/documents" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><DocumentsAdmin /></ProtectedRoute>} />
           <Route path="/admin/documents/:documentId" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><DetailDocumentAdmin /></ProtectedRoute>} />
           <Route path="/admin/documents/:applicationId/:documentKey" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><DetailDocumentAdmin /></ProtectedRoute>} />
+          <Route path="/admin/regles-selection" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><SelectionRulesAdmin /></ProtectedRoute>} />
           <Route path="/admin/profil" element={<ProtectedRoute allowedRoles={ADMIN_ROLES}><ProfilAdmin /></ProtectedRoute>} />
           <Route path="/super-admin" element={<ProtectedRoute allowedRoles={["super_admin"]}><SuperAdminDashboard /></ProtectedRoute>} />
           <Route path="/super-admin/admins" element={<ProtectedRoute allowedRoles={["super_admin"]}><AdminsManagement /></ProtectedRoute>} />

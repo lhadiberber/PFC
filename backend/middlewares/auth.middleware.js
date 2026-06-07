@@ -62,6 +62,8 @@ export async function authMiddleware(request, _response, next) {
       id: user.id,
       email: user.email,
       role: user.role,
+      university_scope: user.university_scope || "",
+      assigned_department: user.assigned_department || "",
     };
     next();
   } catch (databaseError) {

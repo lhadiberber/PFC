@@ -112,8 +112,17 @@ export async function createAdminController(request, response, next) {
       return;
     }
 
+    const universityScope = String(request.body.university_scope || "").trim();
+    const assignedDepartment = String(request.body.assigned_department || "").trim();
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const admin = await createAdmin({ nom, prenom, email, passwordHash });
+    const admin = await createAdmin({
+      nom,
+      prenom,
+      email,
+      passwordHash,
+      universityScope,
+      assignedDepartment,
+    });
 
     response.status(201).json({
       success: true,
@@ -216,7 +225,15 @@ export async function updateAdminController(request, response, next) {
       return;
     }
 
-    const updatedAdmin = await updateAdminInfo(request.params.id, { nom, prenom, email });
+    const universityScope = String(request.body.university_scope || "").trim();
+    const assignedDepartment = String(request.body.assigned_department || "").trim();
+    const updatedAdmin = await updateAdminInfo(request.params.id, {
+      nom,
+      prenom,
+      email,
+      universityScope,
+      assignedDepartment,
+    });
 
     response.json({
       success: true,
