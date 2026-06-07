@@ -499,6 +499,14 @@ function StudentDashboardIcon({ name }) {
           <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
         </svg>
       );
+    case "support":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M4 5h16v12H7l-3 3V5z" />
+          <path d="M8 9h8" />
+          <path d="M8 13h5" />
+        </svg>
+      );
     default:
       return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -941,6 +949,15 @@ export default function StudentDashboard() {
       buttonLabel: "Continuer",
       to: currentStep.path,
     },
+    {
+      id: "support",
+      title: "Contacter l'administration",
+      description: "Posez une question sur votre dossier ou signalez une difficulté.",
+      icon: "support",
+      tone: "etudiants",
+      buttonLabel: "Écrire",
+      href: "mailto:admissions@pfc.dz?subject=Question%20sur%20mon%20dossier%20PFC",
+    },
   ];
 
   if (isDashboardLoading && !dashboardData) {
@@ -1331,12 +1348,21 @@ export default function StudentDashboard() {
                 <p>{action.description}</p>
               </div>
 
-              <Link
-                to={action.to}
-                className="student-dashboard-action-link admin-quick-action-button"
-              >
-                {action.buttonLabel}
-              </Link>
+              {action.href ? (
+                <a
+                  href={action.href}
+                  className="student-dashboard-action-link admin-quick-action-button"
+                >
+                  {action.buttonLabel}
+                </a>
+              ) : (
+                <Link
+                  to={action.to}
+                  className="student-dashboard-action-link admin-quick-action-button"
+                >
+                  {action.buttonLabel}
+                </Link>
+              )}
             </div>
           ))}
         </div>
