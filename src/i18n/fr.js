@@ -249,34 +249,34 @@ const fr = {
   },
   auth: {
     login: {
-      introKicker: "Acces a votre espace personnel",
+      introKicker: "Accès à votre espace personnel",
       introTitle:
-        "Retrouvez votre compte pour suivre vos candidatures en toute simplicite.",
+        "Retrouvez votre compte pour suivre vos candidatures en toute simplicité.",
       introDescription:
-        "Connectez-vous pour completer votre dossier, consulter l'etat de vos demarches et acceder a votre espace d'admission depuis une interface claire et securisee.",
+        "Connectez-vous pour compléter votre dossier, consulter l'état de vos démarches et accéder à votre espace d'admission depuis une interface claire et sécurisée.",
       highlights: [
         {
-          title: "Acces rapide",
+          title: "Accès rapide",
           description:
             "Retrouvez vos informations et votre progression en quelques secondes.",
         },
         {
           title: "Suivi de candidature",
           description:
-            "Consultez vos depots, vos etapes et vos decisions depuis un seul espace.",
+            "Consultez vos dépôts, vos étapes et vos décisions depuis un seul espace.",
         },
         {
-          title: "Connexion securisee",
+          title: "Connexion sécurisée",
           description:
-            "Votre compte reste associe a vos informations et a vos documents.",
+            "Votre compte reste associé à vos informations et à vos documents.",
         },
       ],
       badge: "Connexion",
       title: "Se connecter",
-      subtitle: "Accedez a votre espace personnel et suivez vos demarches",
+      subtitle: "Accédez à votre espace personnel et suivez vos démarches",
       submit: "Se connecter",
       footerText: "Pas encore de compte ?",
-      footerLink: "Creer un compte",
+      footerLink: "Créer un compte",
       emailPlaceholder: "votre.email@exemple.com",
       passwordPlaceholder: "Saisissez votre mot de passe",
       errors: {
@@ -284,7 +284,7 @@ const fr = {
         invalidEmail: "Veuillez saisir une adresse e-mail valide.",
         passwordRequired: "Le mot de passe est requis.",
         invalidStudentCredentials:
-          "Les identifiants etudiant saisis sont incorrects.",
+          "Les identifiants étudiant saisis sont incorrects.",
       },
     },
     register: {
@@ -388,20 +388,20 @@ const fr = {
     backDashboard: "Retour au tableau de bord",
   },
   studentNav: {
-    fallbackUser: "Etudiant",
+    fallbackUser: "Étudiant",
     tracking: "Suivi de candidature",
     dashboard: "Dashboard",
     applications: "Mes candidatures",
-    submit: "Deposer un dossier",
+    submit: "Déposer un dossier",
     profile: "Profil",
     collapse: "Replier la navigation",
-    expand: "Developper la navigation",
+    expand: "Développer la navigation",
   },
   adminLayout: {
     menu: {
       dashboard: "Dashboard",
       candidatures: "Candidatures",
-      students: "Etudiants",
+      students: "Étudiants",
       documents: "Documents",
       profile: "Profil",
     },
@@ -412,18 +412,18 @@ const fr = {
     dateLabel: "Date",
     notificationTitle: "Notifications de traitement",
     notifications: {
-      consolidated: "{{count}} candidatures consolidees",
+      consolidated: "{{count}} candidatures consolidées",
       consolidatedDetail:
-        "La campagne admin visible est centralisee dans ce tableau de bord.",
-      pending: "{{count}} decisions a traiter",
-      pendingDetail: "Priorite operationnelle pour la file d'instruction.",
-      documents: "{{count}} dossiers a verifier",
-      documentsDetail: "Controle documentaire recommande avant arbitrage.",
+        "La campagne admin visible est centralisée dans ce tableau de bord.",
+      pending: "{{count}} décisions à traiter",
+      pendingDetail: "Priorité opérationnelle pour la file d'instruction.",
+      documents: "{{count}} dossiers à vérifier",
+      documentsDetail: "Contrôle documentaire recommandé avant arbitrage.",
     },
     openQueue: "Ouvrir la file de traitement",
     searchCaption: "Recherche rapide",
     searchHelper:
-      "Recherchez rapidement un etudiant, une universite, une specialite ou un numero de dossier.",
+      "Recherchez rapidement un étudiant, une université, une spécialité ou un numéro de dossier.",
   },
 };
 

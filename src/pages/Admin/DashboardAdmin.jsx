@@ -422,7 +422,7 @@ export default function DashboardAdmin() {
     { value: "qualification", label: "Qualification" },
     { value: "instruction", label: "Instruction" },
     { value: "commission", label: "Commission" },
-    { value: "decision", label: "Decision" },
+    { value: "decision", label: "Décision" },
     { value: "decision-finalisee", label: "Décision finalisée" },
   ];
 
@@ -889,7 +889,7 @@ export default function DashboardAdmin() {
       id: "incomplete",
       label: "Dossiers incomplets",
       value: adminStats.dossiersIncomplets,
-      detail: `${adminStats.documentsManquants} controle(s) documentaire(s)`,
+      detail: `${adminStats.documentsManquants} contrôle(s) documentaire(s)`,
       tone: "incomplets",
       icon: "warning",
       path: buildScopedAdminPath("/admin/candidatures", {
@@ -1719,7 +1719,7 @@ export default function DashboardAdmin() {
             <div className="admin-activity-list">
               {visibleRecentActivity.length === 0 ? (
                 <EmptyState
-                  title="Aucune activite recente"
+                  title="Aucune activité récente"
                   description="Les soumissions et les changements de statut apparaîtront ici."
                   className="admin-empty-state"
                 />
@@ -1802,7 +1802,7 @@ export default function DashboardAdmin() {
                 <div className="admin-worklist-overview-card">
                   <span>Dossiers dormants</span>
                   <strong>{metadataInsights.summary.staleCount}</strong>
-                  <small>Mise a jour interne absente depuis 4 jours ou plus</small>
+                  <small>Mise à jour interne absente depuis 4 jours ou plus</small>
                 </div>
               </div>
             </div>
@@ -2368,13 +2368,13 @@ export default function DashboardAdmin() {
       <section className="campus-section-container">
         <div className="campus-section-header">
           <h2>Analyses graphiques</h2>
-          <p>Comparaisons de volume, completude, origine et performance sur le portefeuille filtre</p>
+          <p>Comparaisons de volume, complétude, origine et performance sur le portefeuille filtré</p>
         </div>
 
         {!dashboardHasResults ? (
           <EmptyState
             title="Aucune donnée pour le moment"
-            description="Les analyses graphiques reapparaitront des qu'un portefeuille correspondra aux filtres globaux."
+            description="Les analyses graphiques réapparaîtront dès qu'un portefeuille correspondra aux filtres globaux."
             className="admin-empty-state"
           />
         ) : (
@@ -2384,7 +2384,7 @@ export default function DashboardAdmin() {
                 <div className="admin-analytics-card-header">
                   <div>
                     <h3>Volumes par université</h3>
-                    <p>Les etablissements qui concentrent le plus de dossiers sur cette vue</p>
+                    <p>Les établissements qui concentrent le plus de dossiers sur cette vue</p>
                   </div>
                 </div>
 
@@ -2477,7 +2477,7 @@ export default function DashboardAdmin() {
               <div className="admin-analytics-card-header">
                 <div>
                   <h3>Flux de dossiers sur 6 semaines</h3>
-                  <p>Visualisez la dynamique recente des depots sur le portefeuille filtre</p>
+                  <p>Visualisez la dynamique récente des dépôts sur le portefeuille filtré</p>
                 </div>
               </div>
 

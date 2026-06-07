@@ -74,7 +74,7 @@ export default function AdminsManagement() {
           clearAuthSession();
           navigate("/login", {
             replace: true,
-            state: { message: "Session expiree. Veuillez vous reconnecter." },
+            state: { message: "Session expirée. Veuillez vous reconnecter." },
           });
           return;
         }
@@ -108,7 +108,7 @@ export default function AdminsManagement() {
     }
 
     if (formData.password.length < 8) {
-      return "Le mot de passe doit contenir au moins 8 caracteres.";
+      return "Le mot de passe doit contenir au moins 8 caractères.";
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -124,7 +124,7 @@ export default function AdminsManagement() {
     const email = editForm.email.trim();
 
     if (!nom || !prenom || !email) {
-      return "Nom, prenom et email sont obligatoires.";
+      return "Nom, prénom et email sont obligatoires.";
     }
 
     if (!isValidEmail(email)) {
@@ -170,9 +170,9 @@ export default function AdminsManagement() {
         setAdmins((current) => [createdAdmin, ...current]);
       }
       setFormData(emptyForm);
-      setSuccessMessage("Administrateur cree avec succes.");
+      setSuccessMessage("Administrateur créé avec succès.");
     } catch (createError) {
-      setError(getApiErrorMessage(createError, "Impossible de creer l'administrateur."));
+      setError(getApiErrorMessage(createError, "Impossible de créer l'administrateur."));
     } finally {
       setIsCreating(false);
     }
@@ -233,7 +233,7 @@ export default function AdminsManagement() {
 
       setEditingAdminId(null);
       setEditForm(emptyEditForm);
-      setSuccessMessage("Modification enregistree.");
+      setSuccessMessage("Modification enregistrée.");
     } catch (editError) {
       setError(getApiErrorMessage(editError, "Impossible de modifier l'administrateur."));
     } finally {
@@ -243,7 +243,7 @@ export default function AdminsManagement() {
 
   const handleToggleStatus = async (admin) => {
     const nextStatus = !admin.is_active;
-    const actionLabel = nextStatus ? "activer" : "desactiver";
+    const actionLabel = nextStatus ? "activer" : "désactiver";
 
     if (!window.confirm(`Confirmer pour ${actionLabel} cet administrateur ?`)) {
       return;
@@ -260,9 +260,9 @@ export default function AdminsManagement() {
           current.map((adminRow) => (adminRow.id === admin.id ? updatedAdmin : adminRow))
         );
       }
-      setSuccessMessage(nextStatus ? "Administrateur active." : "Administrateur desactive.");
+      setSuccessMessage(nextStatus ? "Administrateur activé." : "Administrateur désactivé.");
     } catch (statusError) {
-      setError(getApiErrorMessage(statusError, "Impossible de mettre a jour le statut."));
+      setError(getApiErrorMessage(statusError, "Impossible de mettre à jour le statut."));
     } finally {
       setUpdatingAdminId(null);
     }
@@ -271,7 +271,7 @@ export default function AdminsManagement() {
   return (
     <AdminLayout
       title="Gestion des administrateurs"
-      subtitle="Creer, consulter et desactiver les comptes administrateurs."
+      subtitle="Créer, consulter et désactiver les comptes administrateurs."
       showSearch={false}
     >
       <section className="admin-primary-stats-grid">
@@ -286,9 +286,9 @@ export default function AdminsManagement() {
           <small>Peuvent se connecter</small>
         </div>
         <div className="admin-primary-stat-card admin-primary-stat-card-warning">
-          <span className="admin-stat-label">Desactives</span>
+          <span className="admin-stat-label">Désactivés</span>
           <strong>{stats.inactive}</strong>
-          <small>Acces bloque</small>
+          <small>Accès bloqué</small>
         </div>
       </section>
 
@@ -296,8 +296,8 @@ export default function AdminsManagement() {
         <div className="admin-card-header">
           <div>
             <span className="admin-page-context info">Nouveau compte</span>
-            <h2>Creer un administrateur</h2>
-            <p>Ajoutez un compte administrateur pour gerer les dossiers.</p>
+            <h2>Créer un administrateur</h2>
+            <p>Ajoutez un compte administrateur pour gérer les dossiers.</p>
           </div>
         </div>
 
@@ -327,7 +327,7 @@ export default function AdminsManagement() {
             name="prenom"
             value={formData.prenom}
             onChange={handleFieldChange}
-            placeholder="Prenom"
+            placeholder="Prénom"
             className="admin-search-input"
             disabled={isCreating}
           />
@@ -359,7 +359,7 @@ export default function AdminsManagement() {
             disabled={isCreating}
           />
           <Button type="submit" className="admin-table-action-button" disabled={isCreating}>
-            {isCreating ? "Creation..." : "Creer l'administrateur"}
+            {isCreating ? "Création..." : "Créer l'administrateur"}
           </Button>
         </form>
       </section>
@@ -385,11 +385,11 @@ export default function AdminsManagement() {
               <thead>
                 <tr>
                   <th>Nom</th>
-                  <th>Prenom</th>
+                  <th>Prénom</th>
                   <th>Email</th>
                   <th>Role</th>
                   <th>Statut</th>
-                  <th>Date creation</th>
+                  <th>Date création</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -399,7 +399,7 @@ export default function AdminsManagement() {
                     <td colSpan="7">
                       <EmptyState
                         title="Aucun administrateur pour le moment."
-                        description="Creez le premier compte admin depuis le formulaire."
+                        description="Créez le premier compte admin depuis le formulaire."
                         className="admin-empty-state"
                       />
                     </td>
@@ -427,7 +427,7 @@ export default function AdminsManagement() {
                             </div>
                           )}
                         </td>
-                        <td data-label="Prenom">
+                        <td data-label="Prénom">
                           {isEditing ? (
                             <input
                               type="text"
@@ -459,7 +459,7 @@ export default function AdminsManagement() {
                         <td data-label="Statut">
                           <StatusBadge status={admin.is_active ? "Actif" : "Inactif"} />
                         </td>
-                        <td data-label="Date creation">{formatAdminDate(admin.created_at)}</td>
+                        <td data-label="Date création">{formatAdminDate(admin.created_at)}</td>
                         <td data-label="Action">
                           {isEditing ? (
                             <>
@@ -492,9 +492,9 @@ export default function AdminsManagement() {
                                 disabled={updatingAdminId === admin.id}
                               >
                                 {updatingAdminId === admin.id
-                                  ? "Mise a jour..."
+                                  ? "Mise à jour..."
                                   : admin.is_active
-                                    ? "Desactiver"
+                                    ? "Désactiver"
                                     : "Activer"}
                               </Button>
                             </>

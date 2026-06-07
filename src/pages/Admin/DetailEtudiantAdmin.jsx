@@ -18,14 +18,14 @@ import {
 import "../../index.css";
 
 const DOCUMENT_FIELDS = [
-  { key: "releveNotes", label: "Releve de notes du baccalaureat" },
-  { key: "attestationReussite", label: "Attestation de reussite au bac" },
-  { key: "carteIdentite", label: "Piece d'identite" },
-  { key: "photo", label: "Photo d'identite" },
-  { key: "residence", label: "Certificat de residence" },
+  { key: "releveNotes", label: "Relevé de notes du baccalauréat" },
+  { key: "attestationReussite", label: "Attestation de réussite au bac" },
+  { key: "carteIdentite", label: "Pièce d'identité" },
+  { key: "photo", label: "Photo d'identité" },
+  { key: "residence", label: "Certificat de résidence" },
 ];
 
-function getFieldValue(value, fallback = "Non renseigne") {
+function getFieldValue(value, fallback = "Non renseigné") {
   return value && String(value).trim() ? value : fallback;
 }
 
@@ -82,16 +82,16 @@ function mapStudentDetailToRecord(data) {
     nom: data.user.nom || "",
     fullName: [data.user.prenom, data.user.nom].filter(Boolean).join(" ") || data.user.email,
     email: data.user.email,
-    telephone: data.profile?.telephone || "Non renseigne",
-    nationalite: data.profile?.nationalite || "Non renseignee",
+    telephone: data.profile?.telephone || "Non renseigné",
+    nationalite: data.profile?.nationalite || "Non renseignée",
     latestApplicationId: latestApplication?.id || data.user.id,
     latestDate: latestApplication?.dateDepot || data.user.created_at,
     firstDate: data.user.created_at,
     latestStatus: latestApplication?.statut || "En attente",
     latestUniversite: latestApplication?.universite || "Aucune candidature",
     latestProgramme: latestApplication?.specialite || "Aucune candidature",
-    latestDiplome: data.profile?.diplome_actuel || "Profil non complete",
-    latestYear: data.profile?.annee_obtention || "Non renseignee",
+    latestDiplome: data.profile?.diplome_actuel || "Profil non complété",
+    latestYear: data.profile?.annee_obtention || "Non renseignée",
     latestApplication,
     applications,
     documents: data.documents || [],
@@ -128,7 +128,7 @@ export default function DetailEtudiantAdmin() {
       const token = getAuthToken();
 
       if (!token) {
-        const message = "Session absente ou expiree. Veuillez vous reconnecter.";
+        const message = "Session absente ou expirée. Veuillez vous reconnecter.";
         clearAuthSession();
         navigate("/login", { state: { message } });
         return;
@@ -154,7 +154,7 @@ export default function DetailEtudiantAdmin() {
             lastNetworkError = error;
 
             if (isActive) {
-              setStudentError("Connexion au serveur des etudiants en cours. Nouvelle tentative automatique...");
+              setStudentError("Connexion au serveur des étudiants en cours. Nouvelle tentative automatique...");
             }
 
             await wait(600 * (attempt + 1));
@@ -173,7 +173,7 @@ export default function DetailEtudiantAdmin() {
         if (!isActive) return;
 
         if (error.status === 401) {
-          const message = "Session expiree. Veuillez vous reconnecter.";
+          const message = "Session expirée. Veuillez vous reconnecter.";
           clearAuthSession();
           navigate("/login", { state: { message } });
           return;
@@ -181,10 +181,10 @@ export default function DetailEtudiantAdmin() {
 
         setStudentError(
           isNetworkUnavailableError(error)
-            ? "Impossible de joindre le serveur des etudiants. Verifiez que le projet est lance avec npm run dev puis reessayez."
+            ? "Impossible de joindre le serveur des étudiants. Vérifiez que le projet est lancé avec npm run dev puis réessayez."
             : error.status === 403
-              ? "Acces refuse. Cette page est reservee aux administrateurs."
-              : getApiErrorMessage(error, "Impossible de charger l'etudiant.")
+              ? "Accès refusé. Cette page est réservée aux administrateurs."
+              : getApiErrorMessage(error, "Impossible de charger l'étudiant.")
         );
       } finally {
         if (isActive) setIsLoadingStudent(false);
@@ -205,7 +205,7 @@ export default function DetailEtudiantAdmin() {
 
     return student.applications.map((application) => ({
       id: `application-${application.id}`,
-      title: "Candidature deposee",
+      title: "Candidature déposée",
       description: `${application.specialite} - ${application.universite}`,
       occurredAt: application.dateDepot,
       tone: "info",
@@ -215,12 +215,12 @@ export default function DetailEtudiantAdmin() {
   if (isLoadingStudent && !student) {
     return (
       <AdminLayout
-        title="Fiche etudiant"
+        title="Fiche étudiant"
         subtitle="Consultation du profil et des informations de candidature"
         showSearch={false}
       >
         <section className="campus-section-container">
-          <div className="student-profile-feedback">Chargement du profil etudiant...</div>
+          <div className="student-profile-feedback">Chargement du profil étudiant...</div>
         </section>
       </AdminLayout>
     );
@@ -229,15 +229,15 @@ export default function DetailEtudiantAdmin() {
   if (studentError && !student) {
     return (
       <AdminLayout
-        title="Fiche etudiant"
+        title="Fiche étudiant"
         subtitle="Consultation du profil et des informations de candidature"
         showSearch={false}
       >
         <section className="campus-section-container">
           <EmptyState
-            title="Impossible de charger l'etudiant"
+            title="Impossible de charger l'étudiant"
             description={studentError}
-            actionLabel="Retour aux etudiants"
+            actionLabel="Retour aux étudiants"
             actionTo="/admin/etudiants"
             className="admin-empty-state"
           />
@@ -246,7 +246,7 @@ export default function DetailEtudiantAdmin() {
               className="campus-btn-primary"
               onClick={() => setReloadKey((currentKey) => currentKey + 1)}
             >
-              Reessayer
+              Réessayer
             </Button>
           </div>
         </section>
@@ -257,15 +257,15 @@ export default function DetailEtudiantAdmin() {
   if (!student) {
     return (
       <AdminLayout
-        title="Fiche etudiant"
+        title="Fiche étudiant"
         subtitle="Consultation du profil et des informations de candidature"
         showSearch={false}
       >
         <section className="campus-section-container">
           <EmptyState
-            title="Etudiant introuvable"
+            title="Étudiant introuvable"
             description="Ce profil n'existe pas ou n'est plus disponible."
-            actionLabel="Retour aux etudiants"
+            actionLabel="Retour aux étudiants"
             actionTo="/admin/etudiants"
             className="admin-empty-state"
           />
@@ -298,7 +298,7 @@ export default function DetailEtudiantAdmin() {
 
   return (
     <AdminLayout
-      title="Fiche etudiant"
+      title="Fiche étudiant"
       subtitle="Consultation du profil et des informations de candidature"
       showSearch={false}
     >
@@ -306,9 +306,9 @@ export default function DetailEtudiantAdmin() {
         <div className="admin-application-hero">
           <div className="admin-application-hero-copy">
             <Link to="/admin/etudiants" className="admin-application-back-link">
-              Retour aux etudiants
+              Retour aux étudiants
             </Link>
-            <span className="admin-section-kicker">Profil etudiant</span>
+            <span className="admin-section-kicker">Profil étudiant</span>
             <h2>{student.fullName}</h2>
             <p className="admin-application-dossier-id">{student.email}</p>
 
@@ -324,7 +324,7 @@ export default function DetailEtudiantAdmin() {
 
             <div className="admin-application-hero-grid">
               <div className="admin-application-hero-item">
-                <span>Universite</span>
+                <span>Université</span>
                 <strong>{student.latestUniversite}</strong>
               </div>
               <div className="admin-application-hero-item">
@@ -332,12 +332,12 @@ export default function DetailEtudiantAdmin() {
                 <strong>{student.latestProgramme}</strong>
               </div>
               <div className="admin-application-hero-item">
-                <span>Diplome</span>
+                <span>Diplôme</span>
                 <strong>{student.latestDiplome}</strong>
               </div>
               <div className="admin-application-hero-item">
-                <span>Annee</span>
-                <strong>{getFieldValue(student.latestYear, "Non renseignee")}</strong>
+                <span>Année</span>
+                <strong>{getFieldValue(student.latestYear, "Non renseignée")}</strong>
               </div>
             </div>
           </div>
@@ -366,17 +366,17 @@ export default function DetailEtudiantAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Informations personnelles</h3>
-                  <p>Informations personnelles de l'etudiant</p>
+                  <p>Informations personnelles de l'étudiant</p>
                 </div>
               </div>
 
               <div className="admin-application-info-grid">
                 {[
                   ["Nom", student.nom],
-                  ["Prenom", student.prenom],
+                  ["Prénom", student.prenom],
                   ["Email", student.email],
-                  ["Telephone", student.telephone],
-                  ["Nationalite", student.nationalite],
+                  ["Téléphone", student.telephone],
+                  ["Nationalité", student.nationalite],
                   ["Date de naissance", latestApplication.details?.dateNaiss],
                 ].map(([label, value]) => (
                   <div key={label} className="admin-application-info-item">
@@ -390,17 +390,17 @@ export default function DetailEtudiantAdmin() {
             <article className="admin-meta-card">
               <div className="admin-meta-card-header">
                 <div>
-                  <h3>Informations academiques</h3>
-                  <p>Donnees les plus recentes transmises dans le dossier</p>
+                  <h3>Informations académiques</h3>
+                  <p>Données les plus récentes transmises dans le dossier</p>
                 </div>
               </div>
 
               <div className="admin-application-info-grid">
                 {[
-                  ["Universite", student.latestUniversite],
+                  ["Université", student.latestUniversite],
                   ["Programme", student.latestProgramme],
-                  ["Diplome", student.latestDiplome],
-                  ["Annee", latestApplication.details?.anneeBac],
+                  ["Diplôme", student.latestDiplome],
+                  ["Année", latestApplication.details?.anneeBac],
                   ["Moyenne", latestApplication.details?.moyenneBac],
                   ["Mention", latestApplication.details?.mention],
                 ].map(([label, value]) => (
@@ -416,12 +416,12 @@ export default function DetailEtudiantAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Candidatures</h3>
-                  <p>Dossiers de candidature associes a cet etudiant</p>
+                  <p>Dossiers de candidature associés à cet étudiant</p>
                 </div>
               </div>
 
               {student.applications.length === 0 ? (
-                <p className="admin-note-empty">Aucune candidature pour cet etudiant.</p>
+                <p className="admin-note-empty">Aucune candidature pour cet étudiant.</p>
               ) : (
                 <div className="admin-application-documents">
                   {student.applications.map((application) => (
@@ -451,7 +451,7 @@ export default function DetailEtudiantAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Documents</h3>
-                  <p>Pieces associees au profil et aux candidatures</p>
+                  <p>Pièces associées au profil et aux candidatures</p>
                 </div>
               </div>
 
@@ -471,7 +471,7 @@ export default function DetailEtudiantAdmin() {
                     </div>
                     <div className="admin-application-document-side">
                       <span className={`admin-queue-pill ${document.provided ? "positive" : "warning"}`}>
-                        {document.status || (document.provided ? "Recu" : "Manquant")}
+                        {document.status || (document.provided ? "Reçu" : "Manquant")}
                       </span>
                     </div>
                   </div>
@@ -485,7 +485,7 @@ export default function DetailEtudiantAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Statut de candidature</h3>
-                  <p>Lecture de la candidature la plus recente du profil</p>
+                  <p>Lecture de la candidature la plus récente du profil</p>
                 </div>
               </div>
 
@@ -496,14 +496,14 @@ export default function DetailEtudiantAdmin() {
                   <StatusBadge status={student.statusMeta.badgeStatus} />
                 </div>
                 <div className="admin-application-summary-item">
-                  <span>Dernier depot</span>
+                  <span>Dernier dépôt</span>
                   <strong>{formatAdminDate(student.latestDate)}</strong>
                   <p>{student.latestUniversite}</p>
                 </div>
                 <div className="admin-application-summary-item">
                   <span>Candidatures</span>
                   <strong>{student.candidaturesCount}</strong>
-                  <p>{student.acceptedCount} acceptee(s), {student.rejectedCount} refusee(s)</p>
+                  <p>{student.acceptedCount} acceptée(s), {student.rejectedCount} refusée(s)</p>
                 </div>
               </div>
             </article>
@@ -512,12 +512,12 @@ export default function DetailEtudiantAdmin() {
               <div className="admin-meta-card-header">
                 <div>
                   <h3>Historique</h3>
-                  <p>Chronologie des actions liees a ce profil</p>
+                  <p>Chronologie des actions liées à ce profil</p>
                 </div>
               </div>
 
               {history.length === 0 ? (
-                <p className="admin-note-empty">Aucun evenement n'est disponible pour ce profil.</p>
+                <p className="admin-note-empty">Aucun événement n'est disponible pour ce profil.</p>
               ) : (
                 <div className="admin-application-history">
                   {history.map((entry) => (

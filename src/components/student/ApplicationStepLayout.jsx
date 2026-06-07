@@ -2,10 +2,10 @@ import React from "react";
 import PropTypes from "prop-types";
 
 const STEP_ITEMS = [
-  { number: 1, label: "Choix de la filiere" },
-  { number: 2, label: "Choix de l'etablissement" },
+  { number: 1, label: "Choix de la filière" },
+  { number: 2, label: "Choix de l'établissement" },
   { number: 3, label: "Documents justificatifs" },
-  { number: 4, label: "Recapitulatif" },
+  { number: 4, label: "Récapitulatif" },
 ];
 
 export default function ApplicationStepLayout({
@@ -22,7 +22,7 @@ export default function ApplicationStepLayout({
     <div className="student-application-shell">
       <header className="student-dashboard-hero student-application-hero">
         <div className="student-dashboard-hero-copy">
-          <span className="student-dashboard-kicker">Depot de candidature</span>
+          <span className="student-dashboard-kicker">Dépôt de candidature</span>
           <h1>{title}</h1>
           <p className="student-dashboard-subtitle">{subtitle}</p>
           {helperText ? <p className="student-dashboard-welcome">{helperText}</p> : null}
@@ -30,7 +30,7 @@ export default function ApplicationStepLayout({
 
         <div className="student-application-hero-side">
           <div className="student-application-hero-stat">
-            <span>Etape actuelle</span>
+            <span>Étape actuelle</span>
             <strong>
               {step}/4
             </strong>
@@ -39,8 +39,8 @@ export default function ApplicationStepLayout({
 
           <div className="student-application-hero-stat is-soft">
             <span>Brouillon</span>
-            <strong>Enregistre</strong>
-            <small>Vos informations sont conservees pendant votre parcours.</small>
+            <strong>Enregistré</strong>
+            <small>Vos informations sont conservées pendant votre parcours.</small>
           </div>
         </div>
       </header>
@@ -51,7 +51,7 @@ export default function ApplicationStepLayout({
           <p>{introText}</p>
         </div>
 
-        <div className="student-application-stepper" role="list" aria-label="Progression du depot">
+        <div className="student-application-stepper" role="list" aria-label="Progression du dépôt">
           {STEP_ITEMS.map((item, index) => {
             const state =
               item.number < step ? "completed" : item.number === step ? "active" : "upcoming";
@@ -61,7 +61,7 @@ export default function ApplicationStepLayout({
                 <div className={`student-application-step ${state}`.trim()} role="listitem">
                   <span className="student-application-step-node">{item.number}</span>
                   <div className="student-application-step-copy">
-                    <strong>{`Etape ${item.number}`}</strong>
+                    <strong>{`Étape ${item.number}`}</strong>
                     <span>{item.label}</span>
                   </div>
                 </div>
