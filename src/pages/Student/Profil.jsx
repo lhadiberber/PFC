@@ -16,7 +16,6 @@ import {
   updateStudentPassword,
 } from "../../utils/studentAccount";
 import { nationalities } from "../../utils/countryCodes";
-import { showToast } from "../../utils/toast";
 import "../../index.css";
 
 const emptyProfile = {
@@ -249,6 +248,8 @@ export default function Profil() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState("");
+  const [profileFeedback, setProfileFeedback] = useState(null);
+  const [passwordFeedback, setPasswordFeedback] = useState(null);
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -430,6 +431,7 @@ export default function Profil() {
     }
 
     if (profileError) setProfileError("");
+    if (profileFeedback) setProfileFeedback(null);
   };
 
   const handleAcademicChange = (event) => {
@@ -447,6 +449,7 @@ export default function Profil() {
     }
 
     if (profileError) setProfileError("");
+    if (profileFeedback) setProfileFeedback(null);
   };
 
   const validate = () => {
@@ -499,12 +502,14 @@ export default function Profil() {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      showToast("Veuillez corriger les champs indiqués avant d'enregistrer.", "error");
+      setProfileFeedback(null);
+      setProfileError("Veuillez corriger les champs indiqués avant d'enregistrer.");
       return;
     }
 
     setIsSavingProfile(true);
     setProfileError("");
+    setProfileFeedback(null);
 
     try {
       const savedRemoteProfile = await saveMyProfile(profileToApi(personalForm, academicForm));
@@ -530,11 +535,10 @@ export default function Profil() {
 
       setErrors({});
       setIsEditing(false);
-      showToast("Profil mis à jour avec succès.", "success");
+      setProfileFeedback({ type: "success", text: "Profil mis à jour avec succès." });
     } catch (error) {
       const message = getApiErrorMessage(error, "Une erreur est survenue. Veuillez réessayer.");
       setProfileError(message);
-      showToast(message, "error");
     } finally {
       setIsSavingProfile(false);
     }
@@ -545,6 +549,7 @@ export default function Profil() {
     setAcademicForm(buildAcademicForm(applicationDraft.academicInfo));
     setErrors({});
     setProfileError("");
+    setProfileFeedback(null);
     setIsEditing(!hasSavedProfile);
   };
 
@@ -554,28 +559,36 @@ export default function Profil() {
       ...current,
       [name]: value,
     }));
+    if (passwordFeedback) setPasswordFeedback(null);
   };
 
   const handlePasswordSubmit = (event) => {
     event.preventDefault();
+    setPasswordFeedback(null);
 
     if (!passwordData.newPassword.trim() || !passwordData.confirmPassword.trim()) {
-      showToast("Veuillez renseigner tous les champs de sécurité.", "error");
+      setPasswordFeedback({ type: "error", text: "Veuillez renseigner tous les champs de sécurité." });
       return;
     }
 
     if (accountInfo.password && !passwordData.currentPassword.trim()) {
-      showToast("Veuillez renseigner le mot de passe actuel.", "error");
+      setPasswordFeedback({ type: "error", text: "Veuillez renseigner le mot de passe actuel." });
       return;
     }
 
     if (passwordData.newPassword.length < 8) {
-      showToast("Le nouveau mot de passe doit contenir au moins 8 caractères.", "error");
+      setPasswordFeedback({
+        type: "error",
+        text: "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+      });
       return;
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showToast("La confirmation du mot de passe ne correspond pas.", "error");
+      setPasswordFeedback({
+        type: "error",
+        text: "La confirmation du mot de passe ne correspond pas.",
+      });
       return;
     }
 
@@ -585,7 +598,7 @@ export default function Profil() {
     );
 
     if (!passwordUpdate.success) {
-      showToast(passwordUpdate.message, "error");
+      setPasswordFeedback({ type: "error", text: passwordUpdate.message });
       return;
     }
 
@@ -598,7 +611,7 @@ export default function Profil() {
     setShowNewPassword(false);
     setShowConfirmPassword(false);
     setAccountInfo(readStoredStudentAccount());
-    showToast(passwordUpdate.message, "success");
+    setPasswordFeedback({ type: "success", text: passwordUpdate.message });
   };
 
   const renderActions = () => (
@@ -805,6 +818,17 @@ export default function Profil() {
         </div>
       ) : null}
 
+      {profileFeedback ? (
+        <div
+          className={`student-profile-feedback ${
+            profileFeedback.type === "error" ? "student-profile-feedback-error" : "student-profile-feedback-success"
+          }`}
+          role={profileFeedback.type === "error" ? "alert" : "status"}
+        >
+          {profileFeedback.text}
+        </div>
+      ) : null}
+
       <section className="profile-summary-grid" aria-label="Résumé du profil">
         <article className="profile-summary-card">
           <span className="profile-summary-icon">PRO</span>
@@ -929,6 +953,19 @@ export default function Profil() {
                       <strong>Sécurité à initialiser</strong>
                       <p>Aucun mot de passe local n'est encore configuré pour ce compte. Enregistrez-en un pour renforcer l'accès à votre espace étudiant.</p>
                     </div>
+                  </div>
+                ) : null}
+
+                {passwordFeedback ? (
+                  <div
+                    className={`student-profile-feedback ${
+                      passwordFeedback.type === "error"
+                        ? "student-profile-feedback-error"
+                        : "student-profile-feedback-success"
+                    }`}
+                    role={passwordFeedback.type === "error" ? "alert" : "status"}
+                  >
+                    {passwordFeedback.text}
                   </div>
                 ) : null}
 

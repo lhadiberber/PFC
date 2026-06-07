@@ -17,7 +17,6 @@ import {
   getAdminApplication,
   updateAdminApplicationStatus as updateAdminApplicationStatusApi,
 } from "../../services/adminService";
-import { showToast } from "../../utils/toast";
 import {
   formatAdminDate,
   formatAdminDateTime,
@@ -144,6 +143,7 @@ export default function DetailCandidaturesAdmin() {
   const [remoteApplication, setRemoteApplication] = useState(null);
   const [isLoadingApplication, setIsLoadingApplication] = useState(true);
   const [applicationError, setApplicationError] = useState("");
+  const [actionFeedback, setActionFeedback] = useState(null);
   const [statusActionLoading, setStatusActionLoading] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -368,6 +368,7 @@ export default function DetailCandidaturesAdmin() {
 
     setStatusActionLoading(nextStatus);
     setApplicationError("");
+    setActionFeedback(null);
 
     try {
       const updatedApplication = await updateAdminApplicationStatusApi(candidature.id, {
@@ -380,7 +381,10 @@ export default function DetailCandidaturesAdmin() {
       }
 
       updateApplicationStatus(candidature.id, nextStatus);
-      showToast(`Statut mis à jour : ${getStatusDisplayLabel(nextStatus)}`, "success");
+      setActionFeedback({
+        type: "success",
+        text: `Statut mis à jour : ${getStatusDisplayLabel(nextStatus)}`,
+      });
     } catch (error) {
       const message = isNetworkUnavailableError(error)
         ? "Le serveur des candidatures n'a pas répondu. Vérifiez que npm run dev est lancé puis réessayez la mise à jour."
@@ -397,7 +401,6 @@ export default function DetailCandidaturesAdmin() {
           ? "Accès refusé. Cette action est réservée aux administrateurs."
           : message
       );
-      showToast(message, "error");
     } finally {
       setStatusActionLoading("");
     }
@@ -413,7 +416,7 @@ export default function DetailCandidaturesAdmin() {
       nextAssignedTo !== candidature.adminMeta.assignedTo;
 
     if (!hasChanges) {
-      showToast("Aucune mise à jour à enregistrer.", "info");
+      setActionFeedback({ type: "info", text: "Aucune mise à jour à enregistrer." });
       return;
     }
 
@@ -422,7 +425,7 @@ export default function DetailCandidaturesAdmin() {
       internalStatus: metadataForm.internalStatus,
       assignedTo: nextAssignedTo,
     });
-    showToast("Pilotage interne mis à jour.", "success");
+    setActionFeedback({ type: "success", text: "Pilotage interne mis à jour." });
   };
 
   const handleAddNote = (event) => {
@@ -430,12 +433,12 @@ export default function DetailCandidaturesAdmin() {
     const createdNote = addApplicationNote(candidature.id, noteDraft);
 
     if (!createdNote) {
-      showToast("Ajoutez un contenu de note avant validation.", "info");
+      setActionFeedback({ type: "info", text: "Ajoutez un contenu de note avant validation." });
       return;
     }
 
     setNoteDraft("");
-    showToast("Note interne ajoutée.", "success");
+    setActionFeedback({ type: "success", text: "Note interne ajoutée." });
   };
 
   const handleRequestDocument = () => {
@@ -445,28 +448,31 @@ export default function DetailCandidaturesAdmin() {
     );
 
     if (!createdNote) {
-      showToast("La demande de document n'a pas pu être enregistrée.", "info");
+      setActionFeedback({ type: "info", text: "La demande de document n'a pas pu être enregistrée." });
       return;
     }
 
     updateApplicationMetadata(candidature.id, {
       internalStatus: "qualification",
     });
-    showToast("Demande de document enregistrée dans le suivi du dossier.", "success");
+    setActionFeedback({
+      type: "success",
+      text: "Demande de document enregistrée dans le suivi du dossier.",
+    });
   };
 
   const handleDocumentAction = (document, mode) => {
     if (!document.provided) {
-      showToast(`${document.label} manquant sur ce dossier.`, "info");
+      setActionFeedback({ type: "info", text: `${document.label} manquant sur ce dossier.` });
       return;
     }
 
     if (mode === "preview") {
-      showToast(`Aperçu indisponible : ${document.value}`, "info");
+      setActionFeedback({ type: "info", text: `Aperçu indisponible : ${document.value}` });
       return;
     }
 
-    showToast(`Téléchargement simulé : ${document.value}`, "info");
+    setActionFeedback({ type: "info", text: `Téléchargement simulé : ${document.value}` });
   };
 
   return (
@@ -483,6 +489,21 @@ export default function DetailCandidaturesAdmin() {
 
       {isLoadingApplication ? (
         <div className="student-profile-feedback">Actualisation du dossier...</div>
+      ) : null}
+
+      {actionFeedback ? (
+        <div
+          className={`student-profile-feedback ${
+            actionFeedback.type === "error"
+              ? "student-profile-feedback-error"
+              : actionFeedback.type === "success"
+                ? "student-profile-feedback-success"
+                : "student-profile-feedback-info"
+          }`}
+          role={actionFeedback.type === "error" ? "alert" : "status"}
+        >
+          {actionFeedback.text}
+        </div>
       ) : null}
 
       <section className="campus-section-container">

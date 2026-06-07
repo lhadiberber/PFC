@@ -7,7 +7,7 @@ import { useAdmissions } from "../../context/AdmissionsContext";
 import { NIVEAU_BACHELIER } from "../../data/formationsBachelier";
 import { createApplication } from "../../services/applicationService";
 import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
-import { showLoading, showToast } from "../../utils/toast";
+import { showLoading } from "../../utils/toast";
 import "../../index.css";
 
 const PERSONAL_ITEMS = [
@@ -168,7 +168,7 @@ export default function StudentRecapitulatif() {
 
   const handleValiderClick = () => {
     if (!dossierComplet) {
-      showToast("Veuillez compléter les informations obligatoires avant de valider.", "error");
+      setSubmitError("Veuillez compléter les informations obligatoires avant de valider.");
       return;
     }
     setSubmitError("");
@@ -183,7 +183,6 @@ export default function StudentRecapitulatif() {
       const message = "Session expirée. Veuillez vous reconnecter.";
       setSubmitError(message);
       setShowConfirm(false);
-      showToast(message, "error");
       navigate("/login", { state: { message } });
       return;
     }
@@ -214,7 +213,6 @@ export default function StudentRecapitulatif() {
         buildBackendNumeroDossier(backendApplication) || createdApplication.numeroDossier;
 
       showLoading(false);
-      showToast("Votre candidature a été transmise avec succès.", "success");
       navigate(`/success?numeroDossier=${numeroDossier}`);
     } catch (error) {
       const message = getApiErrorMessage(error, "Une erreur est survenue lors de la soumission.");
@@ -224,7 +222,6 @@ export default function StudentRecapitulatif() {
       }
       showLoading(false);
       setSubmitError(message);
-      showToast(message, "error");
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);

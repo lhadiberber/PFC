@@ -9,7 +9,6 @@ import {
   updateAdminPassword,
   writeStoredAdminProfile,
 } from "../../utils/adminAccount";
-import { showToast } from "../../utils/toast";
 import "../../index.css";
 
 function IconEdit() {
@@ -78,6 +77,7 @@ export default function ProfilAdmin() {
   const [profileData, setProfileData] = useState(readProfileSnapshot);
   const [securityData, setSecurityData] = useState(() => readAdminSecurity());
   const [isEditing, setIsEditing] = useState(false);
+  const [profileMessage, setProfileMessage] = useState(null);
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -123,6 +123,7 @@ export default function ProfilAdmin() {
       ...current,
       [name]: type === "checkbox" ? checked : value,
     }));
+    if (profileMessage) setProfileMessage(null);
   };
 
   const handleSaveProfile = () => {
@@ -137,24 +138,25 @@ export default function ProfilAdmin() {
     };
 
     if (!nextProfile.firstName || !nextProfile.lastName) {
-      showToast("Veuillez renseigner le nom et le prénom.", "error");
+      setProfileMessage({ type: "error", text: "Veuillez renseigner le nom et le prénom." });
       return;
     }
 
     if (!isEmailValid(nextProfile.email)) {
-      showToast("Veuillez renseigner une adresse e-mail valide.", "error");
+      setProfileMessage({ type: "error", text: "Veuillez renseigner une adresse e-mail valide." });
       return;
     }
 
     const savedProfile = writeStoredAdminProfile(nextProfile);
     setProfileData(savedProfile);
     setIsEditing(false);
-    showToast("Profil administrateur mis à jour.", "success");
+    setProfileMessage({ type: "success", text: "Profil administrateur mis à jour." });
   };
 
   const handleResetProfile = () => {
     setProfileData(readStoredAdminProfile());
     setIsEditing(false);
+    setProfileMessage(null);
   };
 
   const handlePasswordChange = (event) => {
@@ -211,8 +213,6 @@ export default function ProfilAdmin() {
       confirmPassword: "",
     });
     setPasswordMessage({ type: "success", text: "Mot de passe mis à jour avec succès." });
-    showToast("Mot de passe mis à jour.", "success");
-    setTimeout(() => setPasswordMessage(null), 3000);
   };
 
   return (
@@ -275,6 +275,19 @@ export default function ProfilAdmin() {
           </div>
         </div>
       </section>
+
+      {profileMessage ? (
+        <section className="campus-section-container">
+          <div
+            className={`student-profile-feedback ${
+              profileMessage.type === "error" ? "student-profile-feedback-error" : "student-profile-feedback-success"
+            }`}
+            role={profileMessage.type === "error" ? "alert" : "status"}
+          >
+            {profileMessage.text}
+          </div>
+        </section>
+      ) : null}
 
       <section className="campus-section-container">
         <div className="admin-profile-layout">

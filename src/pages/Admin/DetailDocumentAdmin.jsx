@@ -7,7 +7,6 @@ import AdminLayout from "../../components/admin/AdminLayout";
 import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
 import { getAdminDocument, updateAdminDocumentStatus } from "../../services/adminService";
 import { formatAdminDate, formatAdminDateTime } from "../../utils/adminApplications";
-import { showToast } from "../../utils/toast";
 import "../../index.css";
 
 function buildNumeroDossier(application) {
@@ -120,6 +119,7 @@ export default function DetailDocumentAdmin() {
   const [documentData, setDocumentData] = useState(null);
   const [isLoadingDocument, setIsLoadingDocument] = useState(true);
   const [documentError, setDocumentError] = useState("");
+  const [documentFeedback, setDocumentFeedback] = useState(null);
   const [actionLoading, setActionLoading] = useState("");
 
   useEffect(() => {
@@ -233,14 +233,15 @@ export default function DetailDocumentAdmin() {
 
     setActionLoading(nextStatus);
     setDocumentError("");
+    setDocumentFeedback(null);
 
     try {
       const updatedDocument = await updateAdminDocumentStatus(documentRow.id, { statut: nextStatus });
       setDocumentData(updatedDocument);
-      showToast(
-        `Document passé en statut ${getDocumentDisplayStatus(nextStatus).toLowerCase()}.`,
-        "success"
-      );
+      setDocumentFeedback({
+        type: "success",
+        text: `Document passé en statut ${getDocumentDisplayStatus(nextStatus).toLowerCase()}.`,
+      });
     } catch (error) {
       const message = getApiErrorMessage(
         error,
@@ -254,7 +255,6 @@ export default function DetailDocumentAdmin() {
       }
 
       setDocumentError(message);
-      showToast(message, "error");
     } finally {
       setActionLoading("");
     }
@@ -332,6 +332,17 @@ export default function DetailDocumentAdmin() {
         {documentError ? (
           <div className="student-profile-feedback student-profile-feedback-error">
             {documentError}
+          </div>
+        ) : null}
+
+        {documentFeedback ? (
+          <div
+            className={`student-profile-feedback ${
+              documentFeedback.type === "error" ? "student-profile-feedback-error" : "student-profile-feedback-success"
+            }`}
+            role={documentFeedback.type === "error" ? "alert" : "status"}
+          >
+            {documentFeedback.text}
           </div>
         ) : null}
 

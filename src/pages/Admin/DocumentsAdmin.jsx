@@ -288,10 +288,8 @@ export default function DocumentsAdmin() {
     try {
       downloadCsv("documents-admin.csv", exportColumns, sortedRows);
       setExportMessage({ type: "success", text: "Export CSV réussi." });
-      setTimeout(() => setExportMessage(null), 3000);
     } catch (error) {
       setExportMessage({ type: "error", text: "Erreur lors de l'export CSV." });
-      setTimeout(() => setExportMessage(null), 3000);
     }
   };
 

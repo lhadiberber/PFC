@@ -15,7 +15,6 @@ import {
   getStudentStatusMeta,
   sortStudentRecords,
 } from "../../utils/adminStudents";
-import { showToast } from "../../utils/toast";
 import "../../index.css";
 
 function normalize(value) {
@@ -162,6 +161,7 @@ export default function EtudiantsAdmin() {
   const [studentsData, setStudentsData] = useState([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);
   const [studentsError, setStudentsError] = useState("");
+  const [studentsActionMessage, setStudentsActionMessage] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("query") || "");
   const [filter, setFilter] = useState(searchParams.get("filter") || "tous");
@@ -499,7 +499,7 @@ export default function EtudiantsAdmin() {
       headerAction={
         <Button
           className="admin-header-primary-action"
-          onClick={() => showToast("Ajout manuel d'étudiant bientôt disponible.", "info")}
+          onClick={() => setStudentsActionMessage("Ajout manuel d'étudiant bientôt disponible.")}
         >
           + Ajouter un étudiant
         </Button>
@@ -521,6 +521,12 @@ export default function EtudiantsAdmin() {
           >
             Réessayer
           </Button>
+        </div>
+      ) : null}
+
+      {studentsActionMessage ? (
+        <div className="student-profile-feedback student-profile-feedback-info" role="status">
+          {studentsActionMessage}
         </div>
       ) : null}
 
