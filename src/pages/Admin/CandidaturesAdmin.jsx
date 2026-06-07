@@ -9,6 +9,8 @@ import AdminLayout from "../../components/admin/AdminLayout";
 import {
   clearAuthSession,
   getApiErrorMessage,
+  getApiRetryingMessage,
+  getApiUnavailableMessage,
   getAuthToken,
   isNetworkUnavailableError,
 } from "../../services/authService";
@@ -161,9 +163,7 @@ export default function CandidaturesAdmin() {
             lastNetworkError = error;
 
             if (isActive) {
-              setApplicationsError(
-                "Connexion au serveur des candidatures en cours. Nouvelle tentative automatique..."
-              );
+              setApplicationsError(getApiRetryingMessage("des candidatures"));
             }
 
             await wait(600 * (attempt + 1));
@@ -190,7 +190,7 @@ export default function CandidaturesAdmin() {
 
         setApplicationsError(
           isNetworkUnavailableError(error)
-            ? "Impossible de joindre le serveur des candidatures. Vérifiez que le projet est lancé avec npm run dev puis réessayez."
+            ? getApiUnavailableMessage("des candidatures")
             : error.status === 403
               ? "Accès refusé. Cette page est réservée aux administrateurs."
               : getApiErrorMessage(error, "Impossible de charger les candidatures.")

@@ -6,6 +6,8 @@ import EmptyState from "../../components/ui/EmptyState";
 import {
   clearAuthSession,
   getApiErrorMessage,
+  getApiRetryingMessage,
+  getApiUnavailableMessage,
   isNetworkUnavailableError,
 } from "../../services/authService";
 import { getSuperAdminDashboard } from "../../services/superAdminService";
@@ -233,7 +235,7 @@ export default function SuperAdminDashboard() {
             lastNetworkError = loadError;
 
             if (isActive) {
-              setError("Connexion au tableau de bord super admin en cours. Nouvelle tentative automatique...");
+              setError(getApiRetryingMessage("du tableau de bord super admin"));
             }
 
             await wait(600 * (attempt + 1));
@@ -261,7 +263,7 @@ export default function SuperAdminDashboard() {
 
           setError(
             isNetworkUnavailableError(loadError)
-              ? "Impossible de joindre le serveur du tableau de bord super admin. Vérifiez que le projet est lancé avec npm run dev puis réessayez."
+              ? getApiUnavailableMessage("du tableau de bord super admin")
               : getApiErrorMessage(
                   loadError,
                   "Impossible de charger les données du tableau de bord."

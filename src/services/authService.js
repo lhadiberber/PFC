@@ -2,6 +2,8 @@ export const API_BASE_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/
 const API_REQUEST_TIMEOUT_MS = 12000;
 const API_NETWORK_RETRY_COUNT = 2;
 const API_NETWORK_RETRY_DELAY_MS = 350;
+const API_UNAVAILABLE_MESSAGE =
+  "Le service PFC est momentanément indisponible. Vérifiez que le serveur est lancé, puis réessayez.";
 
 function normalizeApiUrl(url) {
   return String(url || "").replace(/\/+$/, "");
@@ -73,6 +75,19 @@ export function getApiFallbackUrls() {
     .filter((url, index, urls) => url && urls.indexOf(url) === index);
 }
 
+function formatApiScope(scope) {
+  const normalizedScope = String(scope || "").trim();
+  return normalizedScope ? ` ${normalizedScope}` : "";
+}
+
+export function getApiUnavailableMessage(scope = "") {
+  return `Le service${formatApiScope(scope)} est momentanément indisponible. Vérifiez que le serveur PFC est lancé, puis réessayez.`;
+}
+
+export function getApiRetryingMessage(scope = "") {
+  return `Connexion au service${formatApiScope(scope)} en cours. Nouvelle tentative automatique...`;
+}
+
 const AUTH_STORAGE_KEYS = {
   token: "token",
   user: "user",
@@ -101,7 +116,7 @@ export function isNetworkUnavailableError(error) {
 
 export function getApiErrorMessage(error, fallbackMessage) {
   if (isNetworkUnavailableError(error)) {
-    return "Backend indisponible. Lancez le serveur backend sur le port 5000 puis reessayez.";
+    return API_UNAVAILABLE_MESSAGE;
   }
 
   const message = String(error?.message || "").trim();
@@ -191,7 +206,7 @@ export async function fetchApi(endpoint, options = {}) {
 
         if (await isProxyBackendUnavailableResponse(response)) {
           lastNetworkError = new ApiError(
-            "Backend indisponible. Lancez le serveur backend sur le port 5000 puis reessayez.",
+            API_UNAVAILABLE_MESSAGE,
             response.status,
             { url: requestUrl }
           );
@@ -229,7 +244,7 @@ export async function fetchApi(endpoint, options = {}) {
     );
   }
 
-  throw new ApiError("Backend indisponible. Lancez le serveur backend sur le port 5000 puis reessayez.", 0, {
+  throw new ApiError(API_UNAVAILABLE_MESSAGE, 0, {
     triedUrls,
     error:
       lastNetworkError?.name === "AbortError"

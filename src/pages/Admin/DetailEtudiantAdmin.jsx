@@ -7,6 +7,8 @@ import AdminLayout from "../../components/admin/AdminLayout";
 import {
   clearAuthSession,
   getApiErrorMessage,
+  getApiRetryingMessage,
+  getApiUnavailableMessage,
   getAuthToken,
   isNetworkUnavailableError,
 } from "../../services/authService";
@@ -154,7 +156,7 @@ export default function DetailEtudiantAdmin() {
             lastNetworkError = error;
 
             if (isActive) {
-              setStudentError("Connexion au serveur des étudiants en cours. Nouvelle tentative automatique...");
+              setStudentError(getApiRetryingMessage("des étudiants"));
             }
 
             await wait(600 * (attempt + 1));
@@ -181,7 +183,7 @@ export default function DetailEtudiantAdmin() {
 
         setStudentError(
           isNetworkUnavailableError(error)
-            ? "Impossible de joindre le serveur des étudiants. Vérifiez que le projet est lancé avec npm run dev puis réessayez."
+            ? getApiUnavailableMessage("des étudiants")
             : error.status === 403
               ? "Accès refusé. Cette page est réservée aux administrateurs."
               : getApiErrorMessage(error, "Impossible de charger l'étudiant.")

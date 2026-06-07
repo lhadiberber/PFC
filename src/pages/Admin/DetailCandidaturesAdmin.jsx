@@ -10,6 +10,8 @@ import { useAdmissions } from "../../context/AdmissionsContext";
 import {
   clearAuthSession,
   getApiErrorMessage,
+  getApiRetryingMessage,
+  getApiUnavailableMessage,
   getAuthToken,
   isNetworkUnavailableError,
 } from "../../services/authService";
@@ -180,9 +182,7 @@ export default function DetailCandidaturesAdmin() {
             lastNetworkError = error;
 
             if (isActive) {
-              setApplicationError(
-                "Connexion au serveur des candidatures en cours. Nouvelle tentative automatique..."
-              );
+              setApplicationError(getApiRetryingMessage("des candidatures"));
             }
 
             await wait(600 * (attempt + 1));
@@ -209,7 +209,7 @@ export default function DetailCandidaturesAdmin() {
 
         setApplicationError(
           isNetworkUnavailableError(error)
-            ? "Impossible de joindre le serveur des candidatures. Vérifiez que le projet est lancé avec npm run dev puis réessayez."
+            ? getApiUnavailableMessage("des candidatures")
             : error.status === 403
               ? "Accès refusé. Cette page est réservée aux administrateurs."
               : getApiErrorMessage(error, "Impossible de charger la candidature.")
@@ -387,7 +387,7 @@ export default function DetailCandidaturesAdmin() {
       });
     } catch (error) {
       const message = isNetworkUnavailableError(error)
-        ? "Le serveur des candidatures n'a pas répondu. Vérifiez que npm run dev est lancé puis réessayez la mise à jour."
+        ? getApiUnavailableMessage("des candidatures")
         : getApiErrorMessage(error, "Impossible de mettre à jour le statut.");
 
       if (error.status === 401) {

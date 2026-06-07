@@ -6,6 +6,8 @@ import { useAdmissions } from "../../context/AdmissionsContext";
 import {
   clearAuthSession,
   getApiErrorMessage,
+  getApiRetryingMessage,
+  getApiUnavailableMessage,
   getAuthToken,
   isNetworkUnavailableError,
 } from "../../services/authService";
@@ -197,6 +199,7 @@ export default function StudentStep3() {
   const [uploadingFields, setUploadingFields] = useState({});
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
   const [pageError, setPageError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   const requiredDocumentKeys = useMemo(
     () =>
@@ -250,7 +253,7 @@ export default function StudentStep3() {
             lastNetworkError = error;
 
             if (isActive) {
-              setPageError("Connexion au serveur de documents en cours. Nouvelle tentative automatique...");
+              setPageError(getApiRetryingMessage("des documents"));
             }
 
             await wait(600 * (attempt + 1));
@@ -275,7 +278,7 @@ export default function StudentStep3() {
         if (!isActive) return;
 
         const message = isNetworkUnavailableError(error)
-          ? "Impossible de joindre le serveur de documents. Vérifiez que le projet est lancé avec npm run dev puis réessayez."
+          ? getApiUnavailableMessage("des documents")
           : getApiErrorMessage(error, "Impossible de charger les documents déjà déposés.");
 
         if (error.status === 401) {
@@ -294,7 +297,7 @@ export default function StudentStep3() {
     return () => {
       isActive = false;
     };
-  }, [navigate]);
+  }, [navigate, reloadKey]);
 
   useEffect(() => {
     return () => {
@@ -380,7 +383,7 @@ export default function StudentStep3() {
       });
     } catch (error) {
       const message = isNetworkUnavailableError(error)
-        ? "Le serveur de documents n'a pas répondu. Vérifiez que npm run dev est lancé puis réessayez le dépôt."
+        ? getApiUnavailableMessage("des documents")
         : getApiErrorMessage(error, "Impossible de déposer ce document.");
       if (error.status === 401) {
         clearAuthSession();
@@ -434,7 +437,7 @@ export default function StudentStep3() {
       }
     } catch (error) {
       const message = isNetworkUnavailableError(error)
-        ? "Le serveur de documents n'a pas répondu. Vérifiez que npm run dev est lancé puis réessayez le retrait."
+        ? getApiUnavailableMessage("des documents")
         : getApiErrorMessage(error, "Impossible de retirer ce document.");
       if (error.status === 401) {
         clearAuthSession();
@@ -571,6 +574,15 @@ export default function StudentStep3() {
               role="alert"
             >
               {pageError}
+              {!isLoadingDocuments && pageError.includes("service des documents") ? (
+                <button
+                  type="button"
+                  className="student-application-button student-application-button-secondary"
+                  onClick={() => setReloadKey((currentKey) => currentKey + 1)}
+                >
+                  Réessayer
+                </button>
+              ) : null}
             </div>
           ) : null}
 

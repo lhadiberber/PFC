@@ -327,6 +327,7 @@ export default function MesCandidatures() {
   const [applications, setApplications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("toutes");
   const [expandedId, setExpandedId] = useState(null);
@@ -405,7 +406,7 @@ export default function MesCandidatures() {
     return () => {
       isMounted = false;
     };
-  }, [navigate]);
+  }, [navigate, reloadKey]);
 
   const applicationsWithMetrics = useMemo(
     () =>
@@ -567,6 +568,12 @@ export default function MesCandidatures() {
       {loadError && (
         <div className="student-profile-feedback student-profile-feedback-error" role="alert">
           {loadError}
+          <Button
+            className="student-application-button student-application-button-secondary"
+            onClick={() => setReloadKey((currentKey) => currentKey + 1)}
+          >
+            Réessayer
+          </Button>
         </div>
       )}
 

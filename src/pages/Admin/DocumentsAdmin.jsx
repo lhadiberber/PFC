@@ -6,7 +6,13 @@ import CustomSelect from "../../components/ui/CustomSelect";
 import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
+import {
+  clearAuthSession,
+  getApiErrorMessage,
+  getApiUnavailableMessage,
+  getAuthToken,
+  isNetworkUnavailableError,
+} from "../../services/authService";
 import { listAdminDocuments } from "../../services/adminService";
 import { downloadCsv } from "../../utils/exportCsv";
 import { formatAdminDate } from "../../utils/adminApplications";
@@ -161,6 +167,7 @@ export default function DocumentsAdmin() {
   const [documentsData, setDocumentsData] = useState([]);
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
   const [documentsError, setDocumentsError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
   const [exportMessage, setExportMessage] = useState(null);
 
   useEffect(() => {
@@ -200,7 +207,9 @@ export default function DocumentsAdmin() {
         }
 
         setDocumentsError(
-          error.status === 403
+          isNetworkUnavailableError(error)
+            ? getApiUnavailableMessage("des documents")
+            : error.status === 403
             ? "Accès refusé. Cette page est réservée aux administrateurs."
             : getApiErrorMessage(error, "Impossible de charger les documents.")
         );
@@ -214,7 +223,7 @@ export default function DocumentsAdmin() {
     return () => {
       isActive = false;
     };
-  }, [navigate]);
+  }, [navigate, reloadKey]);
 
   const updateRouteParams = (overrides = {}) => {
     const params = new URLSearchParams();
@@ -376,6 +385,12 @@ export default function DocumentsAdmin() {
         {documentsError ? (
           <div className="student-profile-feedback student-profile-feedback-error">
             {documentsError}
+            <Button
+              className="admin-filter-tab"
+              onClick={() => setReloadKey((currentKey) => currentKey + 1)}
+            >
+              Réessayer
+            </Button>
           </div>
         ) : null}
         {isLoadingDocuments ? (
