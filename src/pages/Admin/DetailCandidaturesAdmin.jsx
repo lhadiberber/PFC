@@ -120,6 +120,14 @@ function getFieldValue(value, fallback = "Non renseigné") {
   return value && String(value).trim() ? value : fallback;
 }
 
+function normalizeDocumentType(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 function wait(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -323,12 +331,23 @@ export default function DetailCandidaturesAdmin() {
 
   const progress = getAdminProgress(candidature);
   const completenessLabel = getCompletenessLabel(candidature.adminMeta.completenessLevel);
+  const documentRecords = Array.isArray(candidature.documents) ? candidature.documents : [];
   const documents = DOCUMENT_FIELDS.map((documentField) => {
-    const value = candidature.details?.[documentField.key];
+    const documentRecord =
+      documentRecords.find((record) => record.key === documentField.key) ||
+      documentRecords.find(
+        (record) =>
+          normalizeDocumentType(record.type_document) === normalizeDocumentType(documentField.label)
+      );
+    const value = candidature.details?.[documentField.key] || documentRecord?.nom_fichier || "";
+
     return {
       ...documentField,
       value,
-      provided: Boolean(value),
+      fileUrl: documentRecord?.file_url || "",
+      status: documentRecord?.statut || "",
+      documentId: documentRecord?.id ? String(documentRecord.id) : "",
+      provided: Boolean(value || documentRecord?.file_url),
     };
   });
   const providedDocumentsCount = documents.filter((document) => document.provided).length;
@@ -461,18 +480,38 @@ export default function DetailCandidaturesAdmin() {
     });
   };
 
-  const handleDocumentAction = (document, mode) => {
-    if (!document.provided) {
-      setActionFeedback({ type: "info", text: `${document.label} manquant sur ce dossier.` });
+  const handleDocumentAction = (documentItem, mode) => {
+    if (!documentItem.provided) {
+      setActionFeedback({ type: "info", text: `${documentItem.label} manquant sur ce dossier.` });
+      return;
+    }
+
+    if (!documentItem.fileUrl) {
+      setActionFeedback({
+        type: "info",
+        text: `Fichier disponible uniquement sous forme de référence : ${documentItem.value}`,
+      });
       return;
     }
 
     if (mode === "preview") {
-      setActionFeedback({ type: "info", text: `Aperçu indisponible : ${document.value}` });
+      const openedWindow = window.open(documentItem.fileUrl, "_blank", "noopener,noreferrer");
+      if (!openedWindow) {
+        setActionFeedback({
+          type: "info",
+          text: "L'aperçu n'a pas pu s'ouvrir. Utilisez le téléchargement du fichier.",
+        });
+      }
       return;
     }
 
-    setActionFeedback({ type: "info", text: `Téléchargement simulé : ${document.value}` });
+    const link = window.document.createElement("a");
+    link.href = documentItem.fileUrl;
+    link.download = documentItem.value || documentItem.label;
+    link.rel = "noreferrer";
+    window.document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   return (

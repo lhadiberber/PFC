@@ -170,6 +170,17 @@ function normalizeDocumentType(value) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+function resolveDocumentTypeDefinition(value) {
+  const normalizedValue = normalizeDocumentType(value);
+
+  return DOCUMENT_TYPES.find((documentType) => {
+    const acceptedTypes = [documentType.type, ...(documentType.aliases || [])].map(
+      normalizeDocumentType
+    );
+    return acceptedTypes.includes(normalizedValue);
+  });
+}
+
 function buildDocumentsByStudent(documents) {
   return documents.reduce((groups, document) => {
     const key = String(document.student_id);
@@ -276,7 +287,7 @@ function mapApplicationListItem(application, documentsByStudent) {
   };
 }
 
-function mapApplicationDetail(application, documents) {
+function mapApplicationDetail(application, documents, request) {
   const documentsByStudent = buildDocumentsByStudent(documents);
 
   return {
@@ -298,14 +309,22 @@ function mapApplicationDetail(application, documents) {
       annee_obtention: application.annee_obtention,
       moyenne: application.moyenne,
     },
-    documents: documents.map((document) => ({
-      id: document.id,
-      application_id: document.application_id,
-      type_document: document.type_document,
-      nom_fichier: document.nom_fichier,
-      statut: normalizeDocumentStatus(document.statut),
-      date_upload: document.date_upload,
-    })),
+    documents: documents.map((document) => {
+      const documentType = resolveDocumentTypeDefinition(document.type_document);
+
+      return {
+        id: document.id,
+        key: documentType?.key || "",
+        application_id: document.application_id,
+        type_document: document.type_document,
+        nom_fichier: document.nom_fichier,
+        chemin_fichier: document.chemin_fichier,
+        file_url: buildDocumentFileUrl(request, document.chemin_fichier),
+        statut: normalizeDocumentStatus(document.statut),
+        commentaire_admin: document.commentaire_admin || "",
+        date_upload: document.date_upload,
+      };
+    }),
     commentaire_admin: application.commentaire_admin || "",
   };
 }
@@ -483,8 +502,11 @@ function buildPendingDocuments(documents) {
 }
 
 function mapAdminDocument(document, request) {
+  const documentType = resolveDocumentTypeDefinition(document.type_document);
+
   return {
     id: document.id,
+    key: documentType?.key || "",
     student_id: document.student_id,
     application_id: document.application_id,
     type_document: document.type_document,
@@ -492,6 +514,7 @@ function mapAdminDocument(document, request) {
     chemin_fichier: document.chemin_fichier,
     file_url: buildDocumentFileUrl(request, document.chemin_fichier),
     statut: normalizeDocumentStatus(document.statut),
+    commentaire_admin: document.commentaire_admin || "",
     date_upload: document.date_upload,
     student: {
       id: document.student_id,
@@ -625,7 +648,11 @@ export async function getAdminApplication(request, response, next) {
 
     response.json({
       success: true,
-      application: mapApplicationDetail(applicationDetail.application, applicationDetail.documents),
+      application: mapApplicationDetail(
+        applicationDetail.application,
+        applicationDetail.documents,
+        request
+      ),
     });
   } catch (error) {
     next(error);
@@ -678,7 +705,11 @@ export async function updateAdminDocumentStatusController(request, response, nex
       return;
     }
 
-    const document = await updateAdminDocumentStatus(request.params.id, statut);
+    const document = await updateAdminDocumentStatus(
+      request.params.id,
+      statut,
+      request.body.commentaire_admin
+    );
 
     if (!document) {
       response.status(404).json({
@@ -727,7 +758,11 @@ export async function updateAdminApplicationStatusController(request, response, 
     response.json({
       success: true,
       message: "Statut de la candidature mis a jour.",
-      application: mapApplicationDetail(updatedApplication.application, updatedApplication.documents),
+      application: mapApplicationDetail(
+        updatedApplication.application,
+        updatedApplication.documents,
+        request
+      ),
     });
   } catch (error) {
     next(error);

@@ -6190,6 +6190,13 @@ html[dir="rtl"] .admin-nav-item:hover {
   gap: 12px
 }
 
+.admin-document-file-actions {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px
+}
+
 .admin-layout.theme-dark .admin-header-secondary-action,
 .admin-layout.theme-dark .admin-documents-panel,
 .admin-layout.theme-dark .admin-document-hero {

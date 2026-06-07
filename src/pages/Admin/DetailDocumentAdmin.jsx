@@ -39,6 +39,7 @@ function mapApiDocumentToDetail(document) {
     fileName: document.nom_fichier || "Fichier indisponible",
     fileUrl: document.file_url || "",
     status: document.statut || "En attente",
+    reviewComment: document.commentaire_admin || "",
     depositedAt: document.date_upload,
     reviewUpdatedAt: "",
     university: application?.universite || "Candidature non liée",
@@ -120,6 +121,7 @@ export default function DetailDocumentAdmin() {
   const [isLoadingDocument, setIsLoadingDocument] = useState(true);
   const [documentError, setDocumentError] = useState("");
   const [documentFeedback, setDocumentFeedback] = useState(null);
+  const [reviewComment, setReviewComment] = useState("");
   const [actionLoading, setActionLoading] = useState("");
 
   useEffect(() => {
@@ -169,6 +171,12 @@ export default function DetailDocumentAdmin() {
   }, [resolvedDocumentId, navigate]);
 
   const documentRow = useMemo(() => mapApiDocumentToDetail(documentData), [documentData]);
+
+  useEffect(() => {
+    if (documentRow) {
+      setReviewComment(documentRow.reviewComment);
+    }
+  }, [documentRow?.id, documentRow?.reviewComment]);
 
   if (isLoadingDocument && !documentRow) {
     return (
@@ -227,6 +235,14 @@ export default function DetailDocumentAdmin() {
   const historyEntries = buildHistoryEntries(documentRow);
 
   const handleReviewAction = async (nextStatus) => {
+    const normalizedReviewComment = reviewComment.trim();
+
+    if (nextStatus === "Refuse" && !normalizedReviewComment) {
+      setDocumentFeedback(null);
+      setDocumentError("Veuillez renseigner un motif de refus avant de refuser ce document.");
+      return;
+    }
+
     if (!window.confirm(getDocumentConfirmationMessage(nextStatus))) {
       return;
     }
@@ -236,7 +252,10 @@ export default function DetailDocumentAdmin() {
     setDocumentFeedback(null);
 
     try {
-      const updatedDocument = await updateAdminDocumentStatus(documentRow.id, { statut: nextStatus });
+      const updatedDocument = await updateAdminDocumentStatus(documentRow.id, {
+        statut: nextStatus,
+        commentaire_admin: normalizedReviewComment,
+      });
       setDocumentData(updatedDocument);
       setDocumentFeedback({
         type: "success",
@@ -258,6 +277,36 @@ export default function DetailDocumentAdmin() {
     } finally {
       setActionLoading("");
     }
+  };
+
+  const handleOpenFile = () => {
+    if (!documentRow.fileUrl) {
+      setDocumentFeedback({ type: "error", text: "Fichier indisponible." });
+      return;
+    }
+
+    const openedWindow = window.open(documentRow.fileUrl, "_blank", "noopener,noreferrer");
+    if (!openedWindow) {
+      setDocumentFeedback({
+        type: "error",
+        text: "L'aperçu n'a pas pu s'ouvrir. Utilisez le téléchargement du fichier.",
+      });
+    }
+  };
+
+  const handleDownloadFile = () => {
+    if (!documentRow.fileUrl) {
+      setDocumentFeedback({ type: "error", text: "Fichier indisponible." });
+      return;
+    }
+
+    const link = window.document.createElement("a");
+    link.href = documentRow.fileUrl;
+    link.download = documentRow.fileName;
+    link.rel = "noreferrer";
+    window.document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   return (
@@ -388,19 +437,43 @@ export default function DetailDocumentAdmin() {
                 <div className="admin-document-file-copy">
                   <strong>{documentRow.fileName}</strong>
                   {documentRow.fileUrl ? (
-                    <a
-                      className="admin-table-action-button"
-                      href={documentRow.fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Voir / télécharger
-                    </a>
+                    <div className="admin-document-side-actions admin-document-file-actions">
+                      <Button className="admin-table-action-button" onClick={handleOpenFile}>
+                        Voir
+                      </Button>
+                      <Button className="admin-filter-tab" onClick={handleDownloadFile}>
+                        Télécharger
+                      </Button>
+                    </div>
                   ) : (
                     <span>Fichier indisponible</span>
                   )}
                 </div>
               </div>
+            </article>
+
+            <article className="admin-meta-card">
+              <div className="admin-meta-card-header">
+                <div>
+                  <h3>Note de vérification</h3>
+                  <p>Motif ou commentaire associé à la décision documentaire</p>
+                </div>
+              </div>
+
+              <label className="admin-control-field" htmlFor="documentReviewComment">
+                <span className="admin-toolbar-label">Motif ou commentaire</span>
+                <textarea
+                  id="documentReviewComment"
+                  className="admin-control-textarea"
+                  value={reviewComment}
+                  onChange={(event) => {
+                    setReviewComment(event.target.value);
+                    if (documentError) setDocumentError("");
+                  }}
+                  rows={4}
+                  placeholder="Ex. Document flou, pièce expirée, informations à vérifier..."
+                />
+              </label>
             </article>
 
             <article className="admin-meta-card">

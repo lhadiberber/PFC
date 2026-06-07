@@ -21,7 +21,7 @@ export default defineConfig({
             response.end(
               JSON.stringify({
                 success: false,
-                message: "Backend indisponible. Lancez le serveur backend sur le port 5000.",
+                message: "Le service PFC est momentanément indisponible. Vérifiez que le serveur est lancé, puis réessayez.",
               })
             );
           });

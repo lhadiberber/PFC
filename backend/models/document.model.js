@@ -8,6 +8,7 @@ const DOCUMENT_FIELDS = `
   nom_fichier,
   chemin_fichier,
   statut,
+  commentaire_admin,
   date_upload
 `;
 
@@ -19,6 +20,7 @@ const REQUIRED_DOCUMENT_COLUMNS = new Set([
   "nom_fichier",
   "chemin_fichier",
   "statut",
+  "commentaire_admin",
   "date_upload",
 ]);
 
@@ -44,8 +46,25 @@ function normalizeDocument(row) {
     nom_fichier: row.nom_fichier || "",
     chemin_fichier: row.chemin_fichier || "",
     statut: row.statut || "En attente",
+    commentaire_admin: row.commentaire_admin || "",
     date_upload: row.date_upload,
   };
+}
+
+async function ensureDocumentColumn(name, definition) {
+  const [columns] = await pool.execute(
+    `SELECT COLUMN_NAME
+     FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE()
+       AND TABLE_NAME = 'documents'
+       AND COLUMN_NAME = ?
+     LIMIT 1`,
+    [name]
+  );
+
+  if (columns.length === 0) {
+    await pool.execute(`ALTER TABLE documents ADD COLUMN ${name} ${definition}`);
+  }
 }
 
 async function assertDocumentsTableShape() {
@@ -75,6 +94,7 @@ export async function ensureDocumentsTable() {
       nom_fichier VARCHAR(255) NOT NULL,
       chemin_fichier VARCHAR(255) NOT NULL,
       statut ENUM('En attente', 'Validé', 'Refusé') NOT NULL DEFAULT 'En attente',
+      commentaire_admin TEXT NULL,
       date_upload TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
       INDEX documents_student_id_index (student_id),
@@ -88,6 +108,7 @@ export async function ensureDocumentsTable() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   `);
 
+  await ensureDocumentColumn("commentaire_admin", "TEXT NULL AFTER statut");
   await assertDocumentsTableShape();
 }
 

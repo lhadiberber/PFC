@@ -30,7 +30,9 @@ const DOCUMENT_FIELDS = `
   d.application_id,
   d.type_document,
   d.nom_fichier,
+  d.chemin_fichier,
   d.statut,
+  d.commentaire_admin,
   d.date_upload,
   u.nom,
   u.prenom
@@ -44,6 +46,7 @@ const ADMIN_DOCUMENT_FIELDS = `
   d.nom_fichier,
   d.chemin_fichier,
   d.statut,
+  d.commentaire_admin,
   d.date_upload,
   u.nom,
   u.prenom,
@@ -127,7 +130,9 @@ function normalizeDocument(row) {
     application_id: row.application_id,
     type_document: row.type_document || "",
     nom_fichier: row.nom_fichier || "",
+    chemin_fichier: row.chemin_fichier || "",
     statut: row.statut || "En attente",
+    commentaire_admin: row.commentaire_admin || "",
     date_upload: row.date_upload,
     nom: row.nom || "",
     prenom: row.prenom || "",
@@ -147,6 +152,7 @@ function normalizeAdminDocument(row) {
     nom_fichier: row.nom_fichier || "",
     chemin_fichier: row.chemin_fichier || "",
     statut: row.statut || "En attente",
+    commentaire_admin: row.commentaire_admin || "",
     date_upload: row.date_upload,
     nom: row.nom || "",
     prenom: row.prenom || "",
@@ -323,12 +329,22 @@ export async function findAdminDocumentById(id) {
   return normalizeAdminDocument(rows[0]);
 }
 
-export async function updateAdminDocumentStatus(id, statut) {
+export async function updateAdminDocumentStatus(id, statut, commentaireAdmin) {
+  const values = [statut];
+  let commentSql = "";
+
+  if (commentaireAdmin !== undefined) {
+    commentSql = ", commentaire_admin = ?";
+    values.push(String(commentaireAdmin || "").trim() || null);
+  }
+
+  values.push(id);
+
   const [updateResult] = await pool.execute(
     `UPDATE documents
-     SET statut = ?
+     SET statut = ?${commentSql}
      WHERE id = ?`,
-    [statut, id]
+    values
   );
 
   if (updateResult.affectedRows === 0) {
