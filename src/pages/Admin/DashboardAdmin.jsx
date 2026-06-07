@@ -1079,7 +1079,7 @@ export default function DashboardAdmin() {
         <section className="campus-section-container">
           <div className="campus-section-header">
             <div>
-              <h2>Chargement du dashboard</h2>
+              <h2>Chargement du tableau de bord</h2>
               <p>Chargement des statistiques...</p>
             </div>
           </div>

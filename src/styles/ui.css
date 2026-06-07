@@ -486,6 +486,19 @@ button:disabled,
   line-height: 1.5;
 }
 
+.auth-feedback,
+.student-profile-feedback {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.auth-feedback > button,
+.auth-feedback > a,
+.student-profile-feedback > button,
+.student-profile-feedback > a {
+  margin-left: auto;
+}
+
 .auth-feedback-error,
 .student-profile-feedback-error,
 .feedback-error,

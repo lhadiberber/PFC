@@ -25,6 +25,8 @@ export default function UsersManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState(null);
   const [error, setError] = useState("");
+  const [errorCanRetry, setErrorCanRetry] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [successMessage, setSuccessMessage] = useState("");
 
   const stats = useMemo(() => {
@@ -46,6 +48,7 @@ export default function UsersManagement() {
     async function loadUsers() {
       setIsLoading(true);
       setError("");
+      setErrorCanRetry(false);
 
       try {
         const rows = await getUsers();
@@ -65,6 +68,7 @@ export default function UsersManagement() {
         }
 
         setError(getApiErrorMessage(loadError, "Impossible de charger les utilisateurs."));
+        setErrorCanRetry(true);
       } finally {
         if (isActive) {
           setIsLoading(false);
@@ -77,7 +81,7 @@ export default function UsersManagement() {
     return () => {
       isActive = false;
     };
-  }, [navigate]);
+  }, [navigate, reloadKey]);
 
   const updateUserInList = (updatedUser) => {
     if (!updatedUser) return;
@@ -96,6 +100,7 @@ export default function UsersManagement() {
 
     setUpdatingUserId(user.id);
     setError("");
+    setErrorCanRetry(false);
     setSuccessMessage("");
 
     try {
@@ -104,6 +109,7 @@ export default function UsersManagement() {
       setSuccessMessage("Modification enregistrée.");
     } catch (roleError) {
       setError(getApiErrorMessage(roleError, "Impossible de modifier le rôle."));
+      setErrorCanRetry(false);
     } finally {
       setUpdatingUserId(null);
     }
@@ -119,6 +125,7 @@ export default function UsersManagement() {
 
     setUpdatingUserId(user.id);
     setError("");
+    setErrorCanRetry(false);
     setSuccessMessage("");
 
     try {
@@ -127,6 +134,7 @@ export default function UsersManagement() {
       setSuccessMessage("Modification enregistrée.");
     } catch (statusError) {
       setError(getApiErrorMessage(statusError, "Impossible de modifier le statut."));
+      setErrorCanRetry(false);
     } finally {
       setUpdatingUserId(null);
     }
@@ -173,6 +181,14 @@ export default function UsersManagement() {
         {error ? (
           <div className="auth-feedback auth-feedback-error" role="alert">
             {error}
+            {errorCanRetry ? (
+              <Button
+                className="admin-filter-tab"
+                onClick={() => setReloadKey((currentKey) => currentKey + 1)}
+              >
+                Réessayer
+              </Button>
+            ) : null}
           </div>
         ) : null}
         {successMessage ? (

@@ -43,6 +43,8 @@ export default function AdminsManagement() {
   const [editForm, setEditForm] = useState(emptyEditForm);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [error, setError] = useState("");
+  const [errorCanRetry, setErrorCanRetry] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [successMessage, setSuccessMessage] = useState("");
 
   const stats = useMemo(() => {
@@ -61,6 +63,7 @@ export default function AdminsManagement() {
     async function loadAdmins() {
       setIsLoading(true);
       setError("");
+      setErrorCanRetry(false);
 
       try {
         const adminRows = await getAdmins();
@@ -80,6 +83,7 @@ export default function AdminsManagement() {
         }
 
         setError(getApiErrorMessage(loadError, "Impossible de charger les administrateurs."));
+        setErrorCanRetry(true);
       } finally {
         if (isActive) {
           setIsLoading(false);
@@ -92,7 +96,7 @@ export default function AdminsManagement() {
     return () => {
       isActive = false;
     };
-  }, [navigate]);
+  }, [navigate, reloadKey]);
 
   const validateCreateForm = () => {
     const nom = formData.nom.trim();
@@ -142,6 +146,7 @@ export default function AdminsManagement() {
       [name]: value,
     }));
     setError("");
+    setErrorCanRetry(false);
     setSuccessMessage("");
   };
 
@@ -151,12 +156,14 @@ export default function AdminsManagement() {
 
     if (validationMessage) {
       setError(validationMessage);
+      setErrorCanRetry(false);
       setSuccessMessage("");
       return;
     }
 
     setIsCreating(true);
     setError("");
+    setErrorCanRetry(false);
     setSuccessMessage("");
 
     try {
@@ -173,6 +180,7 @@ export default function AdminsManagement() {
       setSuccessMessage("Administrateur créé avec succès.");
     } catch (createError) {
       setError(getApiErrorMessage(createError, "Impossible de créer l'administrateur."));
+      setErrorCanRetry(false);
     } finally {
       setIsCreating(false);
     }
@@ -186,6 +194,7 @@ export default function AdminsManagement() {
       [name]: value,
     }));
     setError("");
+    setErrorCanRetry(false);
     setSuccessMessage("");
   };
 
@@ -197,6 +206,7 @@ export default function AdminsManagement() {
       email: admin.email || "",
     });
     setError("");
+    setErrorCanRetry(false);
     setSuccessMessage("");
   };
 
@@ -210,12 +220,14 @@ export default function AdminsManagement() {
 
     if (validationMessage) {
       setError(validationMessage);
+      setErrorCanRetry(false);
       setSuccessMessage("");
       return;
     }
 
     setIsSavingEdit(true);
     setError("");
+    setErrorCanRetry(false);
     setSuccessMessage("");
 
     try {
@@ -236,6 +248,7 @@ export default function AdminsManagement() {
       setSuccessMessage("Modification enregistrée.");
     } catch (editError) {
       setError(getApiErrorMessage(editError, "Impossible de modifier l'administrateur."));
+      setErrorCanRetry(false);
     } finally {
       setIsSavingEdit(false);
     }
@@ -251,6 +264,7 @@ export default function AdminsManagement() {
 
     setUpdatingAdminId(admin.id);
     setError("");
+    setErrorCanRetry(false);
     setSuccessMessage("");
 
     try {
@@ -263,6 +277,7 @@ export default function AdminsManagement() {
       setSuccessMessage(nextStatus ? "Administrateur activé." : "Administrateur désactivé.");
     } catch (statusError) {
       setError(getApiErrorMessage(statusError, "Impossible de mettre à jour le statut."));
+      setErrorCanRetry(false);
     } finally {
       setUpdatingAdminId(null);
     }
@@ -304,6 +319,14 @@ export default function AdminsManagement() {
         {error ? (
           <div className="auth-feedback auth-feedback-error" role="alert">
             {error}
+            {errorCanRetry ? (
+              <Button
+                className="admin-filter-tab"
+                onClick={() => setReloadKey((currentKey) => currentKey + 1)}
+              >
+                Réessayer
+              </Button>
+            ) : null}
           </div>
         ) : null}
         {successMessage ? (

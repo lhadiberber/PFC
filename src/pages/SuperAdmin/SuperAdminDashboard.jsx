@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/admin/AdminLayout";
 import EmptyState from "../../components/ui/EmptyState";
+import Button from "../../components/ui/Button";
 import {
   clearAuthSession,
   getApiErrorMessage,
@@ -86,6 +87,7 @@ export default function SuperAdminDashboard() {
   const [platformStats, setPlatformStats] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   const dashboardData = useMemo(() => {
     const totalAdmins = Number(platformStats.totalAdmins || 0);
@@ -282,7 +284,7 @@ export default function SuperAdminDashboard() {
     return () => {
       isActive = false;
     };
-  }, [navigate]);
+  }, [navigate, reloadKey]);
 
   return (
     <AdminLayout
@@ -293,6 +295,12 @@ export default function SuperAdminDashboard() {
       {error ? (
         <div className="student-profile-feedback student-profile-feedback-error" role="alert">
           {error}
+          <Button
+            className="admin-filter-tab"
+            onClick={() => setReloadKey((currentKey) => currentKey + 1)}
+          >
+            Réessayer
+          </Button>
         </div>
       ) : null}
 
