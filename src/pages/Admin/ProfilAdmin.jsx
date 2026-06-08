@@ -13,6 +13,7 @@ import {
   getApiErrorMessage,
   getAuthSession,
   getCurrentUser,
+  isNetworkUnavailableError,
   saveAuthSession,
 } from "../../services/authService";
 import "../../index.css";
@@ -120,6 +121,13 @@ export default function ProfilAdmin() {
 
         if (error.status === 401) {
           clearAuthSession();
+          return;
+        }
+
+        if (isNetworkUnavailableError(error) && session.user) {
+          setAccountUser(session.user);
+          setProfileData(readStoredAdminProfile(session.user));
+          setSecurityData(readAdminSecurity(session.user));
           return;
         }
 
