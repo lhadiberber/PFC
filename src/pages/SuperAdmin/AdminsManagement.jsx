@@ -11,6 +11,7 @@ import {
   updateAdmin,
   updateAdminStatus,
 } from "../../services/superAdminService";
+import { formationsBachelier } from "../../data/formationsBachelier";
 import { formatAdminDate } from "../../utils/adminApplications";
 import "../../index.css";
 
@@ -31,6 +32,50 @@ const emptyEditForm = {
   university_scope: "",
   assigned_department: "",
 };
+
+const UNIVERSITY_OPTIONS = Array.from(
+  new Set(
+    formationsBachelier.flatMap((domaine) =>
+      domaine.filieres.flatMap((filiere) =>
+        filiere.etablissements.map((etablissement) => etablissement.nom)
+      )
+    )
+  )
+).sort((first, second) => first.localeCompare(second, "fr"));
+
+const ALL_FILIERE_OPTIONS = Array.from(
+  new Set(formationsBachelier.flatMap((domaine) => domaine.filieres.map((filiere) => filiere.nom)))
+).sort((first, second) => first.localeCompare(second, "fr"));
+
+function getAvailableFilieres(universityScope) {
+  const selectedUniversity = String(universityScope || "").trim();
+
+  if (!selectedUniversity) {
+    return ALL_FILIERE_OPTIONS;
+  }
+
+  return Array.from(
+    new Set(
+      formationsBachelier.flatMap((domaine) =>
+        domaine.filieres
+          .filter((filiere) =>
+            filiere.etablissements.some((etablissement) => etablissement.nom === selectedUniversity)
+          )
+          .map((filiere) => filiere.nom)
+      )
+    )
+  ).sort((first, second) => first.localeCompare(second, "fr"));
+}
+
+function mergeCurrentOption(options, currentValue) {
+  const normalizedValue = String(currentValue || "").trim();
+
+  if (!normalizedValue || options.includes(normalizedValue)) {
+    return options;
+  }
+
+  return [normalizedValue, ...options];
+}
 
 function isValidEmail(email) {
   return /\S+@\S+\.\S+/.test(email);
@@ -60,6 +105,23 @@ export default function AdminsManagement() {
       inactive: admins.length - active,
     };
   }, [admins]);
+
+  const createUniversityOptions = mergeCurrentOption(
+    UNIVERSITY_OPTIONS,
+    formData.university_scope
+  );
+  const createFiliereOptions = mergeCurrentOption(
+    getAvailableFilieres(formData.university_scope),
+    formData.assigned_department
+  );
+  const editUniversityOptions = mergeCurrentOption(
+    UNIVERSITY_OPTIONS,
+    editForm.university_scope
+  );
+  const editFiliereOptions = mergeCurrentOption(
+    getAvailableFilieres(editForm.university_scope),
+    editForm.assigned_department
+  );
 
   useEffect(() => {
     let isActive = true;
@@ -148,6 +210,7 @@ export default function AdminsManagement() {
     setFormData((current) => ({
       ...current,
       [name]: value,
+      ...(name === "university_scope" ? { assigned_department: "" } : {}),
     }));
     setError("");
     setErrorCanRetry(false);
@@ -198,6 +261,7 @@ export default function AdminsManagement() {
     setEditForm((current) => ({
       ...current,
       [name]: value,
+      ...(name === "university_scope" ? { assigned_department: "" } : {}),
     }));
     setError("");
     setErrorCanRetry(false);
@@ -371,6 +435,7 @@ export default function AdminsManagement() {
           <input
             type="text"
             name="university_scope"
+            list="admin-create-university-options"
             value={formData.university_scope}
             onChange={handleFieldChange}
             placeholder="Université affectée"
@@ -380,12 +445,23 @@ export default function AdminsManagement() {
           <input
             type="text"
             name="assigned_department"
+            list="admin-create-filiere-options"
             value={formData.assigned_department}
             onChange={handleFieldChange}
             placeholder="Département / filière"
             className="admin-search-input"
             disabled={isCreating}
           />
+          <datalist id="admin-create-university-options">
+            {createUniversityOptions.map((university) => (
+              <option key={university} value={university} />
+            ))}
+          </datalist>
+          <datalist id="admin-create-filiere-options">
+            {createFiliereOptions.map((filiere) => (
+              <option key={filiere} value={filiere} />
+            ))}
+          </datalist>
           <input
             type="password"
             name="password"
@@ -508,6 +584,7 @@ export default function AdminsManagement() {
                               <input
                                 type="text"
                                 name="university_scope"
+                                list="admin-edit-university-options"
                                 value={editForm.university_scope}
                                 onChange={handleEditFieldChange}
                                 className="admin-search-input"
@@ -517,6 +594,7 @@ export default function AdminsManagement() {
                               <input
                                 type="text"
                                 name="assigned_department"
+                                list="admin-edit-filiere-options"
                                 value={editForm.assigned_department}
                                 onChange={handleEditFieldChange}
                                 className="admin-search-input"
@@ -589,6 +667,16 @@ export default function AdminsManagement() {
           </div>
         )}
       </section>
+      <datalist id="admin-edit-university-options">
+        {editUniversityOptions.map((university) => (
+          <option key={university} value={university} />
+        ))}
+      </datalist>
+      <datalist id="admin-edit-filiere-options">
+        {editFiliereOptions.map((filiere) => (
+          <option key={filiere} value={filiere} />
+        ))}
+      </datalist>
     </AdminLayout>
   );
 }
