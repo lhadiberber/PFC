@@ -1,4 +1,6 @@
 import { pool } from "../config/db.js";
+import { buildDashboardStats } from "../utils/dashboardStats.js";
+import { findAdminDashboardData } from "./admin.model.js";
 import { normalizeEmail } from "./user.model.js";
 
 const ADMIN_FIELDS =
@@ -53,24 +55,27 @@ export async function getSuperAdminStats() {
     adminsActifs,
     adminsDesactives,
     totalUtilisateurs,
-    totalEtudiants,
-    totalCandidatures,
+    dashboardData,
   ] = await Promise.all([
     countQuery("SELECT COUNT(*) AS total FROM users WHERE role = 'admin'"),
     countQuery("SELECT COUNT(*) AS total FROM users WHERE role = 'admin' AND is_active = 1"),
     countQuery("SELECT COUNT(*) AS total FROM users WHERE role = 'admin' AND is_active = 0"),
     countQuery("SELECT COUNT(*) AS total FROM users"),
-    countQuery("SELECT COUNT(*) AS total FROM users WHERE role = 'student'"),
-    countQuery("SELECT COUNT(*) AS total FROM applications"),
+    findAdminDashboardData({ role: "super_admin" }),
   ]);
+
+  const platformStats = buildDashboardStats(
+    dashboardData.applications || [],
+    dashboardData.documents || [],
+    dashboardData.students || []
+  );
 
   return {
     totalAdmins,
     adminsActifs,
     adminsDesactives,
     totalUtilisateurs,
-    totalEtudiants,
-    totalCandidatures,
+    ...platformStats,
   };
 }
 

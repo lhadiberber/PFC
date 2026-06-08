@@ -311,6 +311,29 @@ function getFilterLabel(value, options, fallback = "Tous") {
   return options.find((option) => option.value === value)?.label || fallback;
 }
 
+function isKnownOptionValue(value, options) {
+  return options.some((option) => option.value === value);
+}
+
+function isKnownListValue(value, values) {
+  return values.includes(value);
+}
+
+function hasMeaningfulDashboardStats(stats) {
+  if (!stats || typeof stats !== "object") {
+    return false;
+  }
+
+  return [
+    "totalCandidatures",
+    "enAttente",
+    "acceptees",
+    "refusees",
+    "totalEtudiants",
+    "dossiersIncomplets",
+  ].some((key) => Number.isFinite(Number(stats[key])));
+}
+
 function getWorkQueueRoute(filter) {
   switch (filter) {
     case "critiques":
@@ -426,6 +449,7 @@ export default function DashboardAdmin() {
     { value: "decision-finalisee", label: "Décision finalisée" },
   ];
 
+  // recuperation des statistiques et candidatures admin
   useEffect(() => {
     let isActive = true;
 
@@ -483,6 +507,26 @@ export default function DashboardAdmin() {
     };
   }, [navigate, reloadDashboardKey]);
 
+  // rafraichissement du dashboard au retour sur la page
+  useEffect(() => {
+    const reloadDashboard = () => {
+      setReloadDashboardKey((currentKey) => currentKey + 1);
+    };
+    const reloadWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        reloadDashboard();
+      }
+    };
+
+    window.addEventListener("focus", reloadDashboard);
+    document.addEventListener("visibilitychange", reloadWhenVisible);
+
+    return () => {
+      window.removeEventListener("focus", reloadDashboard);
+      document.removeEventListener("visibilitychange", reloadWhenVisible);
+    };
+  }, []);
+
   const dashboardApplicationsSource = adminDashboardData?.applications || [];
   const dashboardActivitySource = adminDashboardData?.recentActivity?.length
     ? adminDashboardData.recentActivity.map((activity, index) => ({
@@ -517,6 +561,7 @@ export default function DashboardAdmin() {
     () => dashboardApplicationsSource.map(toAdminApplication),
     [dashboardApplicationsSource]
   );
+  const accountStats = useMemo(() => getAdminStats(adminApplications), [adminApplications]);
   const universityOptions = useMemo(
     () => [...new Set(adminApplications.map((application) => application.universite).filter(Boolean))].sort(),
     [adminApplications]
@@ -594,6 +639,89 @@ export default function DashboardAdmin() {
 
     setSearchParams(params, { replace: true });
   }
+
+  useEffect(() => {
+    if (adminApplications.length === 0) {
+      return;
+    }
+
+    const nextValues = {
+      period: dashboardPeriod,
+      university: dashboardUniversity,
+      status: dashboardStatus,
+      priority: dashboardPriority,
+      manualPriority: dashboardManualPriority,
+      owner: dashboardAssignedTo,
+      internalStatus: dashboardInternalStatus,
+      specialite: dashboardSpecialite,
+    };
+    let didResetStaleFilter = false;
+
+    if (!isKnownOptionValue(nextValues.period, periodOptions)) {
+      nextValues.period = "all";
+      didResetStaleFilter = true;
+    }
+    if (!isKnownOptionValue(nextValues.status, statusOptions)) {
+      nextValues.status = "tous";
+      didResetStaleFilter = true;
+    }
+    if (!isKnownOptionValue(nextValues.priority, priorityOptions)) {
+      nextValues.priority = "toutes";
+      didResetStaleFilter = true;
+    }
+    if (!isKnownOptionValue(nextValues.manualPriority, manualPriorityOptions)) {
+      nextValues.manualPriority = "toutes";
+      didResetStaleFilter = true;
+    }
+    if (!isKnownOptionValue(nextValues.internalStatus, internalStatusOptions)) {
+      nextValues.internalStatus = "tous";
+      didResetStaleFilter = true;
+    }
+    if (
+      nextValues.university !== "toutes" &&
+      !isKnownListValue(nextValues.university, universityOptions)
+    ) {
+      nextValues.university = "toutes";
+      didResetStaleFilter = true;
+    }
+    if (
+      nextValues.specialite !== "toutes" &&
+      !isKnownListValue(nextValues.specialite, specialiteOptions)
+    ) {
+      nextValues.specialite = "toutes";
+      didResetStaleFilter = true;
+    }
+    if (
+      nextValues.owner !== "tous" &&
+      nextValues.owner !== "non-assigne" &&
+      !isKnownListValue(nextValues.owner, assignedToOptions)
+    ) {
+      nextValues.owner = "tous";
+      didResetStaleFilter = true;
+    }
+
+    if (didResetStaleFilter) {
+      updateDashboardParams(nextValues);
+    }
+  }, [
+    adminApplications.length,
+    assignedToOptions,
+    dashboardAssignedTo,
+    dashboardInternalStatus,
+    dashboardManualPriority,
+    dashboardPeriod,
+    dashboardPriority,
+    dashboardSpecialite,
+    dashboardStatus,
+    dashboardUniversity,
+    internalStatusOptions,
+    manualPriorityOptions,
+    periodOptions,
+    priorityOptions,
+    specialiteOptions,
+    statusOptions,
+    universityOptions,
+  ]);
 
   const filteredAdminApplications = useMemo(
     () =>
@@ -676,10 +804,6 @@ export default function DashboardAdmin() {
     dashboardUniversity !== "toutes" ? `Université : ${dashboardUniversity}` : null,
     dashboardSpecialite !== "toutes" ? `Spécialité : ${dashboardSpecialite}` : null,
   ].filter(Boolean);
-  const adminStats = useMemo(
-    () => getAdminStats(filteredAdminApplications),
-    [filteredAdminApplications]
-  );
   const adminRecentActivity = useMemo(
     () => getAdminRecentActivity(filteredAdminApplications, dashboardActivitySource),
     [dashboardActivitySource, filteredAdminApplications]
@@ -834,8 +958,8 @@ export default function DashboardAdmin() {
     {
       id: "total",
       label: "Total candidatures",
-      value: adminStats.totalCandidatures,
-      detail: `${adminStats.receptions7j} déposée(s) sur 7 jours`,
+      value: accountStats.totalCandidatures,
+      detail: `${accountStats.receptions7j} déposée(s) sur 7 jours`,
       tone: "total",
       icon: "files",
       path: buildScopedAdminPath("/admin/candidatures"),
@@ -843,10 +967,10 @@ export default function DashboardAdmin() {
     {
       id: "pending",
       label: "En attente",
-      value: adminStats.enAttente,
+      value: accountStats.enAttente,
       detail:
-        adminStats.backlogCritique > 0
-          ? `${adminStats.backlogCritique} retard(s) critique(s)`
+        accountStats.backlogCritique > 0
+          ? `${accountStats.backlogCritique} retard(s) critique(s)`
           : "À traiter en priorité",
       tone: "attente",
       icon: "clock",
@@ -855,10 +979,10 @@ export default function DashboardAdmin() {
     {
       id: "accepted",
       label: "Acceptées",
-      value: adminStats.acceptees,
+      value: accountStats.acceptees,
       detail:
-        adminStats.finalisees > 0
-          ? `${adminStats.tauxAcceptation}% des decisions`
+        accountStats.finalisees > 0
+          ? `${accountStats.tauxAcceptation}% des decisions`
           : "Aucune décision finalisée",
       tone: "acceptee",
       icon: "check",
@@ -867,10 +991,10 @@ export default function DashboardAdmin() {
     {
       id: "refused",
       label: "Refusées",
-      value: adminStats.refusees,
+      value: accountStats.refusees,
       detail:
-        adminStats.finalisees > 0
-          ? `${adminStats.tauxFinalisation}% du portefeuille traité`
+        accountStats.finalisees > 0
+          ? `${accountStats.tauxFinalisation}% du portefeuille traité`
           : "Suivi des arbitrages",
       tone: "refusee",
       icon: "close",
@@ -879,8 +1003,8 @@ export default function DashboardAdmin() {
     {
       id: "students",
       label: "Étudiants inscrits",
-      value: adminStats.totalEtudiants,
-      detail: `${adminStats.totalCandidatures} candidature(s) déposée(s)`,
+      value: accountStats.totalEtudiants,
+      detail: `${accountStats.totalCandidatures} candidature(s) déposée(s)`,
       tone: "etudiants",
       icon: "student",
       path: buildScopedAdminPath("/admin/etudiants"),
@@ -888,8 +1012,8 @@ export default function DashboardAdmin() {
     {
       id: "incomplete",
       label: "Dossiers incomplets",
-      value: adminStats.dossiersIncomplets,
-      detail: `${adminStats.documentsManquants} contrôle(s) documentaire(s)`,
+      value: accountStats.dossiersIncomplets,
+      detail: `${accountStats.documentsManquants} contrôle(s) documentaire(s)`,
       tone: "incomplets",
       icon: "warning",
       path: buildScopedAdminPath("/admin/candidatures", {
@@ -900,32 +1024,55 @@ export default function DashboardAdmin() {
   ];
 
   const backendStats = adminDashboardData?.stats;
-  const displayedAdminStatCards = backendStats
+  const dashboardStats = hasMeaningfulDashboardStats(backendStats) ? backendStats : accountStats;
+  const displayedAdminStatCards = dashboardStats
     ? adminStatCards.map((card) => {
         if (card.id === "total") {
-          return { ...card, value: backendStats.totalCandidatures ?? card.value };
+          return {
+            ...card,
+            value: dashboardStats.totalCandidatures ?? card.value,
+            detail: `${dashboardStats.receptions7j ?? 0} déposée(s) sur 7 jours`,
+          };
         }
         if (card.id === "pending") {
           return {
             ...card,
-            value: backendStats.enAttente ?? card.value,
-            detail: `${backendStats.documentsEnAttente ?? 0} document(s) en attente`,
+            value: dashboardStats.enAttente ?? card.value,
+            detail: `${dashboardStats.documentsEnAttente ?? 0} document(s) en attente`,
           };
         }
         if (card.id === "accepted") {
-          return { ...card, value: backendStats.acceptees ?? card.value };
+          return {
+            ...card,
+            value: dashboardStats.acceptees ?? card.value,
+            detail:
+              dashboardStats.finalisees > 0
+                ? `${dashboardStats.tauxAcceptation}% des decisions`
+                : "Aucune décision finalisée",
+          };
         }
         if (card.id === "refused") {
-          return { ...card, value: backendStats.refusees ?? card.value };
+          return {
+            ...card,
+            value: dashboardStats.refusees ?? card.value,
+            detail:
+              dashboardStats.finalisees > 0
+                ? `${dashboardStats.tauxFinalisation}% du portefeuille traité`
+                : "Suivi des arbitrages",
+          };
         }
         if (card.id === "students") {
-          return { ...card, value: backendStats.totalEtudiants ?? card.value };
+          return {
+            ...card,
+            value: dashboardStats.totalEtudiants ?? card.value,
+            detail: `${dashboardStats.totalCandidatures ?? 0} candidature(s) déposée(s)`,
+          };
         }
         if (card.id === "incomplete") {
           return {
             ...card,
-            value: backendStats.dossiersIncomplets ?? card.value,
-            detail: `${backendStats.documentsEnAttente ?? 0} document(s) à vérifier`,
+            value: dashboardStats.dossiersIncomplets ?? card.value,
+            detail: `${dashboardStats.documentsEnAttente ?? 0} document(s) à vérifier`,
           };
         }
 
@@ -1044,7 +1191,7 @@ export default function DashboardAdmin() {
       id: "pilotage",
       label: "Pilotage",
       helper: "Priorités, dossiers et activité",
-      count: `${adminStats.totalCandidatures} dossiers`,
+      count: `${dashboardStats.totalCandidatures} dossiers`,
     },
     {
       id: "traitement",
@@ -1134,10 +1281,10 @@ export default function DashboardAdmin() {
       ) : null}
 
       <section className="campus-section-container">
-        <div className="admin-dashboard-topbar">
+          <div className="admin-dashboard-topbar">
           <div className="admin-dashboard-topbar-context">
             <span className="admin-page-context neutral">
-              {filteredAdminApplications.length} dossier(s) visibles
+              {dashboardStats.totalCandidatures} dossier(s) accessibles
             </span>
             {activeFilterCount > 0 ? (
               <span className="admin-page-context info">
@@ -1996,19 +2143,19 @@ export default function DashboardAdmin() {
             [
               "status-attente",
               "En attente",
-              adminStats.enAttente,
+              dashboardStats.enAttente,
               buildScopedAdminPath("/admin/candidatures", { status: "attente" }),
             ],
             [
               "status-acceptee",
               "Acceptées",
-              adminStats.acceptees,
+              dashboardStats.acceptees,
               buildScopedAdminPath("/admin/candidatures", { status: "acceptee" }),
             ],
             [
               "status-refusee",
               "Refusées",
-              adminStats.refusees,
+              dashboardStats.refusees,
               buildScopedAdminPath("/admin/candidatures", { status: "refusee" }),
             ],
           ].map(([className, label, value, path]) => (
@@ -2023,15 +2170,15 @@ export default function DashboardAdmin() {
               </div>
               <h3>{value} candidatures</h3>
               <p>
-                {adminStats.totalCandidatures > 0
-                  ? Math.round((value / adminStats.totalCandidatures) * 100)
+                {dashboardStats.totalCandidatures > 0
+                  ? Math.round((value / dashboardStats.totalCandidatures) * 100)
                   : 0}
                 % du total
               </p>
               <ProgressBar
                 value={
-                  adminStats.totalCandidatures > 0
-                    ? Math.round((value / adminStats.totalCandidatures) * 100)
+                  dashboardStats.totalCandidatures > 0
+                    ? Math.round((value / dashboardStats.totalCandidatures) * 100)
                     : 0
                 }
               />

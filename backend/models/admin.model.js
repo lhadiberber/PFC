@@ -93,6 +93,19 @@ const STUDENT_PROFILE_FIELDS = `
   sp.moyenne
 `;
 
+const DOCUMENT_APPLICATION_JOIN = `
+  LEFT JOIN applications a ON a.id = COALESCE(
+    d.application_id,
+    (
+      SELECT linked_a.id
+      FROM applications linked_a
+      WHERE linked_a.student_id = d.student_id
+      ORDER BY linked_a.date_depot DESC, linked_a.id DESC
+      LIMIT 1
+    )
+  )
+`;
+
 function formatDateOnly(value) {
   if (!value) {
     return "";
@@ -114,6 +127,18 @@ function normalizePositiveIntegerId(value) {
   return Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : null;
 }
 
+function buildLooseTextMatchSql(column) {
+  return `(
+    LOWER(TRIM(${column})) = LOWER(TRIM(?))
+    OR LOWER(TRIM(${column})) LIKE CONCAT('%', LOWER(TRIM(?)), '%')
+    OR LOWER(TRIM(?)) LIKE CONCAT('%', LOWER(TRIM(${column})), '%')
+  )`;
+}
+
+function pushLooseTextMatchParams(params, value) {
+  params.push(value, value, value);
+}
+
 function buildAdminScopeFilter(user, alias = "a") {
   if (!user || user.role === "super_admin") {
     return { sql: "", params: [] };
@@ -126,21 +151,25 @@ function buildAdminScopeFilter(user, alias = "a") {
   const universityScope = normalizeScopeValue(user.university_scope);
 
   if (!universityScope) {
-    return { sql: " AND 1 = 0", params: [] };
+    return { sql: "", params: [] };
   }
 
   const departmentScope = normalizeScopeValue(user.assigned_department);
-  const params = [universityScope];
-  let sql = ` AND LOWER(TRIM(${alias}.universite)) = LOWER(TRIM(?))`;
+  const params = [];
+  let sql = ` AND ${buildLooseTextMatchSql(`${alias}.universite`)}`;
+  pushLooseTextMatchParams(params, universityScope);
 
   if (departmentScope) {
     sql += ` AND (
-      LOWER(TRIM(${alias}.faculte_institut)) = LOWER(TRIM(?))
-      OR LOWER(TRIM(${alias}.domaine)) = LOWER(TRIM(?))
-      OR LOWER(TRIM(${alias}.filiere)) = LOWER(TRIM(?))
-      OR LOWER(TRIM(${alias}.formation)) = LOWER(TRIM(?))
+      ${buildLooseTextMatchSql(`${alias}.faculte_institut`)}
+      OR ${buildLooseTextMatchSql(`${alias}.domaine`)}
+      OR ${buildLooseTextMatchSql(`${alias}.filiere`)}
+      OR ${buildLooseTextMatchSql(`${alias}.formation`)}
     )`;
-    params.push(departmentScope, departmentScope, departmentScope, departmentScope);
+    pushLooseTextMatchParams(params, departmentScope);
+    pushLooseTextMatchParams(params, departmentScope);
+    pushLooseTextMatchParams(params, departmentScope);
+    pushLooseTextMatchParams(params, departmentScope);
   }
 
   return { sql, params };
@@ -276,10 +305,10 @@ export async function findAdminDashboardData(user) {
       scopeFilter.params
     ),
     pool.execute(
-      `SELECT ${DOCUMENT_FIELDS}
+      `SELECT DISTINCT ${DOCUMENT_FIELDS}
        FROM documents d
        INNER JOIN users u ON u.id = d.student_id
-       LEFT JOIN applications a ON a.id = d.application_id
+       ${DOCUMENT_APPLICATION_JOIN}
        WHERE 1 = 1${scopeFilter.sql}
        ORDER BY d.date_upload DESC, d.id DESC`,
       scopeFilter.params
@@ -391,7 +420,7 @@ export async function findAdminDocuments(user) {
     `SELECT ${ADMIN_DOCUMENT_FIELDS}
      FROM documents d
      INNER JOIN users u ON u.id = d.student_id
-     LEFT JOIN applications a ON a.id = d.application_id
+     ${DOCUMENT_APPLICATION_JOIN}
      WHERE 1 = 1${scopeFilter.sql}
      ORDER BY d.date_upload DESC, d.id DESC`
     ,
@@ -413,7 +442,7 @@ export async function findAdminDocumentById(id, user) {
     `SELECT ${ADMIN_DOCUMENT_FIELDS}
      FROM documents d
      INNER JOIN users u ON u.id = d.student_id
-     LEFT JOIN applications a ON a.id = d.application_id
+     ${DOCUMENT_APPLICATION_JOIN}
      WHERE d.id = ?${scopeFilter.sql}
      LIMIT 1`,
     [documentId, ...scopeFilter.params]
@@ -442,7 +471,7 @@ export async function updateAdminDocumentStatus(id, statut, commentaireAdmin, us
 
   const [updateResult] = await pool.execute(
     `UPDATE documents d
-     LEFT JOIN applications a ON a.id = d.application_id
+     ${DOCUMENT_APPLICATION_JOIN}
      SET d.statut = ?${commentSql}
      WHERE d.id = ?${scopeFilter.sql}`,
     values
@@ -520,7 +549,7 @@ export async function findAdminStudentById(id, user) {
     `SELECT ${DOCUMENT_FIELDS}
      FROM documents d
      INNER JOIN users u ON u.id = d.student_id
-     LEFT JOIN applications a ON a.id = d.application_id
+     ${DOCUMENT_APPLICATION_JOIN}
      WHERE d.student_id = ?${scopeFilter.sql}
      ORDER BY d.date_upload DESC, d.id DESC`,
     [id, ...scopeFilter.params]

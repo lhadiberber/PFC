@@ -19,9 +19,18 @@ function getRoleLabel(role) {
   return "Étudiant";
 }
 
+function normalizeSearchValue(value) {
+  return String(value || "")
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
 export default function UsersManagement() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState(null);
   const [error, setError] = useState("");
@@ -41,6 +50,34 @@ export default function UsersManagement() {
       inactive,
     };
   }, [users]);
+
+  // recherche dans les comptes utilisateurs
+  const filteredUsers = useMemo(() => {
+    const query = normalizeSearchValue(searchQuery);
+
+    if (!query) {
+      return users;
+    }
+
+    return users.filter((user) => {
+      const statusLabel = user.is_active ? "actif" : "inactif";
+      const searchableValue = [
+        user.id,
+        user.nom,
+        user.prenom,
+        user.email,
+        user.role,
+        getRoleLabel(user.role),
+        statusLabel,
+        user.university_scope,
+        user.assigned_department,
+      ]
+        .map(normalizeSearchValue)
+        .join(" ");
+
+      return searchableValue.includes(query);
+    });
+  }, [searchQuery, users]);
 
   useEffect(() => {
     let isActive = true;
@@ -91,6 +128,7 @@ export default function UsersManagement() {
     );
   };
 
+  // attribution des roles admin et etudiant
   const handleRoleChange = async (user, role) => {
     setUpdatingUserId(user.id);
     setError("");
@@ -109,6 +147,7 @@ export default function UsersManagement() {
     }
   };
 
+  // activation ou desactivation d'un compte
   const handleStatusChange = async (user) => {
     const nextStatus = !user.is_active;
 
@@ -167,6 +206,35 @@ export default function UsersManagement() {
           </div>
         </div>
 
+        <div className="admin-toolbar admin-dashboard-toolbar">
+          <label className="admin-toolbar-label" htmlFor="superAdminUsersSearch">
+            Recherche
+          </label>
+          <input
+            id="superAdminUsersSearch"
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Rechercher par nom, prenom, email, role, statut ou ID"
+            className="admin-search-input"
+            autoComplete="off"
+          />
+          <span className="admin-table-meta-subtext">
+            {searchQuery.trim()
+              ? `${filteredUsers.length} resultat(s) sur ${users.length}`
+              : `${users.length} compte(s) au total`}
+          </span>
+          {searchQuery ? (
+            <Button
+              type="button"
+              className="admin-filter-tab"
+              onClick={() => setSearchQuery("")}
+            >
+              Effacer
+            </Button>
+          ) : null}
+        </div>
+
         {error ? (
           <div className="auth-feedback auth-feedback-error" role="alert">
             {error}
@@ -207,18 +275,26 @@ export default function UsersManagement() {
                 </tr>
               </thead>
               <tbody>
-                {users.length === 0 ? (
+                {filteredUsers.length === 0 ? (
                   <tr>
                     <td colSpan="7">
                       <EmptyState
-                        title="Aucune donnée pour le moment."
-                        description="Les comptes apparaîtront après les premières inscriptions."
+                        title={
+                          searchQuery.trim()
+                            ? "Aucun utilisateur trouve."
+                            : "Aucune donnée pour le moment."
+                        }
+                        description={
+                          searchQuery.trim()
+                            ? "Essayez avec un nom, un prenom, un email, un role, un statut ou un identifiant."
+                            : "Les comptes apparaîtront après les premières inscriptions."
+                        }
                         className="admin-empty-state"
                       />
                     </td>
                   </tr>
                 ) : (
-                  users.map((user) => {
+                  filteredUsers.map((user) => {
                     const isSuperAdmin = user.role === "super_admin";
                     const isUpdating = updatingUserId === user.id;
 

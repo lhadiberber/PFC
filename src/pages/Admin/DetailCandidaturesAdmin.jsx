@@ -105,6 +105,32 @@ function getStatusDisplayLabel(status) {
   return status;
 }
 
+function isCurrentStatusAction(actionStatus, currentStatus) {
+  return String(actionStatus || "") === String(currentStatus || "");
+}
+
+function getStatusActionLabel(actionStatus, currentStatus) {
+  const statusLabel = getStatusDisplayLabel(actionStatus);
+
+  if (isCurrentStatusAction(actionStatus, currentStatus)) {
+    return `Déjà ${statusLabel.toLowerCase()}`;
+  }
+
+  if (actionStatus === "En attente") {
+    return "Mettre en attente";
+  }
+
+  if (actionStatus === "Acceptee") {
+    return "Accepter";
+  }
+
+  if (actionStatus === "Rejetee") {
+    return "Refuser";
+  }
+
+  return statusLabel;
+}
+
 function getStatusConfirmationMessage(status) {
   if (status === "Acceptee") {
     return "Confirmer l'acceptation de cette candidature ?";
@@ -164,6 +190,11 @@ export default function DetailCandidaturesAdmin() {
     internalStatus: "qualification",
   });
   const [noteDraft, setNoteDraft] = useState("");
+  const [showDocumentRequestForm, setShowDocumentRequestForm] = useState(false);
+  const [documentRequestForm, setDocumentRequestForm] = useState({
+    documentName: "",
+    remark: "",
+  });
   const [remoteApplication, setRemoteApplication] = useState(null);
   const [isLoadingApplication, setIsLoadingApplication] = useState(true);
   const [applicationError, setApplicationError] = useState("");
@@ -172,6 +203,7 @@ export default function DetailCandidaturesAdmin() {
   const [pendingStatusDecision, setPendingStatusDecision] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
 
+  // recuperation du dossier candidat
   useEffect(() => {
     let isActive = true;
 
@@ -265,12 +297,32 @@ export default function DetailCandidaturesAdmin() {
       return;
     }
 
+    setShowDocumentRequestForm(false);
+    setDocumentRequestForm({
+      documentName: "",
+      remark: "",
+    });
     setMetadataForm({
       internalPriority: candidature.adminMeta.internalPriority,
       assignedTo: candidature.adminMeta.assignedTo,
       internalStatus: candidature.adminMeta.internalStatus,
     });
   }, [candidature]);
+
+  useEffect(() => {
+    if (!showDocumentRequestForm) {
+      return;
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setShowDocumentRequestForm(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showDocumentRequestForm]);
 
   const dossierHistory = useMemo(() => {
     if (!candidature) {
@@ -394,7 +446,12 @@ export default function DetailCandidaturesAdmin() {
     candidature.details.motivation || candidature.details.lettreMotivation,
     "Aucune lettre de motivation n'a été fournie dans cette version de la candidature."
   );
+  const currentDecisionDate =
+    candidature.statut === "En attente"
+      ? candidature.adminMeta.lastUpdatedAt
+      : candidature.adminMeta.decisionDate || candidature.adminMeta.lastUpdatedAt;
 
+  // decision administrative : accepter, refuser ou remettre en attente
   const executeStatusChange = async (nextStatus) => {
     setPendingStatusDecision("");
     setStatusActionLoading(nextStatus);
@@ -477,26 +534,53 @@ export default function DetailCandidaturesAdmin() {
     setActionFeedback({ type: "success", text: "Note interne ajoutée." });
   };
 
-  const handleRequestDocument = () => {
-    const createdNote = addApplicationNote(
-      candidature.id,
-      "Demande de document complémentaire envoyée au candidat."
-    );
+  const handleDocumentRequestSubmit = (event) => {
+    event.preventDefault();
+
+    const requestedDocument = documentRequestForm.documentName.trim();
+    const remark = documentRequestForm.remark.trim();
+
+    if (!requestedDocument && !remark) {
+      setActionFeedback({
+        type: "info",
+        text: "Indiquez un document précis ou une remarque avant d'enregistrer.",
+      });
+      return;
+    }
+
+    const requestParts = [];
+    if (requestedDocument) {
+      requestParts.push(`Document demandé: ${requestedDocument}.`);
+    }
+    if (remark) {
+      requestParts.push(`Remarque: ${remark}.`);
+    }
+
+    const createdNote = addApplicationNote(candidature.id, requestParts.join(" "));
 
     if (!createdNote) {
-      setActionFeedback({ type: "info", text: "La demande de document n'a pas pu être enregistrée." });
+      setActionFeedback({
+        type: "info",
+        text: "La demande de document n'a pas pu être enregistrée.",
+      });
       return;
     }
 
     updateApplicationMetadata(candidature.id, {
       internalStatus: "qualification",
     });
+    setDocumentRequestForm({
+      documentName: "",
+      remark: "",
+    });
+    setShowDocumentRequestForm(false);
     setActionFeedback({
       type: "success",
       text: "Demande de document enregistrée dans le suivi du dossier.",
     });
   };
 
+  // ouverture ou telechargement des pieces justificatives
   const handleDocumentAction = async (documentItem, mode) => {
     if (!documentItem.provided) {
       setActionFeedback({ type: "info", text: `${documentItem.label} manquant sur ce dossier.` });
@@ -626,33 +710,147 @@ export default function DetailCandidaturesAdmin() {
           </div>
 
           <div className="admin-application-hero-actions">
+            <div className="admin-application-status-summary">
+              <span className="admin-application-status-summary-label">Statut actuel</span>
+              <div className="admin-application-status-summary-row">
+                <StatusBadge status={candidature.statut} />
+                <strong>{getStatusDisplayLabel(candidature.statut)}</strong>
+              </div>
+              <small>
+                Mis à jour {formatAdminDateTime(currentDecisionDate)}
+              </small>
+            </div>
             <Button
-              className="admin-detail-action admin-detail-action-primary"
+              className={`admin-detail-action admin-detail-action-primary ${
+                isCurrentStatusAction("Acceptee", candidature.statut)
+                  ? "admin-detail-action-current"
+                  : ""
+              }`}
               onClick={() => handleStatusChange("Acceptee")}
-              disabled={Boolean(statusActionLoading)}
+              disabled={Boolean(statusActionLoading) || isCurrentStatusAction("Acceptee", candidature.statut)}
             >
-              {statusActionLoading === "Acceptee" ? "Mise à jour..." : "Accepter"}
+              {statusActionLoading === "Acceptee"
+                ? "Mise à jour..."
+                : getStatusActionLabel("Acceptee", candidature.statut)}
             </Button>
             <Button
-              className="admin-detail-action admin-detail-action-danger"
+              className={`admin-detail-action admin-detail-action-danger ${
+                isCurrentStatusAction("Rejetee", candidature.statut)
+                  ? "admin-detail-action-current"
+                  : ""
+              }`}
               onClick={() => handleStatusChange("Rejetee")}
-              disabled={Boolean(statusActionLoading)}
+              disabled={Boolean(statusActionLoading) || isCurrentStatusAction("Rejetee", candidature.statut)}
             >
-              {statusActionLoading === "Rejetee" ? "Mise à jour..." : "Refuser"}
+              {statusActionLoading === "Rejetee"
+                ? "Mise à jour..."
+                : getStatusActionLabel("Rejetee", candidature.statut)}
             </Button>
             <Button
               className="admin-detail-action admin-detail-action-warning"
-              onClick={handleRequestDocument}
+              onClick={() => {
+                setShowDocumentRequestForm((current) => !current);
+                setActionFeedback(null);
+              }}
+              aria-expanded={showDocumentRequestForm}
             >
-              Demander document
+              {showDocumentRequestForm ? "Fermer la demande" : "Demander document"}
             </Button>
             <Button
-              className="admin-detail-action admin-detail-action-neutral"
+              className={`admin-detail-action admin-detail-action-neutral ${
+                isCurrentStatusAction("En attente", candidature.statut)
+                  ? "admin-detail-action-current"
+                  : ""
+              }`}
               onClick={() => handleStatusChange("En attente")}
-              disabled={Boolean(statusActionLoading)}
+              disabled={Boolean(statusActionLoading) || isCurrentStatusAction("En attente", candidature.statut)}
             >
-              {statusActionLoading === "En attente" ? "Mise à jour..." : "Mettre en attente"}
+              {statusActionLoading === "En attente"
+                ? "Mise à jour..."
+                : getStatusActionLabel("En attente", candidature.statut)}
             </Button>
+            {showDocumentRequestForm ? (
+              <div
+                className="admin-document-request-overlay"
+                role="presentation"
+                onMouseDown={() => setShowDocumentRequestForm(false)}
+              >
+                <form
+                  className="admin-document-request-modal"
+                  onSubmit={handleDocumentRequestSubmit}
+                  onMouseDown={(event) => event.stopPropagation()}
+                >
+                  <div className="admin-document-request-head">
+                    <div>
+                      <strong>Demande de document</strong>
+                      <p>Précisez le document manquant ou ajoutez une remarque ciblée.</p>
+                    </div>
+                    <Button
+                      className="admin-filter-tab"
+                      type="button"
+                      onClick={() => setShowDocumentRequestForm(false)}
+                    >
+                      Fermer
+                    </Button>
+                  </div>
+
+                  <div className="admin-document-request-grid">
+                    <label className="admin-control-field" htmlFor="requestedDocumentName">
+                      <span className="admin-toolbar-label">Document demandé</span>
+                      <input
+                        id="requestedDocumentName"
+                        className="admin-control-input"
+                        type="text"
+                        value={documentRequestForm.documentName}
+                        onChange={(event) =>
+                          setDocumentRequestForm((current) => ({
+                            ...current,
+                            documentName: event.target.value,
+                          }))
+                        }
+                        placeholder="Ex. Relevé de notes du semestre 1"
+                      />
+                    </label>
+
+                    <label className="admin-control-field admin-control-field-wide" htmlFor="requestRemark">
+                      <span className="admin-toolbar-label">Remarque</span>
+                      <textarea
+                        id="requestRemark"
+                        className="admin-control-textarea"
+                        value={documentRequestForm.remark}
+                        onChange={(event) =>
+                          setDocumentRequestForm((current) => ({
+                            ...current,
+                            remark: event.target.value,
+                          }))
+                        }
+                        placeholder="Précisez ce que vous voulez demander au candidat..."
+                        rows={3}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="admin-document-request-actions">
+                    <Button
+                      className="admin-filter-tab"
+                      type="button"
+                      onClick={() => {
+                        setShowDocumentRequestForm(false);
+                        setDocumentRequestForm({
+                          documentName: "",
+                          remark: "",
+                        });
+                      }}
+                    >
+                      Annuler
+                    </Button>
+                    <Button className="campus-btn-primary" type="submit">
+                      Enregistrer la demande
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            ) : null}
             {pendingStatusDecision ? (
               <div className="admin-inline-confirm" role="alertdialog" aria-live="polite">
                 <strong>Confirmer la décision</strong>

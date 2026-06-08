@@ -334,6 +334,7 @@ export default function MesCandidatures() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // chargement des candidatures, documents et profil etudiant
   useEffect(() => {
     let isMounted = true;
 
@@ -408,6 +409,7 @@ export default function MesCandidatures() {
     };
   }, [navigate, reloadKey]);
 
+  // calcul de la progression de chaque dossier
   const applicationsWithMetrics = useMemo(
     () =>
       [...applications]
@@ -443,6 +445,7 @@ export default function MesCandidatures() {
 
   const latestApplication = applicationsWithMetrics[0];
 
+  // recherche et filtrage dans les candidatures de l'etudiant
   const filteredApplications = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 

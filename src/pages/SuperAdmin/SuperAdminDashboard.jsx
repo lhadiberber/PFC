@@ -213,6 +213,7 @@ export default function SuperAdminDashboard() {
     };
   }, [platformStats]);
 
+  // recuperation des statistiques globales super admin
   useEffect(() => {
     let isActive = true;
 
@@ -285,6 +286,26 @@ export default function SuperAdminDashboard() {
       isActive = false;
     };
   }, [navigate, reloadKey]);
+
+  // rafraichissement du dashboard au retour sur la page
+  useEffect(() => {
+    const reloadDashboard = () => {
+      setReloadKey((currentKey) => currentKey + 1);
+    };
+    const reloadWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        reloadDashboard();
+      }
+    };
+
+    window.addEventListener("focus", reloadDashboard);
+    document.addEventListener("visibilitychange", reloadWhenVisible);
+
+    return () => {
+      window.removeEventListener("focus", reloadDashboard);
+      document.removeEventListener("visibilitychange", reloadWhenVisible);
+    };
+  }, []);
 
   return (
     <AdminLayout

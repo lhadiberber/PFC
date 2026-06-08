@@ -219,6 +219,7 @@ export default function StudentStep3() {
     [requiredDocumentKeys.length, uploadedRequiredCount]
   );
 
+  // recuperation des documents deja deposes
   useEffect(() => {
     let isActive = true;
 
@@ -316,6 +317,7 @@ export default function StudentStep3() {
     });
   };
 
+  // depot des documents justificatifs
   const processFile = async (file, fieldName) => {
     const config = documentConfig[fieldName];
     if (!file) return;
@@ -403,6 +405,7 @@ export default function StudentStep3() {
     processFile(event.target.files?.[0], fieldName);
   };
 
+  // suppression ou remplacement d'un document depose
   const handleRemoveFile = async (fieldName) => {
     const documentId = documentIds[fieldName];
     setUploadingFields((currentFields) => ({ ...currentFields, [fieldName]: true }));

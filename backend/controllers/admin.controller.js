@@ -16,6 +16,7 @@ import {
   evaluateApplicationPreselection,
   findSelectionRules,
 } from "../models/selectionRule.model.js";
+import { buildDashboardStats } from "../utils/dashboardStats.js";
 import { resolveUploadedFilePath } from "../middlewares/upload.middleware.js";
 
 const DOCUMENT_TYPES = [
@@ -606,12 +607,13 @@ export async function getAdminOverview(request, response, next) {
   }
 }
 
+// statistiques du tableau de bord admin
 export async function getAdminDashboard(request, response, next) {
   try {
     const { applications, documents, students } = await findAdminDashboardData(request.user);
     const selectionRules = await findSelectionRules(request.user);
     const documentsByStudent = buildDocumentsByStudent(documents);
-    const stats = buildStats(applications, documents, students, documentsByStudent);
+    const stats = buildDashboardStats(applications, documents, students);
 
     response.json({
       success: true,
@@ -636,6 +638,7 @@ export async function getAdminDashboard(request, response, next) {
   }
 }
 
+// candidatures visibles dans le perimetre admin
 export async function listAdminApplications(request, response, next) {
   try {
     const applications = await findAdminApplications(request.user);
@@ -654,6 +657,7 @@ export async function listAdminApplications(request, response, next) {
   }
 }
 
+// detail d'une candidature dans le perimetre admin
 export async function getAdminApplication(request, response, next) {
   try {
     const applicationDetail = await findAdminApplicationById(request.params.id, request.user);
@@ -765,6 +769,7 @@ export async function downloadAdminDocumentFile(request, response, next) {
   return sendAdminDocumentFile(request, response, next, "download");
 }
 
+// validation ou refus d'un document par l'admin
 export async function updateAdminDocumentStatusController(request, response, next) {
   try {
     const statut = normalizeRequestedDocumentStatus(request.body.statut);
@@ -802,6 +807,7 @@ export async function updateAdminDocumentStatusController(request, response, nex
   }
 }
 
+// decision admin sur une candidature
 export async function updateAdminApplicationStatusController(request, response, next) {
   try {
     const statut = normalizeRequestedAdminStatus(request.body.statut);

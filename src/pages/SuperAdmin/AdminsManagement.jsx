@@ -123,6 +123,7 @@ export default function AdminsManagement() {
     editForm.assigned_department
   );
 
+  // chargement des comptes administrateurs
   useEffect(() => {
     let isActive = true;
 
@@ -217,6 +218,7 @@ export default function AdminsManagement() {
     setSuccessMessage("");
   };
 
+  // creation d'un administrateur avec perimetre
   const handleCreateAdmin = async (event) => {
     event.preventDefault();
     const validationMessage = validateCreateForm();
@@ -287,6 +289,7 @@ export default function AdminsManagement() {
     setEditForm(emptyEditForm);
   };
 
+  // modification du perimetre admin
   const handleSaveEdit = async (adminId) => {
     const validationMessage = validateEditForm();
 
@@ -328,6 +331,7 @@ export default function AdminsManagement() {
     }
   };
 
+  // activation ou desactivation d'un administrateur
   const handleToggleStatus = async (admin) => {
     const nextStatus = !admin.is_active;
 

@@ -129,6 +129,7 @@ export default function DetailDocumentAdmin() {
   const [actionLoading, setActionLoading] = useState("");
   const [pendingReviewStatus, setPendingReviewStatus] = useState("");
 
+  // chargement du document a verifier
   useEffect(() => {
     let isActive = true;
 
@@ -239,6 +240,7 @@ export default function DetailDocumentAdmin() {
 
   const historyEntries = buildHistoryEntries(documentRow);
 
+  // validation ou refus d'une piece justificative
   const executeReviewAction = async (nextStatus) => {
     const normalizedReviewComment = reviewComment.trim();
 

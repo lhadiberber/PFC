@@ -229,11 +229,13 @@ button:disabled,
   border-radius: var(--ui-radius);
   border-color: var(--ui-border);
   box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
+  overflow-x: auto;
 }
 
 .admin-table {
   border-collapse: separate;
   border-spacing: 0;
+  min-width: 980px;
 }
 
 .admin-table th {
@@ -248,6 +250,22 @@ button:disabled,
 
 .admin-table tbody tr:hover {
   background: #F7FAFB;
+}
+
+.admin-candidature-dossier-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 150px;
+}
+
+.admin-candidature-open-button {
+  min-height: 32px;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .admin-empty-state,
@@ -498,6 +516,118 @@ button:disabled,
   margin-top: 10px;
 }
 
+.admin-application-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.admin-document-request-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, .52);
+  backdrop-filter: blur(2px);
+}
+
+.admin-document-request-modal {
+  width: min(100%, 560px);
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: var(--ui-radius);
+  background: var(--ui-surface);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, .18);
+}
+
+.admin-document-request-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-document-request-head strong {
+  display: block;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.admin-document-request-head p {
+  margin: 4px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-document-request-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.admin-document-request-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-application-status-summary {
+  display: grid;
+  gap: 4px;
+  min-width: 180px;
+  padding: 10px 12px;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: var(--ui-radius);
+  background: var(--ui-surface-soft);
+}
+
+.admin-application-status-summary-label {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.admin-application-status-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-application-status-summary strong {
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.admin-detail-action-current {
+  background: var(--ui-surface-soft) !important;
+  border-color: rgba(148, 163, 184, .45) !important;
+  color: var(--color-text-secondary) !important;
+  box-shadow: none !important;
+  opacity: .9;
+  cursor: default;
+}
+
+.admin-detail-action-current:hover {
+  background: var(--ui-surface-soft) !important;
+  border-color: rgba(148, 163, 184, .45) !important;
+  color: var(--color-text-secondary) !important;
+  box-shadow: none !important;
+  opacity: .9;
+}
+
 .admin-layout.theme-dark .admin-inline-confirm {
   background: rgba(15, 23, 42, .88);
   border-color: rgba(0, 201, 177, .28);
@@ -505,6 +635,55 @@ button:disabled,
 
 .admin-layout.theme-dark .admin-inline-confirm p {
   color: #cbd5e1;
+}
+
+.admin-layout.theme-dark .admin-document-request-panel {
+  background: rgba(15, 23, 42, .88);
+  border-color: rgba(148, 163, 184, .22);
+}
+
+.admin-layout.theme-dark .admin-document-request-overlay {
+  background: rgba(2, 6, 23, .68);
+}
+
+.admin-layout.theme-dark .admin-document-request-modal {
+  background: rgba(15, 23, 42, .96);
+  border-color: rgba(148, 163, 184, .22);
+  box-shadow: 0 24px 48px rgba(2, 6, 23, .36);
+}
+
+.admin-layout.theme-dark .admin-document-request-head strong {
+  color: #f8fafc;
+}
+
+.admin-layout.theme-dark .admin-document-request-head p {
+  color: #cbd5e1;
+}
+
+.admin-layout.theme-dark .admin-application-status-summary {
+  background: rgba(15, 23, 42, .86);
+  border-color: rgba(148, 163, 184, .22);
+}
+
+.admin-layout.theme-dark .admin-application-status-summary-label {
+  color: #cbd5e1;
+}
+
+.admin-layout.theme-dark .admin-application-status-summary strong {
+  color: #f8fafc;
+}
+
+.admin-layout.theme-dark .admin-detail-action-current {
+  background: rgba(15, 23, 42, .88) !important;
+  border-color: rgba(148, 163, 184, .26) !important;
+  color: #cbd5e1 !important;
+  opacity: .92;
+}
+
+.admin-layout.theme-dark .admin-detail-action-current:hover {
+  border-color: rgba(148, 163, 184, .36) !important;
+  color: #e2e8f0 !important;
+  opacity: .92;
 }
 
 .admin-selection-form {
@@ -722,6 +901,20 @@ button:disabled,
   .admin-meta-card,
   .admin-documents-panel {
     padding: 20px;
+  }
+
+  .admin-document-request-actions {
+    justify-content: stretch;
+  }
+
+  .admin-document-request-actions > * {
+    width: 100%;
+  }
+
+  .admin-document-request-modal {
+    width: 100%;
+    max-width: 100%;
+    padding: 14px;
   }
 }
 

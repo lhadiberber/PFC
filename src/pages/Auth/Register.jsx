@@ -67,6 +67,7 @@ function getPasswordStrength(password) {
   return { score: 5, label: "Très fort", color: "#16a34a" };
 }
 
+// validation du formulaire de création de compte
 function validateForm(formData, agreeLegal, copy) {
   const errors = {};
 
@@ -146,6 +147,7 @@ export default function Register() {
     if (errors.legal) setErrors((current) => ({ ...current, legal: "" }));
   };
 
+  // création du compte étudiant côté backend
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (isSubmitting) return;

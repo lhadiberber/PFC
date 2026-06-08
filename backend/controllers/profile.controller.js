@@ -54,6 +54,7 @@ function validateProfilePayload(payload) {
   return errors;
 }
 
+// lecture du profil de l'etudiant connecte
 export async function getMyProfile(request, response, next) {
   try {
     const profile = await findStudentProfileByUserId(request.user.id);
@@ -75,6 +76,7 @@ export async function getMyProfile(request, response, next) {
   }
 }
 
+// mise a jour du profil de l'etudiant
 export async function updateMyProfile(request, response, next) {
   try {
     const errors = validateProfilePayload(request.body);

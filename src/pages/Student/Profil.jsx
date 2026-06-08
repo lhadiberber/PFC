@@ -263,6 +263,7 @@ export default function Profil() {
   const newPasswordRef = useRef(null);
   const confirmPasswordRef = useRef(null);
 
+  // recuperation du profil etudiant depuis le backend
   useEffect(() => {
     setPersonalForm(buildPersonalForm(profile));
   }, [profile]);
@@ -453,6 +454,7 @@ export default function Profil() {
     if (profileFeedback) setProfileFeedback(null);
   };
 
+  // validation des informations personnelles et du bac
   const validate = () => {
     const nextErrors = {};
 
@@ -499,6 +501,7 @@ export default function Profil() {
     return nextErrors;
   };
 
+  // sauvegarde du profil etudiant
   const handleSave = async () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -563,6 +566,7 @@ export default function Profil() {
     if (passwordFeedback) setPasswordFeedback(null);
   };
 
+  // changement du mot de passe local de l'etudiant
   const handlePasswordSubmit = (event) => {
     event.preventDefault();
     setPasswordFeedback(null);

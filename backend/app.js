@@ -106,6 +106,13 @@ app.get("/api/health/db", async (_request, response, next) => {
   }
 });
 
+app.use("/api", (_request, response, next) => {
+  response.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  response.set("Pragma", "no-cache");
+  response.set("Expires", "0");
+  next();
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/applications", applicationRoutes);

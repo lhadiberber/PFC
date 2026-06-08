@@ -42,6 +42,7 @@ function validateApplicationPayload(payload) {
   return errors;
 }
 
+// creation d'une candidature etudiante
 export async function submitApplication(request, response, next) {
   try {
     const errors = validateApplicationPayload(request.body);
@@ -67,6 +68,7 @@ export async function submitApplication(request, response, next) {
   }
 }
 
+// liste des candidatures de l'etudiant connecte
 export async function listMyApplications(request, response, next) {
   try {
     const applications = await findApplicationsByStudentId(request.user.id);
@@ -80,6 +82,7 @@ export async function listMyApplications(request, response, next) {
   }
 }
 
+// detail d'une candidature appartenant a l'etudiant
 export async function getMyApplication(request, response, next) {
   try {
     const application = await findApplicationByIdForStudent(request.params.id, request.user.id);

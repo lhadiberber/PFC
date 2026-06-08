@@ -64,6 +64,7 @@ async function canLinkApplication(applicationId, studentId) {
   return applicationBelongsToStudent(applicationId, studentId);
 }
 
+// depot d'une piece justificative
 export async function uploadDocument(request, response, next) {
   const uploadedFilePath = request.file ? getUploadRelativePath(request.file.path) : "";
 
@@ -117,6 +118,7 @@ export async function uploadDocument(request, response, next) {
   }
 }
 
+// liste des documents de l'etudiant connecte
 export async function listMyDocuments(request, response, next) {
   try {
     const documents = await findDocumentsByStudentId(request.user.id);
@@ -151,6 +153,7 @@ export async function getMyDocument(request, response, next) {
   }
 }
 
+// suppression d'un document et de son fichier upload
 export async function deleteMyDocument(request, response, next) {
   try {
     const document = await deleteDocumentByIdForStudent(request.params.id, request.user.id);

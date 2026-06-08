@@ -40,6 +40,7 @@ export default function StudentStep2() {
     [formData]
   );
 
+  // choix de l'etablissement selon la filiere
   const handleEtablissementChange = (event) => {
     const etablissement = etablissements.find((item) => item.nom === event.target.value);
     const nextFormData = etablissement
@@ -71,6 +72,7 @@ export default function StudentStep2() {
     return {};
   };
 
+  // passage vers le depot des documents
   const handleNext = () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {

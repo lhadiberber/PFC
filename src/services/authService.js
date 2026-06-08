@@ -160,6 +160,7 @@ async function fetchWithTimeout(url, options = {}) {
   try {
     return await fetch(url, {
       ...requestOptions,
+      cache: "no-store",
       signal: controller.signal,
     });
   } finally {
@@ -257,6 +258,8 @@ export async function apiRequest(endpoint, options = {}) {
   const { method = "GET", body, token } = options;
   const headers = {
     Accept: "application/json",
+    "Cache-Control": "no-cache",
+    Pragma: "no-cache",
   };
 
   if (body) {

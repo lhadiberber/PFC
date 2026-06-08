@@ -36,6 +36,7 @@ function isManagedAccount(user) {
   return user && user.role !== "super_admin";
 }
 
+// statistiques globales de la plateforme
 export async function getSuperAdminDashboard(_request, response, next) {
   try {
     const stats = await getSuperAdminStats();
@@ -49,6 +50,7 @@ export async function getSuperAdminDashboard(_request, response, next) {
   }
 }
 
+// liste des administrateurs
 export async function listAdmins(_request, response, next) {
   try {
     const admins = await findAdmins();
@@ -62,6 +64,7 @@ export async function listAdmins(_request, response, next) {
   }
 }
 
+// liste des utilisateurs pour la gestion super admin
 export async function listUsers(_request, response, next) {
   try {
     const users = await findUsers();
@@ -75,6 +78,7 @@ export async function listUsers(_request, response, next) {
   }
 }
 
+// creation d'un compte administrateur
 export async function createAdminController(request, response, next) {
   try {
     const { nom, prenom, email, password } = getRequiredAdminValues(request.body);
@@ -253,6 +257,7 @@ export async function updateAdminController(request, response, next) {
   }
 }
 
+// promotion ou retrogradation d'un utilisateur
 export async function updateUserRoleController(request, response, next) {
   try {
     if (Number(request.params.id) === Number(request.user.id)) {
@@ -293,6 +298,7 @@ export async function updateUserRoleController(request, response, next) {
   }
 }
 
+// activation ou desactivation d'un utilisateur
 export async function updateUserStatusController(request, response, next) {
   try {
     if (Number(request.params.id) === Number(request.user.id)) {

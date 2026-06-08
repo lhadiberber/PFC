@@ -85,6 +85,7 @@ function buildPublicUser(user) {
   };
 }
 
+// inscription etudiant avec mot de passe hashe
 export async function register(request, response, next) {
   try {
     const { nom, prenom, email, password, recaptchaToken } = request.body;
@@ -164,6 +165,7 @@ export async function register(request, response, next) {
   }
 }
 
+// connexion par email ou numero d'inscription bac
 export async function login(request, response, next) {
   try {
     const { email, password } = request.body;
@@ -214,6 +216,7 @@ export async function login(request, response, next) {
   }
 }
 
+// renvoi de l'utilisateur connecte
 export async function me(request, response, next) {
   try {
     const user = await findUserById(request.user.id);

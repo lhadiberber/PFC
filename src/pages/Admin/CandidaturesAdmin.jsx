@@ -911,7 +911,20 @@ export default function CandidaturesAdmin() {
                       onClick={() => navigate(`/admin/candidatures/${candidature.id}`)}
                     >
                       <td data-label="Nom">{candidature.nom}</td>
-                      <td data-label="Dossier">{candidature.numeroDossier}</td>
+                      <td data-label="Dossier">
+                        <div className="admin-candidature-dossier-cell">
+                          <span>{candidature.numeroDossier}</span>
+                          <Button
+                            className="admin-table-action-button admin-candidature-open-button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              navigate(`/admin/candidatures/${candidature.id}`);
+                            }}
+                          >
+                            Ouvrir candidature
+                          </Button>
+                        </div>
+                      </td>
                       <td data-label="Université">{candidature.universite}</td>
                       <td data-label="Spécialité">{candidature.specialite}</td>
                       <td data-label="Date">{formatAdminDate(candidature.date)}</td>
@@ -967,7 +980,7 @@ export default function CandidaturesAdmin() {
                             navigate(`/admin/candidatures/${candidature.id}`);
                           }}
                         >
-                          Ouvrir
+                          Ouvrir candidature
                         </Button>
                       </td>
                     </tr>

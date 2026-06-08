@@ -166,6 +166,7 @@ export default function StudentRecapitulatif() {
 
   const dossierComplet = missingItems.length === 0;
 
+  // verification finale avant soumission
   const handleValiderClick = () => {
     if (!dossierComplet) {
       setSubmitError("Veuillez compléter les informations obligatoires avant de valider.");
@@ -175,6 +176,7 @@ export default function StudentRecapitulatif() {
     setShowConfirm(true);
   };
 
+  // envoi de la candidature au backend
   const confirmValider = async () => {
     if (isSubmittingRef.current) return;
 

@@ -108,6 +108,7 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // connexion rapide depuis la page d'accueil
   const handleLogin = async (event) => {
     event.preventDefault();
     if (isLoginSubmitting) return;
@@ -172,6 +173,7 @@ export default function Home() {
           <div className="campus-header-actions">
             <LanguageSelector compact aria-label="Changer la langue" />
 
+            {/* bouton principal de création de compte */}
             <Link to="/register" className="campus-btn-header-cta">
               {home.hero.createAccount}
             </Link>

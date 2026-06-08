@@ -59,6 +59,7 @@ export default function StudentStep1() {
     });
   };
 
+  // choix du domaine et de la filiere
   const handleChange = (event) => {
     const { name, value } = event.target;
     const nextFormData = {
@@ -112,6 +113,7 @@ export default function StudentStep1() {
     return nextErrors;
   };
 
+  // passage vers le choix de l'etablissement
   const handleNext = () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {

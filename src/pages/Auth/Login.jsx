@@ -109,6 +109,7 @@ export default function Login() {
     return nextErrors;
   };
 
+  // envoi des identifiants au backend
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (isSubmitting) return;
@@ -135,6 +136,7 @@ export default function Login() {
 
       const role = session.user?.role ?? session.role;
 
+      // redirection selon le rôle utilisateur
       if (ADMIN_ROLES.includes(role)) {
         navigate(getHomePath(role));
         return;
