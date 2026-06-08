@@ -92,12 +92,6 @@ export default function UsersManagement() {
   };
 
   const handleRoleChange = async (user, role) => {
-    const actionLabel = role === "admin" ? "promouvoir cet utilisateur en admin" : "retirer le rôle admin";
-
-    if (!window.confirm(`Confirmer pour ${actionLabel} ?`)) {
-      return;
-    }
-
     setUpdatingUserId(user.id);
     setError("");
     setErrorCanRetry(false);
@@ -117,11 +111,6 @@ export default function UsersManagement() {
 
   const handleStatusChange = async (user) => {
     const nextStatus = !user.is_active;
-    const actionLabel = nextStatus ? "réactiver ce compte" : "désactiver ce compte";
-
-    if (!window.confirm(`Confirmer pour ${actionLabel} ?`)) {
-      return;
-    }
 
     setUpdatingUserId(user.id);
     setError("");

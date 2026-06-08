@@ -266,11 +266,6 @@ export default function AdminsManagement() {
 
   const handleToggleStatus = async (admin) => {
     const nextStatus = !admin.is_active;
-    const actionLabel = nextStatus ? "activer" : "désactiver";
-
-    if (!window.confirm(`Confirmer pour ${actionLabel} cet administrateur ?`)) {
-      return;
-    }
 
     setUpdatingAdminId(admin.id);
     setError("");

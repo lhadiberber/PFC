@@ -109,6 +109,11 @@ function normalizeScopeValue(value) {
   return String(value || "").trim();
 }
 
+function normalizePositiveIntegerId(value) {
+  const parsedValue = Number(value);
+  return Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
 function buildAdminScopeFilter(user, alias = "a") {
   if (!user || user.role === "super_admin") {
     return { sql: "", params: [] };
@@ -397,6 +402,12 @@ export async function findAdminDocuments(user) {
 }
 
 export async function findAdminDocumentById(id, user) {
+  const documentId = normalizePositiveIntegerId(id);
+
+  if (!documentId) {
+    return null;
+  }
+
   const scopeFilter = buildAdminScopeFilter(user);
   const [rows] = await pool.execute(
     `SELECT ${ADMIN_DOCUMENT_FIELDS}
@@ -405,13 +416,19 @@ export async function findAdminDocumentById(id, user) {
      LEFT JOIN applications a ON a.id = d.application_id
      WHERE d.id = ?${scopeFilter.sql}
      LIMIT 1`,
-    [id, ...scopeFilter.params]
+    [documentId, ...scopeFilter.params]
   );
 
   return normalizeAdminDocument(rows[0]);
 }
 
 export async function updateAdminDocumentStatus(id, statut, commentaireAdmin, user) {
+  const documentId = normalizePositiveIntegerId(id);
+
+  if (!documentId) {
+    return null;
+  }
+
   const scopeFilter = buildAdminScopeFilter(user);
   const values = [statut];
   let commentSql = "";
@@ -421,7 +438,7 @@ export async function updateAdminDocumentStatus(id, statut, commentaireAdmin, us
     values.push(String(commentaireAdmin || "").trim() || null);
   }
 
-  values.push(id, ...scopeFilter.params);
+  values.push(documentId, ...scopeFilter.params);
 
   const [updateResult] = await pool.execute(
     `UPDATE documents d
@@ -435,7 +452,7 @@ export async function updateAdminDocumentStatus(id, statut, commentaireAdmin, us
     return null;
   }
 
-  return findAdminDocumentById(id, user);
+  return findAdminDocumentById(documentId, user);
 }
 
 export async function findAdminStudents(user) {

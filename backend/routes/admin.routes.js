@@ -5,11 +5,13 @@ import {
   getAdminDocument,
   getAdminOverview,
   getAdminStudent,
+  downloadAdminDocumentFile,
   listAdminApplications,
   listAdminDocuments,
   listAdminStudents,
   updateAdminApplicationStatusController,
   updateAdminDocumentStatusController,
+  viewAdminDocumentFile,
 } from "../controllers/admin.controller.js";
 import {
   createSelectionRuleController,
@@ -33,6 +35,8 @@ router.patch(
   updateAdminApplicationStatusController
 );
 router.get("/documents", authMiddleware, adminOrSuperAdmin, listAdminDocuments);
+router.get("/documents/:id/view", authMiddleware, adminOrSuperAdmin, viewAdminDocumentFile);
+router.get("/documents/:id/download", authMiddleware, adminOrSuperAdmin, downloadAdminDocumentFile);
 router.patch(
   "/documents/:id/status",
   authMiddleware,

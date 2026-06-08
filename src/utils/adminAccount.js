@@ -14,7 +14,7 @@ function normalizeText(value, fallback = "") {
 }
 
 function splitFullName(fullName) {
-  const parts = normalizeText(fullName, "Administrateur UniPass")
+  const parts = normalizeText(fullName, "Administrateur")
     .split(" ")
     .map((part) => part.trim())
     .filter(Boolean);
@@ -35,32 +35,73 @@ function splitFullName(fullName) {
 function getStoredDarkModePreference() {
   try {
     return localStorage.getItem(ADMIN_DARK_MODE_KEY) === "true" ? "dark" : "light";
-  } catch (error) {
+  } catch (_error) {
     return "light";
   }
 }
 
-export function getDefaultAdminProfile() {
+function getAccountStorageScope(account = {}) {
+  if (account?.id) {
+    return `id-${account.id}`;
+  }
+
+  const email = normalizeText(account?.email).toLowerCase();
+  if (email) {
+    return `email-${email}`;
+  }
+
+  return "default";
+}
+
+function getProfileStorageKey(account) {
+  return `${ADMIN_PROFILE_KEY}:${getAccountStorageScope(account)}`;
+}
+
+function getSecurityStorageKey(account) {
+  return `${ADMIN_SECURITY_KEY}:${getAccountStorageScope(account)}`;
+}
+
+function formatRole(role) {
+  if (role === "super_admin") return "Super administrateur";
+  if (role === "admin") return "Administrateur";
+  return normalizeText(role, "Administrateur");
+}
+
+export function getDefaultAdminProfile(account = {}) {
+  const derivedName = splitFullName(
+    `${normalizeText(account.prenom)} ${normalizeText(account.nom)}`.trim()
+  );
+  const firstName = normalizeText(account.prenom, derivedName.firstName || "Administrateur");
+  const lastName = normalizeText(account.nom, derivedName.lastName);
+  const fullName = normalizeText(`${firstName} ${lastName}`.trim(), "Administrateur");
+  const service = normalizeText(
+    account.assigned_department || account.university_scope,
+    "Service des admissions"
+  );
+
   return {
-    firstName: "Lhadi",
-    lastName: "Berber",
-    fullName: "Lhadi Berber",
-    email: DEFAULT_ADMIN_EMAIL,
-    phone: "+213 555 12 34 56",
-    role: "Administrateur",
-    service: "Service des admissions",
-    accountCreatedAt: DEFAULT_ACCOUNT_CREATED_AT,
+    userId: account.id || "",
+    firstName,
+    lastName,
+    fullName,
+    email: normalizeText(account.email, DEFAULT_ADMIN_EMAIL),
+    phone: normalizeText(account.telephone),
+    role: formatRole(account.role),
+    service,
+    universityScope: normalizeText(account.university_scope),
+    assignedDepartment: normalizeText(account.assigned_department),
+    accountCreatedAt: normalizeText(account.created_at, DEFAULT_ACCOUNT_CREATED_AT),
     notificationsEnabled: true,
     dailySummary: true,
     themePreference: getStoredDarkModePreference(),
   };
 }
 
-export function readStoredAdminProfile() {
-  const defaultProfile = getDefaultAdminProfile();
+export function readStoredAdminProfile(account = {}) {
+  const defaultProfile = getDefaultAdminProfile(account);
 
   try {
-    const rawProfile = localStorage.getItem(ADMIN_PROFILE_KEY);
+    const rawProfile = localStorage.getItem(getProfileStorageKey(account));
     if (!rawProfile) {
       return defaultProfile;
     }
@@ -78,16 +119,19 @@ export function readStoredAdminProfile() {
     return {
       ...defaultProfile,
       ...parsedProfile,
+      userId: defaultProfile.userId,
       firstName,
       lastName,
       fullName,
       email: normalizeText(parsedProfile.email, defaultProfile.email),
       phone: normalizeText(parsedProfile.phone, defaultProfile.phone),
-      role: normalizeText(parsedProfile.role, defaultProfile.role),
+      role: defaultProfile.role,
       service: normalizeText(
         parsedProfile.service || parsedProfile.organization,
         defaultProfile.service
       ),
+      universityScope: defaultProfile.universityScope,
+      assignedDepartment: defaultProfile.assignedDepartment,
       accountCreatedAt:
         normalizeText(parsedProfile.accountCreatedAt, "") || defaultProfile.accountCreatedAt,
       notificationsEnabled:
@@ -105,29 +149,33 @@ export function readStoredAdminProfile() {
         defaultProfile.themePreference
       ),
     };
-  } catch (error) {
+  } catch (_error) {
     return defaultProfile;
   }
 }
 
-export function writeStoredAdminProfile(profile) {
+export function writeStoredAdminProfile(profile, account = {}) {
+  const defaultProfile = getDefaultAdminProfile(account);
   const safeProfile = {
-    ...readStoredAdminProfile(),
+    ...readStoredAdminProfile(account),
     ...profile,
   };
 
+  safeProfile.userId = defaultProfile.userId;
   safeProfile.firstName = normalizeText(safeProfile.firstName, "Administrateur");
   safeProfile.lastName = normalizeText(safeProfile.lastName);
   safeProfile.fullName = normalizeText(
     `${safeProfile.firstName} ${safeProfile.lastName}`.trim(),
     safeProfile.fullName
   );
-  safeProfile.email = normalizeText(safeProfile.email, DEFAULT_ADMIN_EMAIL);
-  safeProfile.role = normalizeText(safeProfile.role, "Administrateur");
-  safeProfile.service = normalizeText(safeProfile.service, "Service des admissions");
+  safeProfile.email = normalizeText(safeProfile.email, defaultProfile.email);
+  safeProfile.role = defaultProfile.role;
+  safeProfile.service = normalizeText(safeProfile.service, defaultProfile.service);
   safeProfile.phone = normalizeText(safeProfile.phone);
+  safeProfile.universityScope = defaultProfile.universityScope;
+  safeProfile.assignedDepartment = defaultProfile.assignedDepartment;
 
-  localStorage.setItem(ADMIN_PROFILE_KEY, JSON.stringify(safeProfile));
+  localStorage.setItem(getProfileStorageKey(account), JSON.stringify(safeProfile));
   localStorage.setItem(
     ADMIN_DARK_MODE_KEY,
     safeProfile.themePreference === "dark" ? "true" : "false"
@@ -147,11 +195,11 @@ export function getDefaultAdminSecurity() {
   };
 }
 
-export function readAdminSecurity() {
+export function readAdminSecurity(account = {}) {
   const defaultSecurity = getDefaultAdminSecurity();
 
   try {
-    const rawSecurity = localStorage.getItem(ADMIN_SECURITY_KEY);
+    const rawSecurity = localStorage.getItem(getSecurityStorageKey(account));
     if (!rawSecurity) {
       return defaultSecurity;
     }
@@ -169,29 +217,29 @@ export function readAdminSecurity() {
         defaultSecurity.lastPasswordUpdatedAt
       ),
     };
-  } catch (error) {
+  } catch (_error) {
     return defaultSecurity;
   }
 }
 
-export function writeAdminSecurity(security) {
+export function writeAdminSecurity(security, account = {}) {
   const safeSecurity = {
-    ...readAdminSecurity(),
+    ...readAdminSecurity(account),
     ...security,
   };
 
   safeSecurity.password = normalizeText(safeSecurity.password, DEFAULT_ADMIN_PASSWORD);
   safeSecurity.accountStatus = normalizeText(safeSecurity.accountStatus, "Actif");
 
-  localStorage.setItem(ADMIN_SECURITY_KEY, JSON.stringify(safeSecurity));
+  localStorage.setItem(getSecurityStorageKey(account), JSON.stringify(safeSecurity));
   window.dispatchEvent(new Event("admin:security-updated"));
 
   return safeSecurity;
 }
 
-export function isValidAdminCredentials(email, password) {
-  const adminProfile = readStoredAdminProfile();
-  const adminSecurity = readAdminSecurity();
+export function isValidAdminCredentials(email, password, account = {}) {
+  const adminProfile = readStoredAdminProfile(account);
+  const adminSecurity = readAdminSecurity(account);
 
   return (
     normalizeText(email).toLowerCase() === adminProfile.email.toLowerCase() &&
@@ -199,31 +247,37 @@ export function isValidAdminCredentials(email, password) {
   );
 }
 
-export function registerAdminLogin(email) {
-  const adminProfile = readStoredAdminProfile();
-  const adminSecurity = readAdminSecurity();
+export function registerAdminLogin(email, account = {}) {
+  const adminProfile = readStoredAdminProfile(account);
+  const adminSecurity = readAdminSecurity(account);
   const browserLabel =
     typeof navigator !== "undefined"
       ? navigator.userAgent.replace(/\s+/g, " ").slice(0, 120)
       : "Navigateur non detecte";
 
   if (normalizeText(email) && normalizeText(email) !== adminProfile.email) {
-    writeStoredAdminProfile({
-      ...adminProfile,
-      email: normalizeText(email, adminProfile.email),
-    });
+    writeStoredAdminProfile(
+      {
+        ...adminProfile,
+        email: normalizeText(email, adminProfile.email),
+      },
+      account
+    );
   }
 
-  return writeAdminSecurity({
-    ...adminSecurity,
-    lastLoginAt: new Date().toISOString(),
-    lastLoginBrowser: browserLabel,
-    accountStatus: "Actif",
-  });
+  return writeAdminSecurity(
+    {
+      ...adminSecurity,
+      lastLoginAt: new Date().toISOString(),
+      lastLoginBrowser: browserLabel,
+      accountStatus: "Actif",
+    },
+    account
+  );
 }
 
-export function updateAdminPassword(currentPassword, nextPassword) {
-  const adminSecurity = readAdminSecurity();
+export function updateAdminPassword(currentPassword, nextPassword, account = {}) {
+  const adminSecurity = readAdminSecurity(account);
 
   if (normalizeText(currentPassword) !== adminSecurity.password) {
     return {
@@ -232,11 +286,14 @@ export function updateAdminPassword(currentPassword, nextPassword) {
     };
   }
 
-  writeAdminSecurity({
-    ...adminSecurity,
-    password: normalizeText(nextPassword),
-    lastPasswordUpdatedAt: new Date().toISOString(),
-  });
+  writeAdminSecurity(
+    {
+      ...adminSecurity,
+      password: normalizeText(nextPassword),
+      lastPasswordUpdatedAt: new Date().toISOString(),
+    },
+    account
+  );
 
   return {
     success: true,

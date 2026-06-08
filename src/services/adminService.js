@@ -1,4 +1,4 @@
-import { apiRequest } from "./authService";
+import { ApiError, apiRequest, getApiFallbackUrls, getAuthToken } from "./authService";
 
 export async function getAdminDashboard() {
   const response = await apiRequest("/admin/dashboard");
@@ -95,4 +95,56 @@ export async function deleteSelectionRule(id) {
   await apiRequest(`/admin/selection-rules/${id}`, {
     method: "DELETE",
   });
+}
+
+function normalizeEndpoint(endpoint) {
+  const normalizedEndpoint = String(endpoint || "").trim();
+  return normalizedEndpoint.startsWith("/") ? normalizedEndpoint : `/${normalizedEndpoint}`;
+}
+
+function readFileNameFromDisposition(disposition, fallback) {
+  const match = String(disposition || "").match(/filename="?([^";]+)"?/i);
+  return match ? decodeURIComponent(match[1]) : fallback;
+}
+
+export async function fetchAdminDocumentFile(id, mode = "view") {
+  const endpoint = normalizeEndpoint(`/admin/documents/${id}/${mode}`);
+  const token = getAuthToken();
+  const urls = getApiFallbackUrls();
+  let lastError = null;
+
+  for (const baseUrl of urls) {
+    try {
+      const response = await fetch(`${baseUrl}${endpoint}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      if (!response.ok) {
+        let message = "Fichier introuvable ou inaccessible.";
+        try {
+          const payload = await response.json();
+          message = payload?.message || message;
+        } catch {
+          // La réponse peut être un flux ou une erreur non JSON.
+        }
+        throw new ApiError(message, response.status);
+      }
+
+      const blob = await response.blob();
+      const fileName = readFileNameFromDisposition(
+        response.headers.get("Content-Disposition"),
+        `document-${id}`
+      );
+
+      return { blob, fileName, objectUrl: URL.createObjectURL(blob) };
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      lastError = error;
+    }
+  }
+
+  throw lastError || new ApiError("Fichier introuvable ou inaccessible.", 0);
 }

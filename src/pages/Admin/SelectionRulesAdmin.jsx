@@ -9,22 +9,45 @@ import {
   updateSelectionRule,
 } from "../../services/adminService";
 import { clearAuthSession, getApiErrorMessage, getAuthSession } from "../../services/authService";
+import { formationsBachelier } from "../../data/formationsBachelier";
 import { formatAdminDate } from "../../utils/adminApplications";
 import "../../index.css";
+
+const DOCUMENT_OPTIONS = [
+  "Relevé de notes du baccalauréat",
+  "Attestation de réussite au baccalauréat",
+  "Pièce d'identité",
+  "Photo d'identité",
+  "Certificat de résidence",
+  "Justificatif particulier",
+];
+
+const BAC_SERIES = [
+  "Sciences expérimentales",
+  "Mathématiques",
+  "Techniques mathématiques",
+  "Gestion et économie",
+  "Lettres et philosophie",
+  "Langues étrangères",
+];
+
+const CONFIGURED_FILIERE_GROUPS = formationsBachelier.map((domaine) => ({
+  domaine: domaine.domaine,
+  filieres: domaine.filieres.map((filiere) => filiere.nom),
+}));
+
+const CONFIGURED_FILIERES = new Set(
+  CONFIGURED_FILIERE_GROUPS.flatMap((group) => group.filieres)
+);
 
 const emptyRuleForm = {
   filiere: "",
   moyenne_min: "10",
-  series_acceptees: "",
-  documents_obligatoires:
-    "Relevé de notes du baccalauréat, Attestation de réussite au baccalauréat, Pièce d'identité",
+  series_acceptees: [],
+  documents_obligatoires: DOCUMENT_OPTIONS.slice(0, 3),
   university_scope: "",
   assigned_department: "",
 };
-
-function arrayToText(value) {
-  return Array.isArray(value) ? value.join(", ") : String(value || "");
-}
 
 function buildPayload(form) {
   return {
@@ -37,6 +60,35 @@ function buildPayload(form) {
   };
 }
 
+function normalizeArray(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item || "").trim()).filter(Boolean);
+  }
+
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function renderTags(value, fallback) {
+  const items = normalizeArray(value);
+
+  if (items.length === 0) {
+    return <span className="admin-selection-muted">{fallback}</span>;
+  }
+
+  return (
+    <div className="admin-selection-tag-list">
+      {items.map((item) => (
+        <span key={item} className="admin-selection-tag">
+          {item}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export default function SelectionRulesAdmin() {
   const session = getAuthSession();
   const isSuperAdmin = session?.role === "super_admin";
@@ -47,6 +99,16 @@ export default function SelectionRulesAdmin() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const savedFilieres = rules
+    .map((rule) => String(rule.filiere || "").trim())
+    .filter((filiere, index, filieres) =>
+      filiere && !CONFIGURED_FILIERES.has(filiere) && filieres.indexOf(filiere) === index
+    );
+  const filiereGroups = savedFilieres.length
+    ? [...CONFIGURED_FILIERE_GROUPS, { domaine: "Filières déjà enregistrées", filieres: savedFilieres }]
+    : CONFIGURED_FILIERE_GROUPS;
+  const selectedSeriesCount = normalizeArray(formData.series_acceptees).length;
+  const selectedDocumentsCount = normalizeArray(formData.documents_obligatoires).length;
 
   useEffect(() => {
     let isActive = true;
@@ -80,6 +142,34 @@ export default function SelectionRulesAdmin() {
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((current) => ({ ...current, [name]: value }));
+    setError("");
+    setMessage("");
+  };
+
+  const handleDocumentToggle = (documentLabel) => {
+    setFormData((current) => {
+      const selectedDocuments = normalizeArray(current.documents_obligatoires);
+      const isSelected = selectedDocuments.includes(documentLabel);
+      const nextDocuments = isSelected
+        ? selectedDocuments.filter((item) => item !== documentLabel)
+        : [...selectedDocuments, documentLabel];
+
+      return { ...current, documents_obligatoires: nextDocuments };
+    });
+    setError("");
+    setMessage("");
+  };
+
+  const handleSeriesToggle = (serieLabel) => {
+    setFormData((current) => {
+      const selectedSeries = normalizeArray(current.series_acceptees);
+      const isSelected = selectedSeries.includes(serieLabel);
+      const nextSeries = isSelected
+        ? selectedSeries.filter((item) => item !== serieLabel)
+        : [...selectedSeries, serieLabel];
+
+      return { ...current, series_acceptees: nextSeries };
+    });
     setError("");
     setMessage("");
   };
@@ -125,8 +215,8 @@ export default function SelectionRulesAdmin() {
     setFormData({
       filiere: rule.filiere || "",
       moyenne_min: String(rule.moyenne_min ?? ""),
-      series_acceptees: arrayToText(rule.series_acceptees),
-      documents_obligatoires: arrayToText(rule.documents_obligatoires),
+      series_acceptees: normalizeArray(rule.series_acceptees),
+      documents_obligatoires: normalizeArray(rule.documents_obligatoires),
       university_scope: rule.university_scope || "",
       assigned_department: rule.assigned_department || "",
     });
@@ -140,8 +230,6 @@ export default function SelectionRulesAdmin() {
   };
 
   const handleDelete = async (rule) => {
-    if (!window.confirm("Supprimer cette règle de présélection ?")) return;
-
     try {
       await deleteSelectionRule(rule.id);
       setRules((current) => current.filter((item) => item.id !== rule.id));
@@ -169,71 +257,119 @@ export default function SelectionRulesAdmin() {
         {error ? <div className="auth-feedback auth-feedback-error">{error}</div> : null}
         {message ? <div className="auth-feedback auth-feedback-success">{message}</div> : null}
 
-        <form className="admin-toolbar admin-dashboard-toolbar" onSubmit={handleSubmit}>
-          <input
-            className="admin-search-input"
-            name="filiere"
-            value={formData.filiere}
-            onChange={handleChange}
-            placeholder="Filière concernée"
-            disabled={isSaving}
-          />
-          <input
-            className="admin-search-input"
-            name="moyenne_min"
-            value={formData.moyenne_min}
-            onChange={handleChange}
-            placeholder="Moyenne minimale"
-            type="number"
-            min="0"
-            max="20"
-            step="0.01"
-            disabled={isSaving}
-          />
-          <input
-            className="admin-search-input"
-            name="series_acceptees"
-            value={formData.series_acceptees}
-            onChange={handleChange}
-            placeholder="Séries acceptées, séparées par virgules"
-            disabled={isSaving}
-          />
-          <input
-            className="admin-search-input"
-            name="documents_obligatoires"
-            value={formData.documents_obligatoires}
-            onChange={handleChange}
-            placeholder="Documents obligatoires, séparés par virgules"
-            disabled={isSaving}
-          />
+        <form className="admin-selection-form" onSubmit={handleSubmit}>
+          <div className="admin-selection-form-grid">
+            <label className="admin-selection-field">
+              <span>Filière concernée</span>
+              <select
+                className="admin-search-input"
+                name="filiere"
+                value={formData.filiere}
+                onChange={handleChange}
+                disabled={isSaving}
+              >
+                <option value="">Sélectionner une filière disponible</option>
+                {filiereGroups.map((group) => (
+                  <optgroup key={group.domaine} label={group.domaine}>
+                    {group.filieres.map((filiere) => (
+                      <option key={filiere} value={filiere}>
+                        {filiere}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+            <label className="admin-selection-field">
+              <span>Moyenne minimale</span>
+              <input
+                className="admin-search-input"
+                name="moyenne_min"
+                value={formData.moyenne_min}
+                onChange={handleChange}
+                type="number"
+                min="0"
+                max="20"
+                step="0.01"
+                disabled={isSaving}
+              />
+            </label>
+          </div>
+          <fieldset className="admin-selection-fieldset">
+            <legend>
+              <span>Séries acceptées</span>
+              <em>{selectedSeriesCount > 0 ? `${selectedSeriesCount} sélectionnée(s)` : "Toutes"}</em>
+            </legend>
+            <div className="admin-selection-checkbox-grid">
+              {BAC_SERIES.map((serieLabel) => (
+                <label key={serieLabel} className="admin-selection-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={normalizeArray(formData.series_acceptees).includes(serieLabel)}
+                    onChange={() => handleSeriesToggle(serieLabel)}
+                    disabled={isSaving}
+                  />
+                  <span>{serieLabel}</span>
+                </label>
+              ))}
+            </div>
+            <p className="admin-selection-fieldset-note">
+              Aucune série cochée : toutes les séries du bac sont acceptées.
+            </p>
+          </fieldset>
+          <fieldset className="admin-selection-fieldset">
+            <legend>
+              <span>Documents obligatoires</span>
+              <em>{selectedDocumentsCount} sélectionné(s)</em>
+            </legend>
+            <div className="admin-selection-checkbox-grid">
+              {DOCUMENT_OPTIONS.map((documentLabel) => (
+                <label key={documentLabel} className="admin-selection-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={normalizeArray(formData.documents_obligatoires).includes(documentLabel)}
+                    onChange={() => handleDocumentToggle(documentLabel)}
+                    disabled={isSaving}
+                  />
+                  <span>{documentLabel}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
           {isSuperAdmin ? (
-            <>
-              <input
-                className="admin-search-input"
-                name="university_scope"
-                value={formData.university_scope}
-                onChange={handleChange}
-                placeholder="Université / établissement"
-                disabled={isSaving}
-              />
-              <input
-                className="admin-search-input"
-                name="assigned_department"
-                value={formData.assigned_department}
-                onChange={handleChange}
-                placeholder="Département / filière"
-                disabled={isSaving}
-              />
-            </>
+            <div className="admin-selection-form-grid">
+              <label className="admin-selection-field">
+                <span>Université / établissement</span>
+                <input
+                  className="admin-search-input"
+                  name="university_scope"
+                  value={formData.university_scope}
+                  onChange={handleChange}
+                  disabled={isSaving}
+                />
+              </label>
+              <label className="admin-selection-field">
+                <span>Département / filière</span>
+                <input
+                  className="admin-search-input"
+                  name="assigned_department"
+                  value={formData.assigned_department}
+                  onChange={handleChange}
+                  disabled={isSaving}
+                />
+              </label>
+            </div>
           ) : null}
-          <Button type="submit" className="admin-table-action-button" disabled={isSaving}>
-            {isSaving ? "Enregistrement..." : editingRuleId ? "Mettre à jour" : "Créer la règle"}
-          </Button>
-          {editingRuleId ? (
-            <Button type="button" className="admin-filter-tab" onClick={handleCancelEdit}>
-              Annuler
+          <div className="admin-selection-actions">
+            <Button type="submit" className="admin-table-action-button" disabled={isSaving}>
+              {isSaving ? "Enregistrement..." : editingRuleId ? "Mettre à jour" : "Créer la règle"}
             </Button>
-          ) : null}
+            {editingRuleId ? (
+              <Button type="button" className="admin-filter-tab" onClick={handleCancelEdit}>
+                Annuler
+              </Button>
+            ) : null}
+          </div>
         </form>
       </section>
 
@@ -282,8 +418,10 @@ export default function SelectionRulesAdmin() {
                     <tr key={rule.id}>
                       <td data-label="Filière">{rule.filiere}</td>
                       <td data-label="Moyenne">{rule.moyenne_min}/20</td>
-                      <td data-label="Séries acceptées">{arrayToText(rule.series_acceptees) || "Toutes"}</td>
-                      <td data-label="Documents obligatoires">{arrayToText(rule.documents_obligatoires) || "Aucun"}</td>
+                      <td data-label="Séries acceptées">{renderTags(rule.series_acceptees, "Toutes")}</td>
+                      <td data-label="Documents obligatoires">
+                        {renderTags(rule.documents_obligatoires, "Aucun")}
+                      </td>
                       <td data-label="Périmètre">
                         <div className="admin-table-meta">
                           <span className="admin-table-meta-text">{rule.university_scope || "Global"}</span>

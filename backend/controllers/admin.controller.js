@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import {
   findAdminApplicationById,
   findAdminApplications,
@@ -14,6 +16,7 @@ import {
   evaluateApplicationPreselection,
   findSelectionRules,
 } from "../models/selectionRule.model.js";
+import { resolveUploadedFilePath } from "../middlewares/upload.middleware.js";
 
 const DOCUMENT_TYPES = [
   {
@@ -710,6 +713,56 @@ export async function getAdminDocument(request, response, next) {
   } catch (error) {
     next(error);
   }
+}
+
+async function sendAdminDocumentFile(request, response, next, mode) {
+  try {
+    const document = await findAdminDocumentById(request.params.id, request.user);
+
+    if (!document) {
+      response.status(404).json({
+        success: false,
+        message: "Document introuvable.",
+      });
+      return;
+    }
+
+    let filePath;
+    try {
+      filePath = resolveUploadedFilePath(document.chemin_fichier);
+    } catch (pathError) {
+      pathError.statusCode = 404;
+      throw pathError;
+    }
+
+    if (!fs.existsSync(filePath)) {
+      response.status(404).json({
+        success: false,
+        message: "Fichier introuvable ou inaccessible.",
+      });
+      return;
+    }
+
+    const fileName = path.basename(document.nom_fichier || filePath);
+
+    if (mode === "download") {
+      response.download(filePath, fileName);
+      return;
+    }
+
+    response.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(fileName)}"`);
+    response.sendFile(filePath);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function viewAdminDocumentFile(request, response, next) {
+  return sendAdminDocumentFile(request, response, next, "view");
+}
+
+export async function downloadAdminDocumentFile(request, response, next) {
+  return sendAdminDocumentFile(request, response, next, "download");
 }
 
 export async function updateAdminDocumentStatusController(request, response, next) {

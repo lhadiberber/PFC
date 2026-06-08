@@ -5,7 +5,11 @@ import EmptyState from "../../components/ui/EmptyState";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
 import { clearAuthSession, getApiErrorMessage, getAuthToken } from "../../services/authService";
-import { getAdminDocument, updateAdminDocumentStatus } from "../../services/adminService";
+import {
+  fetchAdminDocumentFile,
+  getAdminDocument,
+  updateAdminDocumentStatus,
+} from "../../services/adminService";
 import { formatAdminDate, formatAdminDateTime } from "../../utils/adminApplications";
 import "../../index.css";
 
@@ -123,6 +127,7 @@ export default function DetailDocumentAdmin() {
   const [documentFeedback, setDocumentFeedback] = useState(null);
   const [reviewComment, setReviewComment] = useState("");
   const [actionLoading, setActionLoading] = useState("");
+  const [pendingReviewStatus, setPendingReviewStatus] = useState("");
 
   useEffect(() => {
     let isActive = true;
@@ -234,7 +239,7 @@ export default function DetailDocumentAdmin() {
 
   const historyEntries = buildHistoryEntries(documentRow);
 
-  const handleReviewAction = async (nextStatus) => {
+  const executeReviewAction = async (nextStatus) => {
     const normalizedReviewComment = reviewComment.trim();
 
     if (nextStatus === "Refuse" && !normalizedReviewComment) {
@@ -243,10 +248,7 @@ export default function DetailDocumentAdmin() {
       return;
     }
 
-    if (!window.confirm(getDocumentConfirmationMessage(nextStatus))) {
-      return;
-    }
-
+    setPendingReviewStatus("");
     setActionLoading(nextStatus);
     setDocumentError("");
     setDocumentFeedback(null);
@@ -279,34 +281,65 @@ export default function DetailDocumentAdmin() {
     }
   };
 
-  const handleOpenFile = () => {
-    if (!documentRow.fileUrl) {
+  const handleReviewAction = (nextStatus) => {
+    const normalizedReviewComment = reviewComment.trim();
+
+    if (nextStatus === "Refuse" && !normalizedReviewComment) {
+      setDocumentFeedback(null);
+      setDocumentError("Veuillez renseigner un motif de refus avant de refuser ce document.");
+      return;
+    }
+
+    setPendingReviewStatus(nextStatus);
+    setDocumentFeedback(null);
+  };
+
+  const handleOpenFile = async () => {
+    if (!documentRow.id) {
       setDocumentFeedback({ type: "error", text: "Fichier indisponible." });
       return;
     }
 
-    const openedWindow = window.open(documentRow.fileUrl, "_blank", "noopener,noreferrer");
-    if (!openedWindow) {
+    try {
+      const file = await fetchAdminDocumentFile(documentRow.id, "view");
+      const openedWindow = window.open(file.objectUrl, "_blank", "noopener,noreferrer");
+      if (!openedWindow) {
+        setDocumentFeedback({
+          type: "error",
+          text: "L'aperçu n'a pas pu s'ouvrir. Utilisez le téléchargement du fichier.",
+        });
+      }
+      window.setTimeout(() => URL.revokeObjectURL(file.objectUrl), 1000);
+    } catch (error) {
       setDocumentFeedback({
         type: "error",
-        text: "L'aperçu n'a pas pu s'ouvrir. Utilisez le téléchargement du fichier.",
+        text: getApiErrorMessage(error, "Fichier introuvable ou inaccessible."),
       });
     }
   };
 
-  const handleDownloadFile = () => {
-    if (!documentRow.fileUrl) {
+  const handleDownloadFile = async () => {
+    if (!documentRow.id) {
       setDocumentFeedback({ type: "error", text: "Fichier indisponible." });
       return;
     }
 
-    const link = window.document.createElement("a");
-    link.href = documentRow.fileUrl;
-    link.download = documentRow.fileName;
-    link.rel = "noreferrer";
-    window.document.body.appendChild(link);
-    link.click();
-    link.remove();
+    try {
+      const file = await fetchAdminDocumentFile(documentRow.id, "download");
+      const link = window.document.createElement("a");
+      link.href = file.objectUrl;
+      link.download = file.fileName || documentRow.fileName;
+      link.rel = "noreferrer";
+      window.document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(file.objectUrl), 1000);
+    } catch (error) {
+      setDocumentFeedback({
+        type: "error",
+        text: getApiErrorMessage(error, "Fichier introuvable ou inaccessible."),
+      });
+    }
   };
 
   return (
@@ -373,6 +406,28 @@ export default function DetailDocumentAdmin() {
             >
               {actionLoading === "En attente" ? "Mise à jour..." : "Remettre en attente"}
             </Button>
+            {pendingReviewStatus ? (
+              <div className="admin-inline-confirm" role="alertdialog" aria-live="polite">
+                <strong>Confirmer la vérification</strong>
+                <p>{getDocumentConfirmationMessage(pendingReviewStatus)}</p>
+                <div className="admin-inline-confirm-actions">
+                  <Button
+                    className="admin-filter-tab"
+                    onClick={() => setPendingReviewStatus("")}
+                    disabled={Boolean(actionLoading)}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    className="admin-table-action-button"
+                    onClick={() => executeReviewAction(pendingReviewStatus)}
+                    disabled={Boolean(actionLoading)}
+                  >
+                    {actionLoading ? "Mise à jour..." : "Confirmer"}
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
@@ -436,7 +491,7 @@ export default function DetailDocumentAdmin() {
                 <div className="admin-document-file-icon">DOC</div>
                 <div className="admin-document-file-copy">
                   <strong>{documentRow.fileName}</strong>
-                  {documentRow.fileUrl ? (
+                  {documentRow.id ? (
                     <div className="admin-document-side-actions admin-document-file-actions">
                       <Button className="admin-table-action-button" onClick={handleOpenFile}>
                         Voir

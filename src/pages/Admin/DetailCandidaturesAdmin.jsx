@@ -16,6 +16,7 @@ import {
   isNetworkUnavailableError,
 } from "../../services/authService";
 import {
+  fetchAdminDocumentFile,
   getAdminApplication,
   updateAdminApplicationStatus as updateAdminApplicationStatusApi,
 } from "../../services/adminService";
@@ -168,6 +169,7 @@ export default function DetailCandidaturesAdmin() {
   const [applicationError, setApplicationError] = useState("");
   const [actionFeedback, setActionFeedback] = useState(null);
   const [statusActionLoading, setStatusActionLoading] = useState("");
+  const [pendingStatusDecision, setPendingStatusDecision] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -360,7 +362,7 @@ export default function DetailCandidaturesAdmin() {
       fileUrl: documentRecord?.file_url || "",
       status: documentRecord?.statut || "",
       documentId: documentRecord?.id ? String(documentRecord.id) : "",
-      provided: Boolean(value || documentRecord?.file_url),
+      provided: Boolean(value || documentRecord?.id || documentRecord?.file_url),
     };
   });
   const providedDocumentsCount = documents.filter((document) => document.provided).length;
@@ -393,11 +395,8 @@ export default function DetailCandidaturesAdmin() {
     "Aucune lettre de motivation n'a été fournie dans cette version de la candidature."
   );
 
-  const handleStatusChange = async (nextStatus) => {
-    if (!window.confirm(getStatusConfirmationMessage(nextStatus))) {
-      return;
-    }
-
+  const executeStatusChange = async (nextStatus) => {
+    setPendingStatusDecision("");
     setStatusActionLoading(nextStatus);
     setApplicationError("");
     setActionFeedback(null);
@@ -436,6 +435,11 @@ export default function DetailCandidaturesAdmin() {
     } finally {
       setStatusActionLoading("");
     }
+  };
+
+  const handleStatusChange = (nextStatus) => {
+    setPendingStatusDecision(nextStatus);
+    setActionFeedback(null);
   };
 
   const handleMetadataSubmit = (event) => {
@@ -493,38 +497,55 @@ export default function DetailCandidaturesAdmin() {
     });
   };
 
-  const handleDocumentAction = (documentItem, mode) => {
+  const handleDocumentAction = async (documentItem, mode) => {
     if (!documentItem.provided) {
       setActionFeedback({ type: "info", text: `${documentItem.label} manquant sur ce dossier.` });
       return;
     }
 
-    if (!documentItem.fileUrl) {
+    if (!documentItem.documentId) {
       setActionFeedback({
-        type: "info",
-        text: `Fichier disponible uniquement sous forme de référence : ${documentItem.value}`,
+        type: "error",
+        text: `Fichier introuvable ou inaccessible : ${documentItem.value || documentItem.label}.`,
       });
       return;
     }
 
-    if (mode === "preview") {
-      const openedWindow = window.open(documentItem.fileUrl, "_blank", "noopener,noreferrer");
-      if (!openedWindow) {
-        setActionFeedback({
-          type: "info",
-          text: "L'aperçu n'a pas pu s'ouvrir. Utilisez le téléchargement du fichier.",
-        });
+    setActionFeedback(null);
+
+    try {
+      const file = await fetchAdminDocumentFile(
+        documentItem.documentId,
+        mode === "preview" ? "view" : "download"
+      );
+
+      if (mode === "preview") {
+        const openedWindow = window.open(file.objectUrl, "_blank", "noopener,noreferrer");
+        if (!openedWindow) {
+          setActionFeedback({
+            type: "info",
+            text: "L'aperçu n'a pas pu s'ouvrir. Utilisez le téléchargement du fichier.",
+          });
+        }
+        window.setTimeout(() => URL.revokeObjectURL(file.objectUrl), 1000);
+        return;
       }
+
+      const link = window.document.createElement("a");
+      link.href = file.objectUrl;
+      link.download = file.fileName || documentItem.value || documentItem.label;
+      link.rel = "noreferrer";
+      window.document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(file.objectUrl), 1000);
+    } catch (error) {
+      setActionFeedback({
+        type: "error",
+        text: getApiErrorMessage(error, "Fichier introuvable ou inaccessible."),
+      });
       return;
     }
-
-    const link = window.document.createElement("a");
-    link.href = documentItem.fileUrl;
-    link.download = documentItem.value || documentItem.label;
-    link.rel = "noreferrer";
-    window.document.body.appendChild(link);
-    link.click();
-    link.remove();
   };
 
   return (
@@ -632,6 +653,28 @@ export default function DetailCandidaturesAdmin() {
             >
               {statusActionLoading === "En attente" ? "Mise à jour..." : "Mettre en attente"}
             </Button>
+            {pendingStatusDecision ? (
+              <div className="admin-inline-confirm" role="alertdialog" aria-live="polite">
+                <strong>Confirmer la décision</strong>
+                <p>{getStatusConfirmationMessage(pendingStatusDecision)}</p>
+                <div className="admin-inline-confirm-actions">
+                  <Button
+                    className="admin-filter-tab"
+                    onClick={() => setPendingStatusDecision("")}
+                    disabled={Boolean(statusActionLoading)}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    className="admin-table-action-button"
+                    onClick={() => executeStatusChange(pendingStatusDecision)}
+                    disabled={Boolean(statusActionLoading)}
+                  >
+                    {statusActionLoading ? "Mise à jour..." : "Confirmer"}
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

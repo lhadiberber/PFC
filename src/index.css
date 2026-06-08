@@ -467,7 +467,234 @@ button:disabled,
   background: rgba(37, 99, 235, .1);
 }
 
+.admin-inline-confirm {
+  width: 100%;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 12px 14px;
+  color: var(--color-primary);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.admin-inline-confirm strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.admin-inline-confirm p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-inline-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.admin-layout.theme-dark .admin-inline-confirm {
+  background: rgba(15, 23, 42, .88);
+  border-color: rgba(0, 201, 177, .28);
+}
+
+.admin-layout.theme-dark .admin-inline-confirm p {
+  color: #cbd5e1;
+}
+
+.admin-selection-form {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-selection-form-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.4fr) minmax(180px, .8fr);
+  gap: 14px;
+}
+
+.admin-selection-field {
+  display: grid;
+  gap: 7px;
+}
+
+.admin-selection-field > span {
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-selection-field select.admin-search-input {
+  min-height: 46px;
+  height: 46px;
+  padding: 0 40px 0 13px;
+  line-height: 46px;
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.admin-selection-field input.admin-search-input {
+  min-height: 46px;
+  height: 46px;
+  padding: 0 13px;
+  line-height: 46px;
+}
+
+.admin-selection-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.admin-selection-fieldset legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-selection-fieldset legend em {
+  border-radius: 999px;
+  background: rgba(0, 201, 177, .12);
+  color: #0f766e;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  padding: 2px 8px;
+}
+
+.admin-selection-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(160px, 1fr));
+  gap: 9px;
+}
+
+.admin-selection-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-height: 42px;
+  padding: 10px 11px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+
+.admin-selection-checkbox:hover {
+  border-color: rgba(0, 201, 177, .55);
+  background: rgba(0, 201, 177, .04);
+}
+
+.admin-selection-checkbox:has(input:checked) {
+  border-color: rgba(0, 201, 177, .75);
+  background: rgba(0, 201, 177, .08);
+  box-shadow: inset 3px 0 0 #00C9B1;
+}
+
+.admin-selection-checkbox input {
+  width: 15px;
+  height: 15px;
+  margin-top: 1px;
+  accent-color: #00C9B1;
+  flex: 0 0 auto;
+}
+
+.admin-selection-fieldset-note {
+  margin: 10px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.admin-selection-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.admin-selection-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 360px;
+}
+
+.admin-selection-tag {
+  border: 1px solid rgba(0, 201, 177, .25);
+  border-radius: 999px;
+  background: rgba(0, 201, 177, .08);
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.2;
+  padding: 4px 8px;
+}
+
+.admin-selection-muted {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.admin-layout.theme-dark .admin-selection-field > span {
+  color: #e2e8f0;
+}
+
+.admin-layout.theme-dark .admin-selection-fieldset {
+  background: rgba(15, 23, 42, .72);
+  border-color: rgba(148, 163, 184, .24);
+}
+
+.admin-layout.theme-dark .admin-selection-checkbox {
+  background: rgba(15, 23, 42, .72);
+  border-color: rgba(148, 163, 184, .22);
+  color: #e2e8f0;
+}
+
+.admin-layout.theme-dark .admin-selection-checkbox:hover,
+.admin-layout.theme-dark .admin-selection-checkbox:has(input:checked) {
+  background: rgba(0, 201, 177, .12);
+  border-color: rgba(0, 201, 177, .5);
+}
+
+.admin-layout.theme-dark .admin-selection-fieldset-note,
+.admin-layout.theme-dark .admin-selection-muted {
+  color: #cbd5e1;
+}
+
 @media (max-width: 768px) {
+  .admin-selection-form-grid,
+  .admin-selection-checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-selection-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-selection-actions > * {
+    width: 100%;
+  }
+
   .campus-hero-actions,
   .student-application-actions,
   .student-dashboard-panel-actions,

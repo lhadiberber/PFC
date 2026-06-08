@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Button from "../../components/ui/Button";
-import CustomSelect from "../../components/ui/CustomSelect";
 import AdminLayout from "../../components/admin/AdminLayout";
 import { formatAdminDate, formatAdminDateTime } from "../../utils/adminApplications";
 import {
@@ -9,6 +8,13 @@ import {
   updateAdminPassword,
   writeStoredAdminProfile,
 } from "../../utils/adminAccount";
+import {
+  clearAuthSession,
+  getApiErrorMessage,
+  getAuthSession,
+  getCurrentUser,
+  saveAuthSession,
+} from "../../services/authService";
 import "../../index.css";
 
 function IconEdit() {
@@ -56,8 +62,8 @@ function buildInitials(firstName, lastName, fullName) {
     .join("");
 }
 
-function readProfileSnapshot() {
-  return readStoredAdminProfile();
+function readProfileSnapshot(account) {
+  return readStoredAdminProfile(account);
 }
 
 function isEmailValid(email) {
@@ -74,8 +80,10 @@ function getPasswordStrength(password) {
 }
 
 export default function ProfilAdmin() {
-  const [profileData, setProfileData] = useState(readProfileSnapshot);
-  const [securityData, setSecurityData] = useState(() => readAdminSecurity());
+  const initialSession = getAuthSession();
+  const [accountUser, setAccountUser] = useState(initialSession?.user || {});
+  const [profileData, setProfileData] = useState(() => readProfileSnapshot(initialSession?.user));
+  const [securityData, setSecurityData] = useState(() => readAdminSecurity(initialSession?.user));
   const [isEditing, setIsEditing] = useState(false);
   const [profileMessage, setProfileMessage] = useState(null);
   const [passwordData, setPasswordData] = useState({
@@ -86,9 +94,56 @@ export default function ProfilAdmin() {
   const [passwordMessage, setPasswordMessage] = useState(null);
 
   useEffect(() => {
+    let isActive = true;
+
+    async function loadAuthenticatedAccount() {
+      const session = getAuthSession();
+
+      if (!session?.token) {
+        return;
+      }
+
+      try {
+        const response = await getCurrentUser(session.token);
+        const user = response.user || response;
+
+        if (!isActive || !user) {
+          return;
+        }
+
+        saveAuthSession({ token: session.token, user });
+        setAccountUser(user);
+        setProfileData(readStoredAdminProfile(user));
+        setSecurityData(readAdminSecurity(user));
+      } catch (error) {
+        if (!isActive) return;
+
+        if (error.status === 401) {
+          clearAuthSession();
+          return;
+        }
+
+        setProfileMessage({
+          type: "error",
+          text: getApiErrorMessage(error, "Impossible de charger le profil administrateur."),
+        });
+      }
+    }
+
+    loadAuthenticatedAccount();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useEffect(() => {
     const syncAccount = () => {
-      setProfileData(readStoredAdminProfile());
-      setSecurityData(readAdminSecurity());
+      const session = getAuthSession();
+      const user = session?.user || accountUser;
+      setAccountUser(user);
+      setProfileData(readStoredAdminProfile(user));
+      setSecurityData(readAdminSecurity(user));
     };
 
     window.addEventListener("admin:preferences-updated", syncAccount);
@@ -100,7 +155,7 @@ export default function ProfilAdmin() {
       window.removeEventListener("admin:security-updated", syncAccount);
       window.removeEventListener("storage", syncAccount);
     };
-  }, []);
+  }, [accountUser]);
 
   const avatarInitials = useMemo(
     () => buildInitials(profileData.firstName, profileData.lastName, profileData.fullName),
@@ -147,14 +202,14 @@ export default function ProfilAdmin() {
       return;
     }
 
-    const savedProfile = writeStoredAdminProfile(nextProfile);
+    const savedProfile = writeStoredAdminProfile(nextProfile, accountUser);
     setProfileData(savedProfile);
     setIsEditing(false);
     setProfileMessage({ type: "success", text: "Profil administrateur mis à jour." });
   };
 
   const handleResetProfile = () => {
-    setProfileData(readStoredAdminProfile());
+    setProfileData(readStoredAdminProfile(accountUser));
     setIsEditing(false);
     setProfileMessage(null);
   };
@@ -198,7 +253,8 @@ export default function ProfilAdmin() {
 
     const passwordUpdate = updateAdminPassword(
       passwordData.currentPassword,
-      passwordData.newPassword
+      passwordData.newPassword,
+      accountUser
     );
 
     if (!passwordUpdate.success) {
@@ -206,7 +262,7 @@ export default function ProfilAdmin() {
       return;
     }
 
-    setSecurityData(readAdminSecurity());
+    setSecurityData(readAdminSecurity(accountUser));
     setPasswordData({
       currentPassword: "",
       newPassword: "",
@@ -473,30 +529,6 @@ export default function ProfilAdmin() {
                     <strong>{value}</strong>
                   </div>
                 ))}
-              </div>
-            </article>
-
-            <article className="admin-meta-card">
-              <div className="admin-meta-card-header">
-                <div>
-                  <h3>Préférences</h3>
-                  <p>Réglez l'affichage de l'espace admin</p>
-                </div>
-              </div>
-
-              <div className="admin-profile-preferences">
-                <label className="admin-profile-field">
-                  <span>Thème</span>
-                  <CustomSelect
-                    name="themePreference"
-                    value={profileData.themePreference}
-                    onChange={handleProfileChange}
-                    disabled={!isEditing}
-                  >
-                    <option value="light">Clair</option>
-                    <option value="dark">Sombre</option>
-                  </CustomSelect>
-                </label>
               </div>
             </article>
           </aside>
